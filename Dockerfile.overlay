@@ -1,0 +1,4 @@
+FROM dermasync-api
+
+COPY clean_chromadb_extras.py .
+RUN python clean_chromadb_extras.py

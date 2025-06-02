@@ -1,0 +1,26 @@
+# API Core
+fastapi
+uvicorn
+
+# Vetores e LLM
+chromadb[bare]
+sentence-transformers
+torch==2.7.0+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# Google Cloud
+google-cloud-firestore
+google-cloud-storage
+google-ai-generativelanguage==0.6.15
+google-api-core==2.24.2
+google-api-python-client==2.170.0
+google-auth==2.40.2
+google-auth-httplib2==0.2.0
+google-cloud-core==2.4.3
+google-cloud-firestore==2.20.2
+google-generativeai==0.8.5
+
+# Variáveis de ambiente
+python-dotenv
+
+pyyaml

@@ -1,0 +1,16 @@
+@echo off
+echo 🚮 Limpando Docker...
+
+echo 🧼 Removendo containers parados...
+docker container prune -f
+
+echo 🧼 Removendo imagens não utilizadas...
+docker image prune -f
+
+echo 🧼 Removendo volumes não utilizados...
+docker volume prune -f
+
+echo 🧼 Removendo networks não utilizadas...
+docker network prune -f
+
+echo ✅ Docker limpo.

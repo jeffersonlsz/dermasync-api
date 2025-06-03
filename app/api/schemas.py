@@ -2,6 +2,9 @@ from pydantic import BaseModel
 
 SOMEVAR='XYZ'
 
+class RequisicaoRelato(BaseModel):
+    id_relato: str
+
 class ArquivoRequest(BaseModel):
     nome_arquivo: str
 

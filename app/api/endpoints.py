@@ -1,16 +1,50 @@
 from fastapi import APIRouter, HTTPException
-from .schemas import BuscarPorTagsRequest, JornadaPayload, TextoTags, SolucaoRequest, QueryInput, QueryRequest
+from .schemas import BuscarPorTagsRequest, JornadaPayload, TextoTags, SolucaoRequest, QueryInput, QueryRequest, RequisicaoRelato
 from ..llm.gemini import model
 from ..firestore.client import db, increment_function
 import time
 import json
 import datetime
-from app.chroma.ingest_from_jsonl import ingerir_jsonl
 from app.chroma.buscador_segmentos import buscar_segmentos_similares, _buscar_por_tags
+from app.chroma.buscador_tags import contar_tags
 from typing import Literal
 
 
 router = APIRouter()
+
+
+# Caminho fixo do arquivo .jsonl
+ARQUIVO_RELATOS = "app/pipeline/dados/jsonl_enriquecidos/relatos_enriquecidos-20250529.jsonl"
+@router.post("/buscar-relato-completo")
+def buscar_relato_completo(payload: RequisicaoRelato):
+        try:
+                with open(ARQUIVO_RELATOS, "r", encoding="utf-8") as f:
+                    for linha in f:
+                        registro = json.loads(linha.strip())
+                        if registro.get("id_relato") == payload.id_relato:
+                            return {
+                                "id_relato": registro["id_relato"],
+                                "conteudo": registro["conteudo_anon"]
+                            }
+        except FileNotFoundError:
+                    raise HTTPException(status_code=500, detail="Arquivo de relatos não encontrado.")
+        raise HTTPException(status_code=404, detail="Relato não encontrado.")
+
+@router.post("/obter-tags-populares")
+def obter_tags_populares():
+    populares = contar_tags()
+    if not populares:   
+        raise HTTPException(status_code=404, detail="Nenhuma tag popular encontrada.")
+    json_return = {}
+    for tag, freq in populares:
+        tag_formatada = tag.replace("tag_", "").replace("_", " ").title()
+        json_tag = {
+            "tag": tag_formatada,
+            "frequencia": freq
+        }
+        json_return[tag_formatada] = json_tag
+    return {"tags_populares": json_return}
+
 
 @router.post("/buscar-por-tags")
 def buscar_por_tags(req: BuscarPorTagsRequest):
@@ -29,11 +63,6 @@ def consultar_segmentos(req: QueryRequest):
     return {"resultados": resultados}
 
 
-@router.post("/ingerir-relatos")
-def iniciar_ingestao():
-    caminho = "./app/dados/depoimentos_extraidos.jsonl"
-    qtd = ingerir_jsonl(caminho)
-    return {"status": "ok", "quantidade": qtd}
 
 @router.get("/hello")
 async def get_hello():

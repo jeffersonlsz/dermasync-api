@@ -17,7 +17,9 @@ Steps to install and set up the project:
 Instructions on how to use the project:
 ```python
 # Example command
-npm start
+localhost:8000/docs
+
+...and have fun...
 ```
 
 ## Contributing

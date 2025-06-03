@@ -1,15 +1,27 @@
 from fastapi import APIRouter, HTTPException
-from .schemas import JornadaPayload, TextoTags, SolucaoRequest, QueryInput, QueryRequest
+from .schemas import BuscarPorTagsRequest, JornadaPayload, TextoTags, SolucaoRequest, QueryInput, QueryRequest
 from ..llm.gemini import model
 from ..firestore.client import db, increment_function
 import time
 import json
 import datetime
 from app.chroma.ingest_from_jsonl import ingerir_jsonl
-from app.chroma.buscar_segmentos_similares import buscar_segmentos_similares
+from app.chroma.buscador_segmentos import buscar_segmentos_similares, _buscar_por_tags
+from typing import Literal
 
 
 router = APIRouter()
+
+@router.post("/buscar-por-tags")
+def buscar_por_tags(req: BuscarPorTagsRequest):
+    
+    print(f"🔍 Buscando por tags: {req.tags}, modo: {req.modo}, k: {req.k}, log: {req.log}")
+
+    resultados = _buscar_por_tags(tags=req.tags, modo=req.modo, k=req.k, log=req.log)
+    if not resultados:
+        raise HTTPException(status_code=404, detail="Algo deu errado ou não foram encontrados resultados.")
+    #buscar_por_tags(["coceira", "hixizine"], modo="or",  k=5, collection=collection, log=True)
+    return {"resultados": resultados}
 
 @router.post("/consultar-segmentos")
 def consultar_segmentos(req: QueryRequest):

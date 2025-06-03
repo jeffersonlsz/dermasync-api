@@ -12,3 +12,4 @@ app.add_middleware(
 )
 # Incluindo o roteador da API
 app.include_router(api_router)
+

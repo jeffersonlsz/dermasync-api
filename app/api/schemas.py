@@ -8,6 +8,14 @@ class ArquivoRequest(BaseModel):
 class QueryRequest(BaseModel):
     texto: str
     k: int = 5
+#buscar_por_tags(["coceira", "hixizine"], modo="or",  k=5, collection=collection, log=True)
+class BuscarPorTagsRequest(BaseModel):
+    tags: list[str]
+    modo: str = "or"
+    k: int = 5
+    collection_name: str | None = None  # Nome da coleção ChromaDB, se necessário
+    log: bool = False  # Se True, imprime logs de debug
+    
 
 class QueryInput(BaseModel):
     texto: str

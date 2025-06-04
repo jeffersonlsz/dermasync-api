@@ -1,15 +1,14 @@
 import chromadb
-from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
-import unicodedata
-from typing import Literal
+
 # Inicializa ChromaDB persistente
 client = chromadb.PersistentClient(path="./app/db/dermasync_chroma")
 collection = client.get_collection(name="segmentos")
 
 # Modelo de embedding
 model = SentenceTransformer("intfloat/multilingual-e5-base")
-
+import unicodedata
+from typing import Literal
 
 def normalizar_tag(tag: str) -> str:
     tag = unicodedata.normalize("NFD", tag)

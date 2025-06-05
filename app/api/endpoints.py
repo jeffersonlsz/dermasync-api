@@ -123,13 +123,15 @@ async def extrair_tags(req: TextoTags):
 
 @router.post("/processar-jornada")
 async def processar_jornada(jornada: JornadaPayload):
+    import pprint
+    pprint.pprint(f" dados da jornada a ser processada {jornada}")
     doc_id = jornada.id
     ref = db.collection("jornadas").document(doc_id)
 
     try:
         ref.update({
             "statusLLM": "processando",
-            "llm_processamento.inicio": datetime.datetime.utcnow().isoformat()
+            "llm_processamento.inicio": datetime.datetime.now(datetime.timezone.utc).isoformat()
         })
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Documento não encontrado: {e}")
@@ -182,7 +184,7 @@ Retorne somente um JSON puro. Não use ```json ou qualquer formatação de markd
 
         raw = response.text
         print("🔎 RESPOSTA BRUTA DO GEMINI:")
-        print("|"+response.text+"|")
+        print("|"+response.text[:100]+"|")
         raw = response.text.strip()
 
         # Remove bordas de Markdown tipo ```json ... ```
@@ -190,9 +192,15 @@ Retorne somente um JSON puro. Não use ```json ou qualquer formatação de markd
             raw = raw.removeprefix("```json").removesuffix("```").strip()
         elif raw.startswith("```"):
             raw = raw.removeprefix("```").removesuffix("```").strip()
+        print("🔎 RESPOSTA POLIDA DO GEMINI:")
+        print("|"+response.text[:150]+"|")
         data = json.loads(raw)
-
+        print(f"🔎 DADOS EXTRAÍDOS DO GEMINI: {data}")
+        # Retrieve the current value of 'tentativas_llm' and increment by one
+        current_tentativas = ref.get().to_dict().get("tentativas_llm", 0)
+        print(f"🔄 Tentativas LLM atuais: {current_tentativas}")
         ref.update({
+            "tituloRelato": data.get("tituloRelato", "--"),
             "tags_extraidas": data.get("tags", []),
             "microdepoimento": data.get("microdepoimento", ""),
             "intervencoes_mencionadas": data.get("intervencoes", []),
@@ -200,16 +208,15 @@ Retorne somente um JSON puro. Não use ```json ou qualquer formatação de markd
             "llm_processamento.fim": datetime.datetime.utcnow().isoformat(),
             "llm_processamento.duracao_ms": int((fim - inicio) * 1000),
             "ultima_tentativa_llm": datetime.datetime.utcnow().isoformat(),
-            "tentativas_llm": increment_function.Increment(1)
+            "tentativas_llm": current_tentativas + 1
         })
-
+        print(f"✅ Processamento concluído para o documento {doc_id}.")
         return {"status": "ok", "id": doc_id, "duracao_ms": int((fim - inicio) * 1000)}
 
     except Exception as e:
         ref.update({
             "statusLLM": "erro",
             "erro_llm": str(e),
-            "ultima_tentativa_llm": datetime.datetime.utcnow().isoformat(),
-            "tentativas_llm": increment_function.Increment(1)
+            "ultima_tentativa_llm": datetime.datetime.utcnow().isoformat()
         })
         raise HTTPException(status_code=500, detail=f"Erro ao processar LLM: {e}")

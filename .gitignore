@@ -1,9 +1,9 @@
 # Project-specific .gitignore file
-
+.gitignore
 db/dermasync_chroma/
-key.json
+*key.json
 info_dev.md
-
+app/db/*
 
 
 # Byte-compiled / optimized / DLL files

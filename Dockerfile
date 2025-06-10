@@ -27,4 +27,5 @@ RUN chmod -R o+w app/
 EXPOSE 8080
 
 # Command to run the app
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+#docker run -p 8000:8080 -e GOOGLE_APPLICATION_CREDENTIALS=./key.json -e GEMINI_API_KEY=AIzaSyDw-cad3OMvM8sUO6_LqRqLPKOsELhMmy8 -v ./key.json:/app/key.json dermasync-api

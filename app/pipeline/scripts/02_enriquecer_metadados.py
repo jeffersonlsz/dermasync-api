@@ -18,14 +18,16 @@ def salvar_jsonl(lista, caminho_saida):
 
 def gerar_prompt(texto):
     return (
-        "Extraia idade, gênero, principais sintomas, medicamentos e duração do uso. "
+        "Extraia idade, gênero, principais sintomas, regiões do corpo afetadas, medicamentos e duração de uso, produtos naturais e terapias realizadas. "
         "Ignore nomes próprios. Responda apenas em JSON, se não encontrou o dado, preencha com 'ausente':\n"
-        '{"idade": ..., "genero": ..., "sintomas": [...], '
-        '"medicamentos": [{"nome": "...", "frequencia": "...", "duracao": "..."}]}\n\n'
+        '{"idade": ..., "genero": ..., "sintomas": [...], "regioes_afetadas": [...], '
+        '"produtos_naturais": [...], "terapias_realizadas": [...], '
+        '"medicamentos": [{"nome": "...", "frequencia": "...", "duracao": "..."}]}, '
+        '"resumo_descritivo: "aqui é um resumo pequeno sobre o que o texto diz, para servir como titulo e subtitulo"   \n\n'
         f"TEXTO:\n{texto}"
     )
 
-def processar_relatos(relatos, llm):
+def processar_relatos(relatos, llm, src='local-youtube'):
     saida = []
     for item in tqdm(relatos):
 
@@ -45,31 +47,37 @@ def processar_relatos(relatos, llm):
                 "idade": dados.get("idade"),
                 "genero": dados.get("genero"),
                 "sintomas": dados.get("sintomas", []),
+                "regioes_afetadas": dados.get("regioes_afetadas", []),
+                "produtos_naturais": dados.get("produtos_naturais", []),
+                "terapias_realizadas": dados.get("terapias_realizadas", []),
                 "medicamentos": dados.get("medicamentos", []),
-                "conteudo_anon": item["conteudo"],
-                "data_modificacao": item["data_modificacao"]
+                "conteudo": item["conteudo"],
+                "resumo_descritivo" : dados.get("resumo_descritivo", None) or item["resumo_descritivo"],
+                "data_modificacao": item["data_modificacao"],
+                "origem": src,
             })
+
+            if src == 'local-youtube':
+                saida[-1]["link"] = item.get("link", None) 
 
         except Exception as e:
             print(f"❌ Erro no relato {item['nome_arquivo']}: {e}")
     return saida
 MODELO = "gemini"  # Default model
-DIRETORIO_JSONS_BRUTOS = "../dados/jsonl_brutos"
+DIRETORIO_JSONS_BRUTOS = "app/pipeline/dados/jsonl_brutos"
 if __name__ == "__main__":
   
-  
-
     llm = get_llm_client(MODELO)
-    relatos = carregar_jsonl(DIRETORIO_JSONS_BRUTOS + "/relatos-20250529.jsonl")
+    relatos = carregar_jsonl(DIRETORIO_JSONS_BRUTOS + "/relatos-20250609-v.jsonl")
     if not relatos:
         print("❗ Nenhum relato encontrado no arquivo JSONL.")
         exit(1)
     
     
-    resultados = processar_relatos(relatos, llm)
+    resultados = processar_relatos(relatos, llm, 'local-youtube')
 
     hoje = datetime.now().strftime("%Y%m%d")
-    output_path = f"app/pipeline/dados/jsonl_enriquecidos/relatos_enriquecidos-{hoje}.jsonl"
+    output_path = f"app/pipeline/dados/jsonl_enriquecidos/relatos_enriquecidos-{hoje}-v.jsonl"
     #os.makedirs(os.path.dirname(output_path), exist_ok=True)
     salvar_jsonl(resultados, output_path)
     print(f"✅ Arquivo salvo em {output_path}")

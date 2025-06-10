@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from .schemas import BuscarPorTagsRequest, JornadaPayload, TextoTags, SolucaoRequest, QueryInput, QueryRequest, RequisicaoRelato
 from ..llm.gemini import model
-from ..firestore.client import db, increment_function
+from ..firestore.client import db
 import time
 import json
 import datetime
@@ -63,12 +63,6 @@ def consultar_segmentos(req: QueryRequest):
     return {"resultados": resultados}
 
 
-
-@router.get("/hello")
-async def get_hello():
-    return {"message": "hello world"}
-
-
 # Endpoint que gera a solução baseada nos dados do paciente
 @router.post("/gerar-solucao")
 async def gerar_solucao(req: SolucaoRequest):
@@ -84,9 +78,6 @@ async def gerar_solucao(req: SolucaoRequest):
 
     Não precisa dizer que o paciente precisa ir ao médico, nem que a dermatite atópica não tem cura.
     Não precisa incluir informações adicionais, apenas a solução. A resposta deve ser curta e direta, sem rodeios.
-
-    
-
     """
 
     try:
@@ -143,16 +134,13 @@ A seguir está o relato de um paciente com dermatite atópica.
 Idade: {jornada.idade or 'não informada'}
 Sexo: {jornada.sexo or 'não informado'}
 Classificação: {jornada.classificacao or 'não informada'}
-
 Descrição:
 \"\"\"{jornada.descricao}\"\"\"
-
 Com base nesse texto, gere um JSON com os seguintes campos:
-
 {{  
-  "tags": ["palavras-chave ou temas citados no relato"],
+  "tags": ["aqui são palavras-chave. Deve conter temas citados no relato como 'hidratação', 'pomada', 'corticoide', 'alimentação', 'banho morno', 'canabidiol', 'dieta vegana'. Não precisa ser exaustivo, mas deve conter as palavras mais relevantes citadas no relato."],
   "microdepoimento": "uma frase útil e clara que resume a experiência do paciente",
-  "tituloRelato": "um título curto e descritivo do relato, como 'Tratamento com pomada de calêndula'",
+  "tituloRelato": "título curto que resume o relato, como 'Tratamento com pomada de calêndula'. Bem direto ao ponto.",
   "intervencoes": [
     {{
       "nome_comercial": "...",
@@ -170,13 +158,15 @@ Com base nesse texto, gere um JSON com os seguintes campos:
       "nivel_evidencia": "...",
       "origem": "mencionado pelo usuário"
     }}
-  ]
+  ],
+  terapias_realizadas: ["aqui são as terapias realizadas, como autohemoterapia, ozonioterapia etc"],
+  produtos_naturais: ["aqui são os produtos naturais mencionados, como óleos essenciais, fitoterápicos etc"]
+
 }}
 
 Não invente dados. Se algo não estiver claro, use null.
 Retorne somente um JSON puro. Não use ```json ou qualquer formatação de markdown.
 """
-
     try:
         inicio = time.time()
         response = model.generate_content(prompt)
@@ -203,7 +193,10 @@ Retorne somente um JSON puro. Não use ```json ou qualquer formatação de markd
             "tituloRelato": data.get("tituloRelato", "--"),
             "tags_extraidas": data.get("tags", []),
             "microdepoimento": data.get("microdepoimento", ""),
+            "relatoProcessado": data.get("relatoProcessado", ""),
             "intervencoes_mencionadas": data.get("intervencoes", []),
+            "terapias_realizadas": data.get("terapias_realizadas", []),
+            "produtos_naturais": data.get("produtos_naturais", []),
             "statusLLM": "concluido",
             "llm_processamento.fim": datetime.datetime.utcnow().isoformat(),
             "llm_processamento.duracao_ms": int((fim - inicio) * 1000),
@@ -212,7 +205,6 @@ Retorne somente um JSON puro. Não use ```json ou qualquer formatação de markd
         })
         print(f"✅ Processamento concluído para o documento {doc_id}.")
         return {"status": "ok", "id": doc_id, "duracao_ms": int((fim - inicio) * 1000)}
-
     except Exception as e:
         ref.update({
             "statusLLM": "erro",

@@ -2,6 +2,15 @@ from pydantic import BaseModel
 
 SOMEVAR='XYZ'
 
+# integração com mercado livre modelo
+class Produto(BaseModel):
+    titulo: str
+    preco: float
+    link: str
+    thumbnail: str
+    origem: str  # 'mercadolivre', 'amazon', etc.
+
+
 class RequisicaoRelato(BaseModel):
     id_relato: str
 

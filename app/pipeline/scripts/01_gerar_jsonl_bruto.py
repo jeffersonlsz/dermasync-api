@@ -93,30 +93,32 @@ def salvar_jsonl(lista, caminho_saida):
 #D:\workspace_projects_001\fotos_dados\resultados\coleta
 #
 if __name__ == "__main__":
-    """ diretorios = ["D:\\workspace_projects_001\\fotos_dados\\resultados",
-                  "D:\\workspace_projects_001\\fotos_dados\\resultados\depoimentos",
-                  "D:\\workspace_projects_001\\fotos_dados\\resultados\coleta"] """
-    diretorios=["D:\\workspace_projects_001\\fotos_dados\\resultados\\videos_transcripts",]
-    
+    _diretorios = ["D:\\workspace_projects_001\\fotos_dados\\resultados\\videos_transcripts"]
+    diretorios = [
+        {'fonte': 'facebook', 'src_dir': 'D:\\workspace_projects_001\\fotos_dados\\resultados'},
+        {'fonte': 'youtube', 'src_dir': 'D:\\workspace_projects_001\\fotos_dados\\resultados\\videos_transcripts'},
+        {'fonte': 'facebook', 'src_dir': 'D:\\workspace_projects_001\\fotos_dados\\resultados\\depoimentos'},
+        {'fonte': 'coleta', 'src_dir': 'D:\\workspace_projects_001\\fotos_dados\\resultados\\coleta'}
+    ]
     
 
 
     print("📂 Lendo arquivos dos diretórios:", diretorios)
-    registros = processar_diretorios(diretorios, 'local-youtube')
-    print(f"📄 Encontrados {len(registros)} registros nos diretórios.")
-    for i, registro in enumerate(registros):
-        print(f"{i+1:03d} - {registro['id_relato']} - {registro['link']}...")
+    #registros = processar_diretorios(diretorios, 'local-youtube')
+    #print(f"📄 Encontrados {len(registros)} registros nos diretórios.")
+    #for i, registro in enumerate(registros):
+    #    print(f"{i+1:03d} - {registro['id_relato']} - {registro['link']}...")
 
     #print("📂 Lendo documentos do Firestore...")
     #colecao_firestore = "jornadas"
     #registros_firestore = extrair_firestore_documentos(colecao_firestore)
-    hoje = datetime.now().strftime("%Y%m%d")
-    output_path = f"app/pipeline/dados/jsonl_brutos/relatos-{hoje}-v.jsonl"
+    #hoje = datetime.now().strftime("%Y%m%d")
+    #output_path = f"app/pipeline/dados/jsonl_brutos/relatos-{hoje}-v.jsonl"
     #os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     #print(f"💾 Salvando {len(registros) + len(registros_firestore) } registros em {output_path}")
     #salvar_jsonl(registros + registros_firestore, output_path)
-    print(f"💾 Salvando {len(registros)} registros em {output_path}")
-    salvar_jsonl(registros, output_path)
+    #print(f"💾 Salvando {len(registros)} registros em {output_path}")
+    #salvar_jsonl(registros, output_path)
 
-    print("✅ Finalizado com sucesso.")
+    #print("✅ Finalizado com sucesso.")

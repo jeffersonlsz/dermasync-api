@@ -98,7 +98,7 @@ if __name__ == "__main__":
         {'fonte': 'facebook', 'src_dir': 'D:\\workspace_projects_001\\fotos_dados\\resultados'},
         {'fonte': 'youtube', 'src_dir': 'D:\\workspace_projects_001\\fotos_dados\\resultados\\videos_transcripts'},
         {'fonte': 'facebook', 'src_dir': 'D:\\workspace_projects_001\\fotos_dados\\resultados\\depoimentos'},
-        {'fonte': 'coleta', 'src_dir': 'D:\\workspace_projects_001\\fotos_dados\\resultados\\coleta'}
+        {'fonte': 'facebook', 'src_dir': 'D:\\workspace_projects_001\\fotos_dados\\resultados\\coleta'}
     ]
     
 

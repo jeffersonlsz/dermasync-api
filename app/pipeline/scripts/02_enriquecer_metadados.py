@@ -63,11 +63,11 @@ def processar_relatos(relatos, llm, src='local-youtube'):
         except Exception as e:
             print(f"❌ Erro no relato {item['nome_arquivo']}: {e}")
     return saida
-MODELO = "gemini"  # Default model
+NOME_MODELO = "gemini"  # Default model
 DIRETORIO_JSONS_BRUTOS = "app/pipeline/dados/jsonl_brutos"
 if __name__ == "__main__":
   
-    llm = get_llm_client(MODELO)
+    llm = get_llm_client("gemini", NOME_MODELO)
     relatos = carregar_jsonl(DIRETORIO_JSONS_BRUTOS + "/relatos-20250609-v.jsonl")
     if not relatos:
         print("❗ Nenhum relato encontrado no arquivo JSONL.")

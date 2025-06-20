@@ -54,6 +54,9 @@ localhost:8000/docs
 
 ...and have fun...
 ```
+## 🧠 Arquitetura do Projeto DermaSync
+
+<img src="docs/arquitetura-dermasync.png" alt="Arquitetura DermaSync" width="50%" />
 
 ## Contributing
 Guidelines for contributing to the project:

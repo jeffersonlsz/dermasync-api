@@ -1,21 +1,25 @@
 import os
 
+IGNORAR = {'.git', '__pycache__', 'venv', '.idea', '.mypy_cache'}
+
 def listar_estrutura(caminho='.', prefixo=''):
     linhas = []
     for item in sorted(os.listdir(caminho)):
-        if item in ['.git', '__pycache__', 'venv'] or item.startswith('.'):
+        if item in IGNORAR or item.startswith('.'):
             continue
         path = os.path.join(caminho, item)
         linhas.append(f"{prefixo}├── {item}")
         if os.path.isdir(path):
-            linhas += listar_estrutura(path, prefixo + '│   ')
+            # Verifica se o subdiretório está na lista ignorada
+            if os.path.basename(path) not in IGNORAR:
+                linhas += listar_estrutura(path, prefixo + '│   ')
     return linhas
 
 def atualizar_readme():
     estrutura = listar_estrutura('.')
     bloco_inicio = "<!-- ESTRUTURA_INICIO -->"
     bloco_fim = "<!-- ESTRUTURA_FIM -->"
-    
+
     with open("README.md", "r", encoding="utf-8") as f:
         conteudo = f.read()
 

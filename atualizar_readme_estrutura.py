@@ -3,7 +3,7 @@ import os
 def listar_estrutura(caminho='.', prefixo=''):
     linhas = []
     for item in sorted(os.listdir(caminho)):
-        if item in ['.git', '__pycache__'] or item.startswith('.'):
+        if item in ['.git', '__pycache__', 'venv'] or item.startswith('.'):
             continue
         path = os.path.join(caminho, item)
         linhas.append(f"{prefixo}├── {item}")

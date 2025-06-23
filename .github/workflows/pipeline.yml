@@ -26,9 +26,9 @@ jobs:
           pip install -r requirements.txt
           pip install pytest
 
-      - name: Criar arquivo de credenciais do Firebase
+      - name: Criar arquivo de credenciais do Firebase (decodificado de base64)
         run: |
-          echo "${{ secrets.FIREBASE_CREDENTIALS_JSON }}" > $HOME/firebase.json
+          echo "${{ secrets.FIREBASE_CREDENTIALS_BASE64 }}" | base64 --decode > $HOME/firebase.json
         shell: bash
 
       - name: Definir variável GOOGLE_APPLICATION_CREDENTIALS

@@ -12,34 +12,47 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout do código
-      uses: actions/checkout@v4
+      - name: Checkout do código
+        uses: actions/checkout@v4
 
-    - name: Configurar Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    - name: Instalar dependências
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
 
-    - name: Rodar os testes
-      run: pytest
+      - name: Verificar se a variável GEMINI_API_KEY foi passada
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "❌ Variável GEMINI_API_KEY não está definida!"
+            exit 1
+          else
+            echo "✅ Variável GEMINI_API_KEY está definida (valor oculto por segurança)"
+          fi
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-    - name: Atualizar README com estrutura de diretórios
-      run: python atualizar_readme_estrutura.py
-      env: 
-           GEMINI_API_KEY: ${{secrets.GEMINI_API_KEY}}
+      - name: Rodar os testes
+        run: pytest
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-    - name: Commit e push se README.md mudou
-      run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@users.noreply.github.com"
-        git add README.md
-        git diff --quiet && echo "Sem mudanças" || git commit -m "Atualizar estrutura do projeto no README [bot]"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Atualizar README com estrutura de diretórios
+        run: python atualizar_readme_estrutura.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Commit e push se README.md mudou
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@users.noreply.github.com"
+          git add README.md
+          git diff --quiet && echo "Sem mudanças" || git commit -m "Atualizar estrutura do projeto no README [bot]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

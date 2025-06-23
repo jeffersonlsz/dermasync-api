@@ -31,6 +31,8 @@ jobs:
 
     - name: Atualizar README com estrutura de diretórios
       run: python atualizar_readme_estrutura.py
+      env: 
+           GEMINI_API_KEY: ${{secrets.GEMINI_API_KEY}}
 
     - name: Commit e push se README.md mudou
       run: |

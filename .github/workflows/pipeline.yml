@@ -26,6 +26,14 @@ jobs:
           pip install -r requirements.txt
           pip install pytest
 
+      - name: Criar arquivo de credenciais do Firebase
+        run: |
+          echo "${{ secrets.FIREBASE_CREDENTIALS_JSON }}" > $HOME/firebase.json
+        shell: bash
+
+      - name: Definir variável GOOGLE_APPLICATION_CREDENTIALS
+        run: echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase.json" >> $GITHUB_ENV
+
       - name: Verificar se a variável GEMINI_API_KEY foi passada
         run: |
           if [ -z "$GEMINI_API_KEY" ]; then

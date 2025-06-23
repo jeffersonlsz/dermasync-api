@@ -1,6 +1,6 @@
 import os
 
-IGNORAR = {'.git', '__pycache__', 'venv', '.idea', '.mypy_cache'}
+IGNORAR = {'.git', '__pycache__', 'venv/', '.idea', '.mypy_cache'}
 
 def listar_estrutura(caminho='.', prefixo=''):
     linhas = []

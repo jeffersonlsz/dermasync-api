@@ -23,6 +23,9 @@ google-generativeai==0.8.5
 # Firebase
 firebase_admin
 
+# asyncio operations
+pytest-asyncio
+
 # Variáveis de ambiente
 python-dotenv
 python-multipart

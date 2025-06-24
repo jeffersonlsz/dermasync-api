@@ -27,6 +27,7 @@ def print_directory_tree(start_path='.', ignore_patterns=None, indent='', prefix
         should_ignore = False
         for pattern in ignore_patterns:
             if fnmatch.fnmatch(item.name, pattern) or (item.is_dir() and pattern in item.name):
+                
                 should_ignore = True
                 break
         if not should_ignore:
@@ -63,7 +64,10 @@ def main():
         'venv',         # Ignora diretório venv
         '.git',         # Ignora diretório .git
         'node_modules', # Ignora diretório node_modules
-        '*.log'         # Ignora arquivos de log
+        '*.log',         # Ignora arquivos de log
+        '.pytest_cache', # Ignora diretório de cache do pytest
+        '.vscode', # Ignora diretório de configuração do VSCode
+        'htmlcov', # Ignora diretório de cobertura HTML
     ]
     
     try:

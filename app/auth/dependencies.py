@@ -19,7 +19,7 @@ def mock_user_logado() -> AuthUser:
 def mock_user_admin() -> AuthUser:
     return AuthUser(
         uid="mock_admin_999",
-        email="admin@example.com",
+        email="admin@dermasync.com.br",
         role="admin"
     )
 

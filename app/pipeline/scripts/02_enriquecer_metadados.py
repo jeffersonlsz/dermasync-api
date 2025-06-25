@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from tqdm import tqdm
 
-from llm_client.base import get_llm_client
+from _llm_client.base import get_llm_client
 
 def carregar_jsonl(caminho):
     with open(caminho, "r", encoding="utf-8") as f:

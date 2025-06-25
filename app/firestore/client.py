@@ -1,7 +1,57 @@
-# firestore/client.py
-from google.cloud import firestore
-from ..config import GOOGLE_CLOUD_PROJECT
+# app/firestore/client.py
+import firebase_admin
+from firebase_admin import credentials, firestore, storage
+from functools import lru_cache
+import os
 
-db = firestore.Client()
- 
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+)
+
+logger = logging.getLogger(__name__)
+
+from dotenv import load_dotenv
+load_dotenv()
+
+
+def get_storage_bucket():
+    if not firebase_admin._apps:
+        cred_path = os.getenv("FIREBASE_CREDENTIALS")
+        if cred_path and os.path.exists(cred_path):
+            logger.info(f"Inicializando Firebase Storage com credenciais do arquivo: {cred_path}")
+            cred = credentials.Certificate(cred_path)
+            logger.info("Certifique-se de que o bucket está configurado corretamente no Firebase Console.")
+            firebase_admin.initialize_app(cred, {
+                "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET")  # ex: dermasync.appspot.com
+            })
+        else:
+            firebase_admin.initialize_app(options={
+                "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET")
+            })
+    logger.info(f"Obtendo o bucket de armazenamento do Firebase ... ${os.getenv('FIREBASE_STORAGE_BUCKET')}")
+    return storage.bucket()
+
+@lru_cache
+def get_firestore_client():
+    if not firebase_admin._apps:
+        cred_path = os.getenv("FIREBASE_CREDENTIALS")
+        if cred_path and os.path.exists(cred_path):
+            logger.info(f"Inicializando Firebase com credenciais do arquivo: {cred_path}")
+            cred = credentials.Certificate(cred_path)
+            firebase_admin.initialize_app(cred)
+        else:
+            logger.info("Inicializando Firebase com credenciais implícitas do ambiente (ex: Cloud Run)")
+            firebase_admin.initialize_app()
+    return firestore.client()
+
+def test_firestore_escreve():
+    db = get_firestore_client()
+    doc = {"teste-xyz": True}
+    ref = db.collection("testes_unitarios_xyz").document("teste123")
+    ref.set(doc)
+
+    resultado = ref.get().to_dict()
 

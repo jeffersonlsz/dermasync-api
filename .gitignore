@@ -2,9 +2,11 @@
 .gitignore
 db/dermasync_chroma/
 *key.json
+dermasync-backend.json
 info_dev.md
 app/db/
 tokens.json
+temp_storage/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

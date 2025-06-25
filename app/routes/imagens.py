@@ -1,3 +1,4 @@
+# app/routes/imagens.py
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.services.imagens_service import salvar_imagem, listar_imagens
 from typing import List

@@ -1,3 +1,4 @@
+# app/routes/relatos.py
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
@@ -6,6 +7,9 @@ from app.auth.dependencies import get_current_user
 from app.auth.schemas import AuthUser
 from app.schema.relato import RelatoCompletoInput
 from app.services.relatos_service import listar_relatos
+import json 
+from app.firestore.persistencia import salvar_relato_firestore
+from app.services.imagens_service import salvar_imagem_base64
 
 router = APIRouter(prefix="/relatos", tags=["Relatos"])
 
@@ -20,38 +24,57 @@ async def get_relatos():
 @router.post("/enviar-relato-completo")
 async def enviar_relato(relato: RelatoCompletoInput):
     # Validação do schema já é feita automaticamente pelo Pydantic
-
-    # Validação extra se quiser
-    if not relato.relato_texto.strip():
+    
+    # Validação extra do conteúdo
+    if not relato.conteudo_original.strip():
         raise HTTPException(status_code=400, detail="Relato não pode estar vazio.")
 
-    # Simulação de upload de imagens (depois integraremos Firebase Storage real)
-    imagens_urls = []
-    for i, imagem in enumerate(relato.imagens):
-        nome_arquivo = f"{relato.nome_arquivo}_{i}_{uuid4().hex[:8]}.jpg"
-        path = Path(f"./temp_storage/{nome_arquivo}")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(imagem)  # simulação de escrita da imagem (base64 como texto)
+    # Processamento das imagens (adaptado para o novo schema)
+    imagens_processadas = {
+        "antes": None,
+        "durante": [],
+        "depois": None
+    }
 
-        imagens_urls.append(str(path))  # depois substitui com URL do Storage
+    # Upload imagem 'antes'
+    if relato.imagens.antes:
+        nome = f"{relato.id_relato}/antes_{uuid4().hex[:8]}.jpg"
+        url = salvar_imagem_base64(relato.imagens.antes, nome)
+        imagens_processadas["antes"] = url
 
-    # Criação do documento persistente (mockado)
+    # Upload imagens 'durante'
+    for i, imagem_base64 in enumerate(relato.imagens.durante):
+        nome = f"{relato.id_relato}/durante_{i}_{uuid4().hex[:8]}.jpg"
+        url = salvar_imagem_base64(imagem_base64, nome)
+        imagens_processadas["durante"].append(url)
+
+    # Upload imagem 'depois'
+    if relato.imagens.depois:
+        nome = f"{relato.id_relato}/depois_{uuid4().hex[:8]}.jpg"
+        url = salvar_imagem_base64(relato.imagens.depois, nome)
+        imagens_processadas["depois"] = url
+
+    # Criação do documento persistente
     doc = {
         "id": uuid4().hex,
+        "id_relato": relato.id_relato,
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "relato_texto": relato.relato_texto,
-        "idade": relato.idade_aproximada,
+        "conteudo_original": relato.conteudo_original,
+        "classificacao_etaria": relato.classificacao_etaria,
+        "idade": relato.idade,
         "genero": relato.genero,
         "sintomas": relato.sintomas,
-        "imagens_urls": imagens_urls,
+        "imagens": imagens_processadas,
         "regioes_afetadas": relato.regioes_afetadas
     }
 
-    # Por enquanto, simula persistência
-    Path("./app/pipeline/dados/relatos_recebidos.jsonl").parent.mkdir(parents=True, exist_ok=True)
-    with open("./app/pipeline/dados/relatos_recebidos.jsonl", "a", encoding="utf-8") as f:
-        import json
-        f.write(json.dumps(doc, ensure_ascii=False) + "\n")
+    # Salvar no Firestore
+    doc_id = salvar_relato_firestore(doc)
 
-    return {"status": "sucesso", "id": doc["id"], "imagens": imagens_urls}
+    return {
+        "status": "sucesso",
+        "id": doc["id"],
+        "imagens": imagens_processadas,
+        "document_id": doc_id  # Retorna o ID do documento salvo
+    }
     

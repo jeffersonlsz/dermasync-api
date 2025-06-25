@@ -2,13 +2,13 @@ from fastapi import APIRouter, Request
 import httpx
 from urllib.parse import urlencode
 
-from .services.mercadolivre import buscar_produtos_mercadolivre
+from .services.mercadolivre.mercadolivre import buscar_produtos_mercadolivre
 from .schemas import Produto
 
 router = APIRouter()
 
 CLIENT_ID = "2405638697930169"
-CLIENT_SECRET = "TtZvgdVjAeZ3DFQrSzX0BsEpD0zN0gIP"
+CLIENT_SECRET = "deprecated"
 REDIRECT_URI = "https://www.dermasync.com.br/callback"
 
 @router.get("/callback")

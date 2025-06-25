@@ -43,6 +43,8 @@ async def test_gerar_jsonl_bruto_formato_valido():
         assert isinstance(dado, dict), "O dado deve ser um objeto JSON."
         assert "id_relato" in dado
         assert "origem" in dado
+        assert "versao_pipeline" in dado
+        assert "plataforma" in dado["origem"]
         assert "data_modificacao" in dado
         assert "conteudo_original" in dado or "conteudo" in dado
 

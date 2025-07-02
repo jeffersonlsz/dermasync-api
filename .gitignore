@@ -7,7 +7,7 @@ info_dev.md
 app/db/
 tokens.json
 temp_storage/
-
+report.json
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

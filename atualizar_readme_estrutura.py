@@ -51,7 +51,7 @@ def gerar_resumo_tecnico():
 
 # 4. Atualiza o README com a nova estrutura
 def atualizar_readme():
-    titulo = "# 🌱 Projeto DermaSync – Estrutura Atualizada\n"
+    titulo = "# 🌱 Projeto DermaSync\n"
     imagem_arquitetura = "![Arquitetura DermaSync](docs/arquitetura-dermasync.png)\n"
     print("📝 Atualizando README.md com a nova estrutura...")
     arvore = gerar_estrutura('.', ignore_patterns=[        '*.pyc',        # Ignora arquivos .pyc
@@ -95,18 +95,22 @@ def atualizar_readme():
 
     novo_conteudo = f"""{titulo}
 
+DermaSync é uma API de código aberto para auxiliar no diagnóstico e tratamento de dermatite atópica, utilizando inteligência artificial para analisar relatos de pacientes e sugerir soluções personalizadas.
+
+## 📖 Sumário
+
+{resumo}
+
 ## 📁 Estrutura de Pastas
 ```text
 {arvore}
 ```
-{resumo}
-
-🕓 Última atualização automática: {datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")}
 
 ## 📜 Detalhes do Projet
 # 🌱 Projeto DermaSync – Estrutura Atualizada
 {imagem_arquitetura}
-
+## 📝 Atualização do README
+🕓 Última atualização automática: {datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")}
 """
 
     README.write_text(novo_conteudo, encoding="utf-8")

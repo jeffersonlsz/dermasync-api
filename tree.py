@@ -4,57 +4,43 @@ import fnmatch
 
 def print_directory_tree(start_path='.', ignore_patterns=None, indent='', prefix=''):
     """
-    Imprime a árvore de diretórios a partir do caminho especificado, ignorando padrões fornecidos.
-    
-    Args:
-        start_path (str): Caminho inicial (padrão: diretório atual)
-        ignore_patterns (list): Lista de padrões para ignorar (ex: ['*.pyc', 'venv'])
-        indent (str): String de indentação para controle visual
-        prefix (str): Prefixo para cada linha da árvore
+    Retorna a árvore de diretórios a partir do caminho especificado, ignorando padrões fornecidos.
     """
     if ignore_patterns is None:
         ignore_patterns = []
-    
-    # Converte o caminho para Path object
+
     start_path = Path(start_path).resolve()
-    
-    # Lista para armazenar itens do diretório
     items = []
-    
-    # Coleta todos os itens do diretório
+
     for item in start_path.iterdir():
-        # Verifica se o item deve ser ignorado
         should_ignore = False
         for pattern in ignore_patterns:
             if fnmatch.fnmatch(item.name, pattern) or (item.is_dir() and pattern in item.name):
-                
                 should_ignore = True
                 break
         if not should_ignore:
             items.append(item)
-    
-    # Ordena itens (diretórios primeiro, depois arquivos)
+
     items.sort(key=lambda x: (not x.is_dir(), x.name.lower()))
-    
-    # Itera sobre os itens
+    lines = []
+
     for index, item in enumerate(items):
         is_last = index == len(items) - 1
-        # Define os conectores da árvore
         connector = '└── ' if is_last else '├── '
-        
-        # Imprime o item atual
-        print(f"{indent}{prefix}{connector}{item.name}")
-        
-        # Se for um diretório, faz a recursão
+        line = f"{indent}{prefix}{connector}{item.name}"
+        lines.append(line)
+
         if item.is_dir():
-            # Define o prefixo para os subitens
             new_prefix = '    ' if is_last else '│   '
-            print_directory_tree(
+            sub_tree = print_directory_tree(
                 start_path=item,
                 ignore_patterns=ignore_patterns,
                 indent=indent + new_prefix,
                 prefix=''
             )
+            lines.extend(sub_tree.splitlines())
+
+    return "\n".join(lines)
 
 def main():
     # Exemplos de padrões a ignorar

@@ -1,14 +1,15 @@
+import time
+from datetime import datetime
+
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
-from datetime import datetime
-import time
 
 from app.core.logger import setup_logger
 from app.firestore.client import check_firebase_storage
 
-
 logger = setup_logger("healthcheck")
 router = APIRouter()
+
 
 @router.get("/healthz")
 async def healthcheck():

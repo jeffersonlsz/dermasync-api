@@ -76,16 +76,15 @@ def get_firestore_client():
             firebase_admin.initialize_app()
     return firestore.client()
 
+
 @lru_cache
 async def check_firebase_storage() -> bool:
     if not firebase_admin._apps:
         cred_path = os.getenv("FIREBASE_CREDENTIALS")
         if cred_path:
             cred = credentials.Certificate(cred_path)
-            firebase_admin.initialize_app(cred, {
-                "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET")
-            })
+            firebase_admin.initialize_app(
+                cred, {"storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET")}
+            )
     bucket = fb_storage.bucket()
     return bucket.exists()
-
-

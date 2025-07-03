@@ -1,5 +1,5 @@
 # app/services/relatos_service.py
-from app.firestore.client import get_firestore_client as db
+from app.firestore.client import get_firestore_client
 
 
 from app.logger_config import configurar_logger_json
@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 async def listar_relatos():
     logger.info("Iniciando a listagem de relatos")
+    db = get_firestore_client()
     try:
         docs = db.collection("relatos").stream()
         resultados = []

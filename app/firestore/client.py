@@ -18,6 +18,9 @@ load_dotenv()
 
 
 def get_storage_bucket():
+    print("DEBUG ENV", os.getenv("FIREBASE_STORAGE_BUCKET"))
+    print("CURRENT DIR", os.getcwd())
+
     if not firebase_admin._apps:
         cred_path = os.getenv("FIREBASE_CREDENTIALS")
         if cred_path and os.path.exists(cred_path):

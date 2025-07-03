@@ -1,0 +1,61 @@
+# Decisão de Projeto: [Nome da Decisão]
+
+* **Data:** [Data da Decisão - ex: 2024-07-30]
+* **Status:** [Proposta/Aprovada/Rejeitada/Obsoleta]
+* **Responsável:** [Nome do Responsável pela Decisão]
+
+## 1. Contexto e Problema
+
+
+
+## 3. Decisão
+
+(venv) PS D:\workspace_projects_001\dermasync-api> gh secret set FIREBASE_STORAGE_BUCKET --body "dermasync-3d14a.firebasestorage.app"
+✓ Set Actions secret FIREBASE_STORAGE_BUCKET for jeffersonlsz/dermasync-api
+(venv) PS D:\workspace_projects_001\dermasync-api> gh secret list
+>>
+NAME                         UPDATED
+FIREBASE_CREDENTIALS         about 8 days ago
+FIREBASE_CREDENTIALS_BASE64  about 9 days ago
+FIREBASE_CREDENTIALS_JSON    about 9 days ago
+FIREBASE_STORAGE_BUCKET      less than a minute ago
+GEMINI_API_KEY               about 9 days ago
+GOOGLE_CLOUD_PROJECT         about 8 days ago
+(venv) PS D:\workspace_projects_001\dermasync-api> 
+
+Prompt: Revise meu workflow pipeline.yml agora. ja setei o secrets
+
+
+
+## 4. Implicações e Consequências
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+
+    steps:
+      ...
+      - name: Rodar os testes
+        run: pytest
+
+      - name: Atualizar README com estrutura de diretórios
+        run: python atualizar_readme_estrutura.py
+
+## 5. Ações a Serem Tomadas
+
+Liste as próximas etapas e as tarefas que precisam ser realizadas como resultado desta decisão.
+
+*   [Tarefa 1] - [Responsável] - [Prazo]
+*   [Tarefa 2] - [Responsável] - [Prazo]
+*   ...
+
+## 6. Referências
+
+Liste quaisquer documentos, links, discussões ou outras fontes que foram usadas para informar esta decisão.
+
+*   [Link para Documento/Discussão 1]
+*   [Link para Documento/Discussão

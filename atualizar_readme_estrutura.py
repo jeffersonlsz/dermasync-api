@@ -9,7 +9,7 @@ README = ROOT / "README.md"
 BACKUP_DIR = ROOT / "docs"  # Onde salvaremos backups
 BACKUP_DIR.mkdir(exist_ok=True)
 
-# 1. Criar backup
+# 1.1 Criar backup
 def criar_backup():
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_path = BACKUP_DIR / f"README_backup_{timestamp}.md"
@@ -18,6 +18,14 @@ def criar_backup():
         print(f"Backup salvo em: {backup_path}")
     else:
         print("README.md original não encontrado.")
+
+# 1.2 Carrega diagrama Mermaid
+def carregar_arquivo_mermaid():
+    path = Path("docs/diagram.mmd")
+    if path.exists():
+        return f"```mermaid\n{path.read_text(encoding='utf-8')}\n```"
+    return "⚠️ Diagrama em texto (Mermaid) não disponível.\n"
+
 
 # 2. Gera estrutura de árvore estilo `tree`
 """ def gerar_estrutura(path=".", prefix=""):
@@ -92,11 +100,20 @@ def atualizar_readme():
     ])
     print(f"🌳 Estrutura de pastas gerada com sucesso. {arvore}")
     resumo = gerar_resumo_tecnico()
-
+    print("🔧 Resumo técnico gerado com sucesso.")
+    diagrama = gerar_diagrama_mermaid()
+    print("📊 Diagrama Mermaid gerado com sucesso.")
+    imagem_diagrama = None  # Inicializa como None
+    # Verifica se o diagrama foi carregado corretamente
+    if diagrama:
+        imagem_diagrama = carregar_imagem_diagrama() # Carrega imagem do diagrama se existir
     novo_conteudo = f"""{titulo}
 
 DermaSync é uma API de código aberto para auxiliar no diagnóstico e tratamento de dermatite atópica, utilizando inteligência artificial para analisar relatos de pacientes e sugerir soluções personalizadas.
 
+## Diagrama Mermaid
+{diagrama}
+{imagem_diagrama}
 ## 📖 Sumário
 
 {resumo}
@@ -115,6 +132,25 @@ DermaSync é uma API de código aberto para auxiliar no diagnóstico e tratament
 
     README.write_text(novo_conteudo, encoding="utf-8")
     print("README.md atualizado com sucesso.")
+
+def carregar_imagem_diagrama():
+    imagem_path = Path("docs/diagram.png")
+    if imagem_path.exists():
+        return f"![Arquitetura DermaSync]({imagem_path.as_posix()})\n"
+    return "⚠️ Diagrama visual ainda não disponível.\n"
+
+def gerar_diagrama_mermaid():
+    """
+    Gera um diagrama Mermaid a partir do arquivo docs/diagram.mmd.
+    """
+    mermaid_diagram = carregar_arquivo_mermaid()
+
+    if mermaid_diagram:
+        print("Diagrama Mermaid carregado com sucesso.")
+        return mermaid_diagram
+    else:
+        print("⚠️ Diagrama Mermaid não encontrado ou vazio.")
+        return ""
 
 # Execução principal
 if __name__ == "__main__":

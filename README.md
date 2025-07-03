@@ -3,6 +3,36 @@
 
 DermaSync é uma API de código aberto para auxiliar no diagnóstico e tratamento de dermatite atópica, utilizando inteligência artificial para analisar relatos de pacientes e sugerir soluções personalizadas.
 
+## Diagrama Mermaid
+```mermaid
+graph TD
+    Frontend["Frontend Web (Vue / Galeria)"]
+    API["FastAPI: /app/api/routes.py"]
+    Auth["/app/auth/*"]
+    RelatosService["Relatos Service"]
+    ImagensService["Imagens Service"]
+    LLMService["LLM (gemini.py)"]
+    PromptLoader["Prompt Loader"]
+    Firestore["Firestore (client.py)"]
+    Chroma["ChromaDB (buscador_segmentos.py)"]
+    Pipeline["Pipeline scripts"]
+    Dados[".jsonl em pipeline/dados"]
+
+    Frontend -->|Envia relato| API
+    API -->|Valida| Auth
+    API --> RelatosService
+    API --> ImagensService
+    RelatosService --> LLMService
+    LLMService --> PromptLoader
+    RelatosService --> Firestore
+    RelatosService --> Chroma
+    Pipeline --> Dados
+    Pipeline --> Chroma
+    Pipeline --> Firestore
+
+```
+![Arquitetura DermaSync](docs/diagram.png)
+
 ## 📖 Sumário
 
 
@@ -122,4 +152,4 @@ DermaSync é uma API de código aberto para auxiliar no diagnóstico e tratament
 ![Arquitetura DermaSync](docs/arquitetura-dermasync.png)
 
 ## 📝 Atualização do README
-🕓 Última atualização automática: 02/07/2025 09:00:49
+🕓 Última atualização automática: 03/07/2025 07:34:47

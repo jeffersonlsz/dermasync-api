@@ -31,6 +31,10 @@ def get_storage_bucket():
                 "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET")  # ex: dermasync.appspot.com
             })
         else:
+            logger.info("Inicializando Firebase Storage com credenciais implícitas do ambiente (ex: Cloud Run)")
+            if not os.getenv("FIREBASE_STORAGE_BUCKET"):
+                raise ValueError("A variável de ambiente FIREBASE_STORAGE_BUCKET não está configurada.")
+            # Inicializa o Firebase sem credenciais explícitas, usando as do ambiente
             firebase_admin.initialize_app(options={
                 "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET")
             })

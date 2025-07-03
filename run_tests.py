@@ -1,22 +1,19 @@
-import subprocess
-import platform
-import os
-import webbrowser
 import json
+import os
+import platform
+import subprocess
+import webbrowser
 
 
 def limpar_relatorios_antigos():
     print("🧹 Limpando relatórios anteriores...")
 
-    paths = [
-        "htmlcov",
-        "report.json",
-        "logs_testes.jsonl"
-    ]
+    paths = ["htmlcov", "report.json", "logs_testes.jsonl"]
 
     for path in paths:
         if os.path.isdir(path):
             import shutil
+
             shutil.rmtree(path)
         elif os.path.isfile(path):
             os.remove(path)
@@ -25,14 +22,17 @@ def limpar_relatorios_antigos():
 def rodar_pytest():
     print("✅ Rodando Pytest com cobertura e relatório JSON...\n")
 
-    result = subprocess.run([
-        "pytest",
-        "--cov=app",
-        "--cov-report=html",
-        "--json-report",
-        "--json-report-file=report.json",
-        "tests/"
-    ], text=True)
+    result = subprocess.run(
+        [
+            "pytest",
+            "--cov=app",
+            "--cov-report=html",
+            "--json-report",
+            "--json-report-file=report.json",
+            "tests/",
+        ],
+        text=True,
+    )
 
     return result.returncode
 
@@ -62,7 +62,9 @@ def mostrar_resumo_teste():
         print(f"   🧪 Total:     {summary.get('total', 0)}")
 
         if summary.get("failed", 0) > 0:
-            print("\n🚨 Alguns testes falharam. Verifique detalhes no report.json e logs_testes.jsonl")
+            print(
+                "\n🚨 Alguns testes falharam. Verifique detalhes no report.json e logs_testes.jsonl"
+            )
 
     except Exception as e:
         print(f"⚠️ Erro ao ler report.json: {e}")

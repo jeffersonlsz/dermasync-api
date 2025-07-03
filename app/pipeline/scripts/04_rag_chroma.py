@@ -1,16 +1,18 @@
-import chromadb
-import json
-import unicodedata
-import os
 import argparse
-from sentence_transformers import SentenceTransformer
-from _llm_client.base import get_llm_client
+import json
+import os
+import unicodedata
 
+import chromadb
+from _llm_client.base import get_llm_client
+from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
+
 
 def carregar_segmentos(path):
     with open(path, "r", encoding="utf-8") as f:
         return [json.loads(l) for l in f if l.strip()]
+
 
 def inicializar_chroma():
     client = chromadb.PersistentClient(path="./app/db/dermasync_chroma")
@@ -21,12 +23,14 @@ def inicializar_chroma():
         collection = client.get_collection(name="segmentos")
     return collection, client
 
+
 def normalizar_tag(tag: str) -> str:
     # Remove acentos, lowercase, troca espaços por _
     tag = unicodedata.normalize("NFD", tag)
     tag = tag.encode("ascii", "ignore").decode("utf-8")
     tag = tag.lower().strip().replace(" ", "_")
     return tag
+
 
 def expandir_tags(tags_raw) -> dict:
     """
@@ -40,20 +44,15 @@ def expandir_tags(tags_raw) -> dict:
     else:
         tags = []
 
-    return {
-        f"tag_{normalizar_tag(tag)}": True
-        for tag in tags
-    }
+    return {f"tag_{normalizar_tag(tag)}": True for tag in tags}
+
 
 def popular_base(collection, segmentos, embed_model):
     documentos = [s["texto"] for s in segmentos]
 
     metadados = []
     for s in segmentos:
-        metadado_base = {
-            "id_relato": s["id_relato"],
-            "segmento_id": s["segmento_id"]
-        }
+        metadado_base = {"id_relato": s["id_relato"], "segmento_id": s["segmento_id"]}
 
         metadado_tags = expandir_tags(s.get("tags", []))
         metadados.append({**metadado_base, **metadado_tags})
@@ -65,20 +64,19 @@ def popular_base(collection, segmentos, embed_model):
 
     print("📤 Inserindo na base ChromaDB...")
     collection.add(
-        documents=documentos,
-        metadatas=metadados,
-        ids=ids,
-        embeddings=embeddings
+        documents=documentos, metadatas=metadados, ids=ids, embeddings=embeddings
     )
+
 
 def buscar_semelhantes(collection, query, embed_model, k=5):
     q_embedding = embed_model.encode([query])[0]
     results = collection.query(query_embeddings=[q_embedding], n_results=k)
     return results
 
+
 def montar_prompt(pergunta, resultados):
     base = f"""Abaixo, seguem uns trechos de relatos de pessoas dos seus tratamentos para dermatite atópica:\n"""
-    
+
     for i in range(len(resultados["documents"][0])):
         texto = resultados["documents"][0][i]
         base += f"\nTrecho {i+1}: {texto}"
@@ -86,18 +84,20 @@ def montar_prompt(pergunta, resultados):
             E também responda esse questionamento ao final: {pergunta} \n\n"""
     return base
 
+
 DIRETORIO_SEGMENTOS = "app/pipeline/dados/segmentos"
 if __name__ == "__main__":
-    
-    #all-MiniLM-L6-v2
+
+    # all-MiniLM-L6-v2
     embed_model = SentenceTransformer("intfloat/multilingual-e5-base")
     collection, client = inicializar_chroma()
 
-    
     print("⚠️ Recriando base vetorial...")
     client.delete_collection("segmentos")
     collection, _ = inicializar_chroma()
-    segmentos = carregar_segmentos(DIRETORIO_SEGMENTOS + "/" + "segmentos-20250529.jsonl")
+    segmentos = carregar_segmentos(
+        DIRETORIO_SEGMENTOS + "/" + "segmentos-20250529.jsonl"
+    )
     popular_base(collection, segmentos, embed_model)
 
     print("🔍 Buscando casos semelhantes...")

@@ -1,14 +1,19 @@
 # app/services/relatos_service.py
-from app.firestore.client import get_firestore_client
 
+"""
+Este módulo contém os serviços relacionados aos relatos, como listagem e manipulação de dados.
+"""
 
-from app.logger_config import configurar_logger_json
 import logging
+
+from app.firestore.client import get_firestore_client
+from app.logger_config import configurar_logger_json
 
 # Para produção (chame uma vez no início do seu main ou serviço)
 configurar_logger_json()
 
 logger = logging.getLogger(__name__)
+
 
 async def listar_relatos():
     logger.info("Iniciando a listagem de relatos")

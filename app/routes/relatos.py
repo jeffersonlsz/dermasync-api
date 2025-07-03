@@ -1,17 +1,25 @@
 # app/routes/relatos.py
+
+"""
+Este módulo contém os endpoints da API para gerenciamento de relatos.
+"""
+
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
-from fastapi import APIRouter, HTTPException, Depends
+
+from fastapi import APIRouter, Depends, HTTPException
+
 from app.auth.dependencies import get_current_user
 from app.auth.schemas import AuthUser
-from app.schema.relato import RelatoCompletoInput
-from app.services.relatos_service import listar_relatos
-import json 
 from app.firestore.persistencia import salvar_relato_firestore
+from app.schema.relato import RelatoCompletoInput
 from app.services.imagens_service import salvar_imagem_base64
+from app.services.relatos_service import listar_relatos
 
 router = APIRouter(prefix="/relatos", tags=["Relatos"])
+
 
 @router.get("/listar-todos")
 async def get_relatos():
@@ -21,20 +29,17 @@ async def get_relatos():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/enviar-relato-completo")
 async def enviar_relato(relato: RelatoCompletoInput):
     # Validação do schema já é feita automaticamente pelo Pydantic
-    
+
     # Validação extra do conteúdo
     if not relato.conteudo_original.strip():
         raise HTTPException(status_code=400, detail="Relato não pode estar vazio.")
 
     # Processamento das imagens (adaptado para o novo schema)
-    imagens_processadas = {
-        "antes": None,
-        "durante": [],
-        "depois": None
-    }
+    imagens_processadas = {"antes": None, "durante": [], "depois": None}
 
     # Upload imagem 'antes'
     if relato.imagens.antes:
@@ -65,7 +70,7 @@ async def enviar_relato(relato: RelatoCompletoInput):
         "genero": relato.genero,
         "sintomas": relato.sintomas,
         "imagens": imagens_processadas,
-        "regioes_afetadas": relato.regioes_afetadas
+        "regioes_afetadas": relato.regioes_afetadas,
     }
 
     # Salvar no Firestore
@@ -75,6 +80,5 @@ async def enviar_relato(relato: RelatoCompletoInput):
         "status": "sucesso",
         "id": doc["id"],
         "imagens": imagens_processadas,
-        "document_id": doc_id  # Retorna o ID do documento salvo
+        "document_id": doc_id,  # Retorna o ID do documento salvo
     }
-    

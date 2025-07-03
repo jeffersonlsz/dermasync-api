@@ -1,6 +1,8 @@
 import base64
 from io import BytesIO
+
 from PIL import Image
+
 
 def gerar_imagem_fake_base64() -> str:
     # Gera uma imagem RGB simples (100x100)

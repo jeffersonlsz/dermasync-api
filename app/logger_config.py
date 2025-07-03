@@ -1,9 +1,11 @@
-import logging
 import json
+import logging
 import sys
+
 #
-# Para logs diferentes por ambiente (dev, prod, test): use uma variável de ambiente e condicional 
+# Para logs diferentes por ambiente (dev, prod, test): use uma variável de ambiente e condicional
 #
+
 
 class JsonFormatter(logging.Formatter):
     def format(self, record):
@@ -15,7 +17,10 @@ class JsonFormatter(logging.Formatter):
         }
         return json.dumps(log_record, ensure_ascii=False)
 
-def configurar_logger_json(nivel=logging.INFO, para_arquivo=False, nome_arquivo="app.log"):
+
+def configurar_logger_json(
+    nivel=logging.INFO, para_arquivo=False, nome_arquivo="app.log"
+):
     logger = logging.getLogger()
     logger.setLevel(nivel)
     logger.handlers = []  # limpa handlers antigos

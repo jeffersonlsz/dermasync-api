@@ -1,12 +1,15 @@
-import pytest
-import tempfile
-import os
 import json
-from pathlib import Path
-from datetime import datetime
-from app.pipeline.a_extracao_bruta.gerar_jsonl_bruto import gerar_jsonl_bruto  # adapte para seu import real
 import logging
-from jsonschema import validate, ValidationError
+import os
+import tempfile
+from datetime import datetime
+from pathlib import Path
+
+import pytest
+from jsonschema import ValidationError, validate
+
+from app.pipeline.a_extracao_bruta.gerar_jsonl_bruto import \
+    gerar_jsonl_bruto  # adapte para seu import real
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +27,16 @@ async def test_gerar_jsonl_bruto_formato_valido():
         output_path = Path(tmpdir) / "saida.jsonl"
 
         # 2. Chama a função alvo
-        await gerar_jsonl_bruto({
-            'origem': 'facebook',
-            'src_dir': tmpdir,
-            'ctx_id': '1234567890',
-            'grupo': 'Dermatite Atópica Brasil',
-            'tipo': 'comentario'
-        }, output_path=output_path)
+        await gerar_jsonl_bruto(
+            {
+                "origem": "facebook",
+                "src_dir": tmpdir,
+                "ctx_id": "1234567890",
+                "grupo": "Dermatite Atópica Brasil",
+                "tipo": "comentario",
+            },
+            output_path=output_path,
+        )
 
         # 3. Lê o resultado
         assert output_path.exists(), "Arquivo JSONL não foi gerado."
@@ -54,13 +60,18 @@ async def test_gerar_jsonl_bruto_formato_valido():
         assert isinstance(dado["data_modificacao"], str)
         datetime.fromisoformat(dado["data_modificacao"])  # lança erro se inválido
 
+
 @pytest.mark.asyncio
 async def test_valida_schema_jsonl_bruto():
     schema_path = Path("./app/schema/relato_schema.json")
     with open(schema_path, "r") as f:
         schema = json.load(f)
 
-    with open("./app/pipeline/dados/jsonl_brutos/relatos-20250620-facebook-v0.0.1.jsonl", "r", encoding="utf-8") as f:
+    with open(
+        "./app/pipeline/dados/jsonl_brutos/relatos-20250620-facebook-v0.0.1.jsonl",
+        "r",
+        encoding="utf-8",
+    ) as f:
         for linha in f:
             dado = json.loads(linha)
             validate(instance=dado, schema=schema)  # lança erro se inválido

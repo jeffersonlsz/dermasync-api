@@ -1,4 +1,5 @@
 import json
+
 import chromadb
 from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
@@ -6,6 +7,7 @@ from sentence_transformers import SentenceTransformer
 model = SentenceTransformer("intfloat/multilingual-e5-base")
 client = chromadb.PersistentClient(path="./app/chroma_storage")
 collection = client.get_or_create_collection(name="depoimentos")
+
 
 def ingerir_jsonl(caminho_arquivo):
     registros = []
@@ -21,7 +23,9 @@ def ingerir_jsonl(caminho_arquivo):
             ids=[id],
             documents=[texto],
             embeddings=[emb],
-            metadatas=[{"data_modificacao": r["data_modificacao"], "arquivo": r["arquivo"]}],
+            metadatas=[
+                {"data_modificacao": r["data_modificacao"], "arquivo": r["arquivo"]}
+            ],
         )
 
     return len(registros)

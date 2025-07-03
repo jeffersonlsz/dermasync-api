@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.routes import imagens, relatos
 
 app = FastAPI(title="DermaSync API - Backend")
@@ -11,17 +12,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # Incluindo o roteador da API
-#app.include_router(api_router)
+# app.include_router(api_router)
 
 
 app.include_router(imagens.router)
 app.include_router(relatos.router)
 
+
 @app.get("/")
 def home():
     return {"mensagem": "API online."}
-
-
-
-
-

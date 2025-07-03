@@ -1,7 +1,9 @@
-import pytest
-from httpx import AsyncClient, ASGITransport
-from app.main import app
 import logging
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+
+from app.main import app
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +13,7 @@ async def test_logging_com_json():
     logger.info("🔍 Simulando um log estruturado")
     logger.info({"evento": "relato", "resultado": "valido"})
     assert True  # Apenas para garantir que o teste passe
+
 
 @pytest.mark.asyncio
 async def test_get_relatos():
@@ -26,14 +29,9 @@ async def test_get_relatos():
     assert "quantidade" in dados
     assert "dados" in dados
     assert isinstance(dados["dados"], list)
-    
+
     # Valida um documento de exemplo se houver
     if dados["dados"]:
         doc = dados["dados"][0]
         assert "id" in doc
         assert isinstance(doc["id"], str)
-
-
-
-
-

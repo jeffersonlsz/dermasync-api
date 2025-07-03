@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
-from jsonschema import validate, ValidationError
+
+from jsonschema import ValidationError, validate
+
 
 def validar_jsonl(caminho_jsonl, caminho_schema):
     with open(caminho_schema, "r", encoding="utf-8") as f:
@@ -23,6 +25,7 @@ def validar_jsonl(caminho_jsonl, caminho_schema):
         print(f"❌ {len(erros)} erros encontrados:")
         for e in erros:
             print(" -", e)
+
 
 if __name__ == "__main__":
     # Altere conforme necessário

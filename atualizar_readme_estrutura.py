@@ -1,13 +1,16 @@
-import os
 import datetime
+import os
 from pathlib import Path
+
 from tree import print_directory_tree as gerar_estrutura
+
 # Caminho do projeto
 ROOT = Path(__file__).parent
 print(f"🌱 Iniciando atualização do README na pasta: {ROOT}")
 README = ROOT / "README.md"
 BACKUP_DIR = ROOT / "docs"  # Onde salvaremos backups
 BACKUP_DIR.mkdir(exist_ok=True)
+
 
 # 1.1 Criar backup
 def criar_backup():
@@ -18,6 +21,7 @@ def criar_backup():
         print(f"Backup salvo em: {backup_path}")
     else:
         print("README.md original não encontrado.")
+
 
 # 1.2 Carrega diagrama Mermaid
 def carregar_arquivo_mermaid():
@@ -43,6 +47,7 @@ def carregar_arquivo_mermaid():
             tree += gerar_estrutura(full_path, prefix + extension)
     return tree """
 
+
 # 3. Gera resumo técnico automático
 def gerar_resumo_tecnico():
     return """
@@ -57,47 +62,51 @@ def gerar_resumo_tecnico():
 - **Deploy**: Automação com `Dockerfile`, `.bat` scripts e futura integração contínua.
 """
 
+
 # 4. Atualiza o README com a nova estrutura
 def atualizar_readme():
     titulo = "# 🌱 Projeto DermaSync\n"
     imagem_arquitetura = "![Arquitetura DermaSync](docs/arquitetura-dermasync.png)\n"
     print("📝 Atualizando README.md com a nova estrutura...")
-    arvore = gerar_estrutura('.', ignore_patterns=[        '*.pyc',        # Ignora arquivos .pyc
-        '__pycache__', # Ignora diretório __pycache__
-
-        'venv',         # Ignora diretório venv
-        '.git',         # Ignora diretório .git
-        'node_modules', # Ignora diretório node_modules
-        '*.log',         # Ignora arquivos de log
-        '.pytest_cache', # Ignora diretório de cache do pytest
-        '.vscode', # Ignora diretório de configuração do VSCode
-        'htmlcov', # Ignora diretório de cobertura HTML
-        'prompts_privados', # Ignora diretório de prompts privados
-        'temp_storage', # Ignora diretório de armazenamento temporário
-        'static', # Ignora diretório de arquivos estáticos
-        'docs', # Ignora diretório de documentação
-        '__init__.py', # Ignora arquivos __init__.py
-        '__main__.py', # Ignora arquivos __main__.py
-        'app.py', # Ignora o arquivo principal da aplicação
-        'main.py', # Ignora o arquivo principal da aplicação
-        'Procfile', # Ignora o Procfile
-        'requirements.txt', # Ignora o arquivo de requisitos
-        'Dockerfile', # Ignora o Dockerfile
-        'README.md', # Ignora o README.md
-        'run_tests.py', # Ignora o script de execução de testes
-        'tree.py', # Ignora o script de árvore de diretórios
-        'atualizar_readme_estrutura.py', # Ignora o script de atualização do README
-        'firebase_admin_sa.json', # Ignora o arquivo de credenciais do Firebase
-        '.env', # Ignora o arquivo de variáveis de ambiente
-        '.env.example', # Ignora o arquivo de exemplo de variáveis de ambiente
-        '.dockerignore', # Ignora o arquivo .dockerignore
-        '.gitignore', # Ignora o arquivo .gitignore
-        'pytest.ini', # Ignora o arquivo de configuração do pytest
-        'alembic.ini', # Ignora o arquivo de configuração do alembic
-        'alembic', # Ignora o diretório do alembic
-        'migrations', # Ignora o diretório de migrations
-        'instance', # Ignora o])
-    ])
+    arvore = gerar_estrutura(
+        ".",
+        ignore_patterns=[
+            "*.pyc",  # Ignora arquivos .pyc
+            "__pycache__",  # Ignora diretório __pycache__
+            "venv",  # Ignora diretório venv
+            ".git",  # Ignora diretório .git
+            "node_modules",  # Ignora diretório node_modules
+            "*.log",  # Ignora arquivos de log
+            ".pytest_cache",  # Ignora diretório de cache do pytest
+            ".vscode",  # Ignora diretório de configuração do VSCode
+            "htmlcov",  # Ignora diretório de cobertura HTML
+            "prompts_privados",  # Ignora diretório de prompts privados
+            "temp_storage",  # Ignora diretório de armazenamento temporário
+            "static",  # Ignora diretório de arquivos estáticos
+            "docs",  # Ignora diretório de documentação
+            "__init__.py",  # Ignora arquivos __init__.py
+            "__main__.py",  # Ignora arquivos __main__.py
+            "app.py",  # Ignora o arquivo principal da aplicação
+            "main.py",  # Ignora o arquivo principal da aplicação
+            "Procfile",  # Ignora o Procfile
+            "requirements.txt",  # Ignora o arquivo de requisitos
+            "Dockerfile",  # Ignora o Dockerfile
+            "README.md",  # Ignora o README.md
+            "run_tests.py",  # Ignora o script de execução de testes
+            "tree.py",  # Ignora o script de árvore de diretórios
+            "atualizar_readme_estrutura.py",  # Ignora o script de atualização do README
+            "firebase_admin_sa.json",  # Ignora o arquivo de credenciais do Firebase
+            ".env",  # Ignora o arquivo de variáveis de ambiente
+            ".env.example",  # Ignora o arquivo de exemplo de variáveis de ambiente
+            ".dockerignore",  # Ignora o arquivo .dockerignore
+            ".gitignore",  # Ignora o arquivo .gitignore
+            "pytest.ini",  # Ignora o arquivo de configuração do pytest
+            "alembic.ini",  # Ignora o arquivo de configuração do alembic
+            "alembic",  # Ignora o diretório do alembic
+            "migrations",  # Ignora o diretório de migrations
+            "instance",  # Ignora o])
+        ],
+    )
     print(f"🌳 Estrutura de pastas gerada com sucesso. {arvore}")
     resumo = gerar_resumo_tecnico()
     print("🔧 Resumo técnico gerado com sucesso.")
@@ -106,7 +115,9 @@ def atualizar_readme():
     imagem_diagrama = None  # Inicializa como None
     # Verifica se o diagrama foi carregado corretamente
     if diagrama:
-        imagem_diagrama = carregar_imagem_diagrama() # Carrega imagem do diagrama se existir
+        imagem_diagrama = (
+            carregar_imagem_diagrama()
+        )  # Carrega imagem do diagrama se existir
     novo_conteudo = f"""{titulo}
 
 DermaSync é uma API de código aberto para auxiliar no diagnóstico e tratamento de dermatite atópica, utilizando inteligência artificial para analisar relatos de pacientes e sugerir soluções personalizadas.
@@ -133,11 +144,13 @@ DermaSync é uma API de código aberto para auxiliar no diagnóstico e tratament
     README.write_text(novo_conteudo, encoding="utf-8")
     print("README.md atualizado com sucesso.")
 
+
 def carregar_imagem_diagrama():
     imagem_path = Path("docs/diagram.png")
     if imagem_path.exists():
         return f"![Arquitetura DermaSync]({imagem_path.as_posix()})\n"
     return "⚠️ Diagrama visual ainda não disponível.\n"
+
 
 def gerar_diagrama_mermaid():
     """
@@ -151,6 +164,7 @@ def gerar_diagrama_mermaid():
     else:
         print("⚠️ Diagrama Mermaid não encontrado ou vazio.")
         return ""
+
 
 # Execução principal
 if __name__ == "__main__":

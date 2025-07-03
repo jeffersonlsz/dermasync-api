@@ -1,11 +1,12 @@
 # Orquestrador
 # import json
-from pathlib import Path
-from datetime import datetime
-import uuid
-import logging
 import json
+import logging
 import sys
+import uuid
+from datetime import datetime
+from pathlib import Path
+
 print("Current Python path:", sys.path)
 parent_dir = str(Path(__file__).resolve().parent.parent)
 if parent_dir not in sys.path:
@@ -21,16 +22,15 @@ OUTPUT_DIR = Path("app/pipeline/dados/jsonl_enriquecidos")
 JSONL_ENRIQUECIDO = "relatos-20250620-facebook-v0.0.1.enriquecido.jsonl"
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 # === MOCK DE FUNÇÕES DE EXTRAÇÃO ===
 def extrair_idade_e_genero(conteudo: str) -> dict:
     # Substitua isso por chamada real ao LLM
-    return {
-        "idade": 22,
-        "genero": "Feminino",
-        "classificacao_etaria": "Adulto"
-    }
+    return {"idade": 22, "genero": "Feminino", "classificacao_etaria": "Adulto"}
 
 
 def extrair_tags(conteudo: str) -> dict:
@@ -38,7 +38,7 @@ def extrair_tags(conteudo: str) -> dict:
     Extrai sintomas, produtos naturais, terapias realizadas e medicamentos.
     Retorna um dicionário com os campos já prontos para uso direto no JSON final.
     """
-    client = get_llm_client('gemini', MODELO_LLM)
+    client = get_llm_client("gemini", MODELO_LLM)
     logger.info(f"Usando cliente LLM: {client}")
     if not client:
         raise ValueError("Cliente LLM não configurado corretamente.")
@@ -52,13 +52,13 @@ def extrair_tags(conteudo: str) -> dict:
         '  "produtos_naturais": [...],\n'
         '  "terapias_realizadas": [...],\n'
         '  "medicamentos": [\n'
-        "    {\"nome_comercial\": ..., \"frequencia\": ..., \"duracao\": ... }\n"
+        '    {"nome_comercial": ..., "frequencia": ..., "duracao": ... }\n'
         "  ]\n"
         "}\n\n"
         "Ignore nomes próprios e preencha com listas vazias ou 'ausente' se não houver informação.\n\n"
         f"TEXTO:\n{conteudo}"
     )
-    logger.info(f"Enviando prompt para LLM: {prompt}...")  
+    logger.info(f"Enviando prompt para LLM: {prompt}...")
     resposta = client.completar(prompt)
     logger.info(f"Resposta do LLM: {resposta}")
     # Normalização da saída
@@ -81,16 +81,14 @@ def extrair_tags(conteudo: str) -> dict:
         "sintomas": dados.get("sintomas", []),
         "produtos_naturais": dados.get("produtos_naturais", []),
         "terapias_realizadas": dados.get("terapias_realizadas", []),
-        "medicamentos": dados.get("medicamentos", [])
+        "medicamentos": dados.get("medicamentos", []),
     }
 
-
-
- 
 
 def anonimizar_conteudo(conteudo: str) -> str:
     # Aqui você pode aplicar uma lógica de anonimização real, se necessário
     return "conteuddo anonimizado"
+
 
 # === ORQUESTRADOR ===
 def processar_relato(dado: dict) -> dict:
@@ -104,7 +102,9 @@ def processar_relato(dado: dict) -> dict:
         info_basica = extrair_idade_e_genero(conteudo)
         tags = extrair_tags(conteudo)
         logger.info(f"Extração de tags: {tags}")
-        conteudo_anonimizado = anonimizar_conteudo(conteudo)  # Aqui você pode aplicar anonimização real se necessário
+        conteudo_anonimizado = anonimizar_conteudo(
+            conteudo
+        )  # Aqui você pode aplicar anonimização real se necessário
     except Exception as e:
         erro = str(e)
         info_basica = {}
@@ -112,7 +112,7 @@ def processar_relato(dado: dict) -> dict:
 
     fim = datetime.utcnow()
     duracao_ms = int((fim - inicio).total_seconds() * 1000)
-    
+
     enriquecido = {
         **dado,
         **info_basica,
@@ -124,12 +124,13 @@ def processar_relato(dado: dict) -> dict:
             "duracao_ms": duracao_ms,
             "tentativas": tentativas,
             "erro": erro,
-            "modelo": MODELO_LLM
+            "modelo": MODELO_LLM,
         },
-        "status_llm": "concluido" if not erro else "erro"
+        "status_llm": "concluido" if not erro else "erro",
     }
 
     return enriquecido
+
 
 # === EXECUÇÃO ===
 def main():
@@ -140,13 +141,16 @@ def main():
     print(f"📥 Lendo: {input_path}")
     print(f"📤 Salvando enriquecidos em: {output_path}")
 
-    with open(input_path, "r", encoding="utf-8") as fin, open(output_path, "w", encoding="utf-8") as fout:
+    with open(input_path, "r", encoding="utf-8") as fin, open(
+        output_path, "w", encoding="utf-8"
+    ) as fout:
         for linha in fin:
             dado = json.loads(linha)
             enriquecido = processar_relato(dado)
             fout.write(json.dumps(enriquecido, ensure_ascii=False) + "\n")
 
     print("✅ Enriquecimento finalizado.")
+
 
 if __name__ == "__main__":
     main()

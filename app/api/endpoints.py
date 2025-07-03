@@ -1,67 +1,79 @@
 # app/api/endpoints.py
-"""
+""" """
 
-
-"""
-
-from fastapi import APIRouter, HTTPException
-from .schemas import BuscarPorTagsRequest, JornadaPayload, TextoTags, SolucaoRequest, QueryInput, QueryRequest, RequisicaoRelato
-from ..llm.gemini import model
-from ..firestore.client import db
-import time
-import json
 import datetime
-from app.chroma.buscador_segmentos import buscar_segmentos_similares, _buscar_por_tags
-from app.chroma.buscador_tags import contar_tags
+import json
+import time
 from typing import Literal
 
+from fastapi import APIRouter, HTTPException
+
+from app.chroma.buscador_segmentos import (_buscar_por_tags,
+                                           buscar_segmentos_similares)
+from app.chroma.buscador_tags import contar_tags
+
+from ..firestore.client import db
+from ..llm.gemini import model
+from .schemas import (BuscarPorTagsRequest, JornadaPayload, QueryInput,
+                      QueryRequest, RequisicaoRelato, SolucaoRequest,
+                      TextoTags)
 
 router = APIRouter()
 
 
 # Caminho fixo do arquivo .jsonl
-ARQUIVO_RELATOS = "app/pipeline/dados/jsonl_enriquecidos/relatos_enriquecidos-20250529.jsonl"
+ARQUIVO_RELATOS = (
+    "app/pipeline/dados/jsonl_enriquecidos/relatos_enriquecidos-20250529.jsonl"
+)
+
+
 @router.post("/buscar-relato-completo")
 def buscar_relato_completo(payload: RequisicaoRelato):
-        try:
-                with open(ARQUIVO_RELATOS, "r", encoding="utf-8") as f:
-                    for linha in f:
-                        registro = json.loads(linha.strip())
-                        if registro.get("id_relato") == payload.id_relato:
-                            return {
-                                "id_relato": registro["id_relato"],
-                                "conteudo": registro["conteudo_anon"]
-                            }
-        except FileNotFoundError:
-                    raise HTTPException(status_code=500, detail="Arquivo de relatos não encontrado.")
-        raise HTTPException(status_code=404, detail="Relato não encontrado.")
+    try:
+        with open(ARQUIVO_RELATOS, "r", encoding="utf-8") as f:
+            for linha in f:
+                registro = json.loads(linha.strip())
+                if registro.get("id_relato") == payload.id_relato:
+                    return {
+                        "id_relato": registro["id_relato"],
+                        "conteudo": registro["conteudo_anon"],
+                    }
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=500, detail="Arquivo de relatos não encontrado."
+        )
+    raise HTTPException(status_code=404, detail="Relato não encontrado.")
+
 
 @router.post("/obter-tags-populares")
 def obter_tags_populares():
     populares = contar_tags()
-    if not populares:   
+    if not populares:
         raise HTTPException(status_code=404, detail="Nenhuma tag popular encontrada.")
     json_return = {}
     for tag, freq in populares:
         tag_formatada = tag.replace("tag_", "").replace("_", " ").title()
-        json_tag = {
-            "tag": tag_formatada,
-            "frequencia": freq
-        }
+        json_tag = {"tag": tag_formatada, "frequencia": freq}
         json_return[tag_formatada] = json_tag
     return {"tags_populares": json_return}
 
 
 @router.post("/buscar-por-tags")
 def buscar_por_tags(req: BuscarPorTagsRequest):
-    
-    print(f"🔍 Buscando por tags: {req.tags}, modo: {req.modo}, k: {req.k}, log: {req.log}")
+
+    print(
+        f"🔍 Buscando por tags: {req.tags}, modo: {req.modo}, k: {req.k}, log: {req.log}"
+    )
 
     resultados = _buscar_por_tags(tags=req.tags, modo=req.modo, k=req.k, log=req.log)
     if not resultados:
-        raise HTTPException(status_code=404, detail="Algo deu errado ou não foram encontrados resultados.")
-    #buscar_por_tags(["coceira", "hixizine"], modo="or",  k=5, collection=collection, log=True)
+        raise HTTPException(
+            status_code=404,
+            detail="Algo deu errado ou não foram encontrados resultados.",
+        )
+    # buscar_por_tags(["coceira", "hixizine"], modo="or",  k=5, collection=collection, log=True)
     return {"resultados": resultados}
+
 
 @router.post("/consultar-segmentos")
 def consultar_segmentos(req: QueryRequest):
@@ -89,11 +101,11 @@ async def gerar_solucao(req: SolucaoRequest):
     try:
         # Chama a API Gemini
         response = model.generate_content(prompt)
-        return { "resposta": response.text }
+        return {"resposta": response.text}
 
     except Exception as e:
         # Retorna erro amigável se algo falhar
-        return { "erro": str(e) }
+        return {"erro": str(e)}
 
 
 @router.post("/extrair-tags")
@@ -118,18 +130,24 @@ async def extrair_tags(req: TextoTags):
     except Exception as e:
         return {"erro": str(e), "tags": []}
 
+
 @router.post("/processar-jornada")
 async def processar_jornada(jornada: JornadaPayload):
     import pprint
+
     pprint.pprint(f" dados da jornada a ser processada {jornada}")
     doc_id = jornada.id
     ref = db.collection("jornadas").document(doc_id)
 
     try:
-        ref.update({
-            "statusLLM": "processando",
-            "llm_processamento.inicio": datetime.datetime.now(datetime.timezone.utc).isoformat()
-        })
+        ref.update(
+            {
+                "statusLLM": "processando",
+                "llm_processamento.inicio": datetime.datetime.now(
+                    datetime.timezone.utc
+                ).isoformat(),
+            }
+        )
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Documento não encontrado: {e}")
 
@@ -180,7 +198,7 @@ Retorne somente um JSON puro. Não use ```json ou qualquer formatação de markd
 
         raw = response.text
         print("🔎 RESPOSTA BRUTA DO GEMINI:")
-        print("|"+response.text[:100]+"|")
+        print("|" + response.text[:100] + "|")
         raw = response.text.strip()
 
         # Remove bordas de Markdown tipo ```json ... ```
@@ -189,32 +207,36 @@ Retorne somente um JSON puro. Não use ```json ou qualquer formatação de markd
         elif raw.startswith("```"):
             raw = raw.removeprefix("```").removesuffix("```").strip()
         print("🔎 RESPOSTA POLIDA DO GEMINI:")
-        print("|"+response.text[:150]+"|")
+        print("|" + response.text[:150] + "|")
         data = json.loads(raw)
         print(f"🔎 DADOS EXTRAÍDOS DO GEMINI: {data}")
         # Retrieve the current value of 'tentativas_llm' and increment by one
         current_tentativas = ref.get().to_dict().get("tentativas_llm", 0)
         print(f"🔄 Tentativas LLM atuais: {current_tentativas}")
-        ref.update({
-            "tituloRelato": data.get("tituloRelato", "--"),
-            "tags_extraidas": data.get("tags", []),
-            "microdepoimento": data.get("microdepoimento", ""),
-            "relatoProcessado": data.get("relatoProcessado", ""),
-            "intervencoes_mencionadas": data.get("intervencoes", []),
-            "terapias_realizadas": data.get("terapias_realizadas", []),
-            "produtos_naturais": data.get("produtos_naturais", []),
-            "statusLLM": "concluido",
-            "llm_processamento.fim": datetime.datetime.utcnow().isoformat(),
-            "llm_processamento.duracao_ms": int((fim - inicio) * 1000),
-            "ultima_tentativa_llm": datetime.datetime.utcnow().isoformat(),
-            "tentativas_llm": current_tentativas + 1
-        })
+        ref.update(
+            {
+                "tituloRelato": data.get("tituloRelato", "--"),
+                "tags_extraidas": data.get("tags", []),
+                "microdepoimento": data.get("microdepoimento", ""),
+                "relatoProcessado": data.get("relatoProcessado", ""),
+                "intervencoes_mencionadas": data.get("intervencoes", []),
+                "terapias_realizadas": data.get("terapias_realizadas", []),
+                "produtos_naturais": data.get("produtos_naturais", []),
+                "statusLLM": "concluido",
+                "llm_processamento.fim": datetime.datetime.utcnow().isoformat(),
+                "llm_processamento.duracao_ms": int((fim - inicio) * 1000),
+                "ultima_tentativa_llm": datetime.datetime.utcnow().isoformat(),
+                "tentativas_llm": current_tentativas + 1,
+            }
+        )
         print(f"✅ Processamento concluído para o documento {doc_id}.")
         return {"status": "ok", "id": doc_id, "duracao_ms": int((fim - inicio) * 1000)}
     except Exception as e:
-        ref.update({
-            "statusLLM": "erro",
-            "erro_llm": str(e),
-            "ultima_tentativa_llm": datetime.datetime.utcnow().isoformat()
-        })
+        ref.update(
+            {
+                "statusLLM": "erro",
+                "erro_llm": str(e),
+                "ultima_tentativa_llm": datetime.datetime.utcnow().isoformat(),
+            }
+        )
         raise HTTPException(status_code=500, detail=f"Erro ao processar LLM: {e}")

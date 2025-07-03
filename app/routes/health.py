@@ -12,12 +12,18 @@ router = APIRouter()
 
 @router.get("/healthz")
 async def healthcheck():
+    logger.info("Iniciando verificação de saúde do sistema...")
+    """    Endpoint para verificar a saúde do sistema.
+    Retorna o status de serviços críticos como Firebase Storage e ChromaDB.
+    """
+    logger.info("Verificando Firebase Storage e ChromaDB...")
     results = {}
     all_ok = True
 
     # Firebase Storage
     start = time.time()
     try:
+        logger.info("Verificando Firebase Storage...")
         results["firebase_storage"] = await check_firebase_storage()
     except Exception as e:
         logger.error(f"Erro ao verificar Firebase Storage: {e}")

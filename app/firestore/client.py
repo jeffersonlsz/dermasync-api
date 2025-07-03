@@ -4,7 +4,8 @@ import os
 from functools import lru_cache
 
 import firebase_admin
-from firebase_admin import credentials, firestore, storage
+from firebase_admin import credentials, firestore
+from firebase_admin import storage as fb_storage
 
 logging.basicConfig(
     level=logging.INFO,
@@ -55,7 +56,7 @@ def get_storage_bucket():
     logger.info(
         f"Obtendo o bucket de armazenamento do Firebase ... ${os.getenv('FIREBASE_STORAGE_BUCKET')}"
     )
-    return storage.bucket()
+    return fb_storage.bucket()
 
 
 @lru_cache
@@ -75,13 +76,7 @@ def get_firestore_client():
             firebase_admin.initialize_app()
     return firestore.client()
 
-
-from google.cloud import storage
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import storage as fb_storage
-import os
-
+@lru_cache
 async def check_firebase_storage() -> bool:
     if not firebase_admin._apps:
         cred_path = os.getenv("FIREBASE_CREDENTIALS")

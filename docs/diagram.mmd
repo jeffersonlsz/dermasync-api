@@ -1,0 +1,24 @@
+graph TD
+    Frontend["Frontend Web (Vue / Galeria)"]
+    API["FastAPI: /app/api/routes.py"]
+    Auth["/app/auth/*"]
+    RelatosService["Relatos Service"]
+    ImagensService["Imagens Service"]
+    LLMService["LLM (gemini.py)"]
+    PromptLoader["Prompt Loader"]
+    Firestore["Firestore (client.py)"]
+    Chroma["ChromaDB (buscador_segmentos.py)"]
+    Pipeline["Pipeline scripts"]
+    Dados[".jsonl em pipeline/dados"]
+
+    Frontend -->|Envia relato| API
+    API -->|Valida| Auth
+    API --> RelatosService
+    API --> ImagensService
+    RelatosService --> LLMService
+    LLMService --> PromptLoader
+    RelatosService --> Firestore
+    RelatosService --> Chroma
+    Pipeline --> Dados
+    Pipeline --> Chroma
+    Pipeline --> Firestore

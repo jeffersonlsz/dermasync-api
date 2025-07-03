@@ -1,3 +1,9 @@
+# app/api/endpoints.py
+"""
+
+
+"""
+
 from fastapi import APIRouter, HTTPException
 from .schemas import BuscarPorTagsRequest, JornadaPayload, TextoTags, SolucaoRequest, QueryInput, QueryRequest, RequisicaoRelato
 from ..llm.gemini import model

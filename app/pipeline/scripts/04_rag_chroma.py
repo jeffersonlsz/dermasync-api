@@ -4,7 +4,7 @@ import unicodedata
 import os
 import argparse
 from sentence_transformers import SentenceTransformer
-from llm_client.base import get_llm_client
+from _llm_client.base import get_llm_client
 
 from tqdm import tqdm
 

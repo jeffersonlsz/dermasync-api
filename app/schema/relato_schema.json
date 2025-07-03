@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Relato DermaSync",
+  "type": "object",
+  "required": ["id_relato", "origem", "data_modificacao", "conteudo_original", "versao_pipeline"],
+  "properties": {
+    "id_relato": { "type": "string", "minLength": 10 },
+    "versao_pipeline": { "type": "string", "minLength": 3},
+    "origem": {
+      "type": "object",
+          "properties": {
+            "plataforma": {
+              "type": "string",
+              "enum": ["firestore", "facebook", "telegram", "reddit", "whatsapp", "local"]
+            },
+            "link": { "type": ["string", "null"] },
+            "tipo": { "type": ["string", "null"] },
+            "ano_postagem": { "type": ["integer", "null"] },
+            "grupo": { "type": ["string", "null"] }
+      },
+      "required": ["plataforma"]
+    },
+    "data_modificacao": { "type": "string", "format": "date-time" },
+    "conteudo_original": { "type": "string", "minLength": 1 },
+    "conteudo_anonimizado": { "type": ["string", "null"] },
+    "tags_extraidas": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "classificacao_etaria": { "type": "string" },
+    "idade": { "type": ["integer", "string", "null"] },
+    "genero": { "type": ["string", "null"] },
+    "regioes_afetadas": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "sintomas": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "produtos_naturais": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "terapias_realizadas": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "medicamentos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome_comercial": { "type": ["string", "null"] },
+          "principio_ativo": { "type": ["string", "null"] },
+          "frequencia": { "type": ["string", "null"] },
+          "duracao": { "type": ["string", "null"] },
+          "via": { "type": ["string", "null"] },
+          "eficacia_percebida": { "type": ["string", "null"] },
+          "efeitos_colaterais": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["nome_comercial"]
+      }
+    },
+    "intervencoes_extraidas": { "type": "array" },
+    "microdepoimento": { "type": ["string", "null"] },
+    "status_llm": { "type": ["string", "null"] },
+    "llm_processamento": {
+      "type": "object",
+      "properties": {
+        "inicio": { "type": "string", "format": "date-time" },
+        "fim": { "type": "string", "format": "date-time" },
+        "duracao_ms": { "type": "integer" },
+        "tentativas": { "type": "integer" },
+        "erro": { "type": ["string", "null"] }
+      },
+      "required": ["inicio", "fim", "duracao_ms", "tentativas"]
+    },
+    "imagens": {
+      "type": "object",
+      "properties": {
+        "antes": { "type": ["string", "null"] },
+        "durante": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "depois": { "type": ["string", "null"] }
+      }
+    }
+  },
+  "additionalProperties": false
+}

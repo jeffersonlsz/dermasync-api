@@ -76,10 +76,21 @@ def get_firestore_client():
     return firestore.client()
 
 
-def test_firestore_escreve():
-    db = get_firestore_client()
-    doc = {"teste-xyz": True}
-    ref = db.collection("testes_unitarios_xyz").document("teste123")
-    ref.set(doc)
+from google.cloud import storage
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import storage as fb_storage
+import os
 
-    resultado = ref.get().to_dict()
+async def check_firebase_storage() -> bool:
+    if not firebase_admin._apps:
+        cred_path = os.getenv("FIREBASE_CREDENTIALS")
+        if cred_path:
+            cred = credentials.Certificate(cred_path)
+            firebase_admin.initialize_app(cred, {
+                "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET")
+            })
+    bucket = fb_storage.bucket()
+    return bucket.exists()
+
+

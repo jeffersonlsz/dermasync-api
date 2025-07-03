@@ -6,7 +6,7 @@ app = FastAPI()
 app.add_middleware(LogRequestMiddleware)
 
 
-from app.routes import imagens, relatos
+from app.routes import imagens, relatos, health
 
 app = FastAPI(title="DermaSync API - Backend")
 app.add_middleware(
@@ -22,6 +22,7 @@ app.add_middleware(
 
 app.include_router(imagens.router)
 app.include_router(relatos.router)
+app.include_router(health.router)
 
 
 @app.get("/")

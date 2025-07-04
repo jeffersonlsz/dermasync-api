@@ -1,11 +1,24 @@
-import fnmatch
-import os
+"""Module for generating directory tree structures with filtering capabilities."""
+
 from pathlib import Path
+import fnmatch
 
 
 def print_directory_tree(start_path=".", ignore_patterns=None, indent="", prefix=""):
     """
-    Retorna a árvore de diretórios a partir do caminho especificado, ignorando padrões fornecidos.
+    Generate a directory tree structure from the specified path, ignoring provided patterns.
+    
+    Args:
+        start_path: Root directory to start from (default: current directory)
+        ignore_patterns: List of filename patterns to ignore
+        indent: Current indentation level (used internally for recursion)
+        prefix: Prefix for the current line (used internally for recursion)
+    
+    Returns:
+        String representation of the directory tree
+    
+    Raises:
+        OSError: If there are problems accessing the directory structure
     """
     if ignore_patterns is None:
         ignore_patterns = []
@@ -13,16 +26,19 @@ def print_directory_tree(start_path=".", ignore_patterns=None, indent="", prefix
     start_path = Path(start_path).resolve()
     items = []
 
-    for item in start_path.iterdir():
-        should_ignore = False
-        for pattern in ignore_patterns:
-            if fnmatch.fnmatch(item.name, pattern) or (
-                item.is_dir() and pattern in item.name
-            ):
-                should_ignore = True
-                break
-        if not should_ignore:
-            items.append(item)
+    try:
+        for item in start_path.iterdir():
+            should_ignore = False
+            for pattern in ignore_patterns:
+                if fnmatch.fnmatch(item.name, pattern) or (
+                    item.is_dir() and pattern in item.name
+                ):
+                    should_ignore = True
+                    break
+            if not should_ignore:
+                items.append(item)
+    except OSError as e:
+        return f"{indent}{prefix}⚠ Error reading directory: {e}"
 
     items.sort(key=lambda x: (not x.is_dir(), x.name.lower()))
     lines = []
@@ -47,24 +63,25 @@ def print_directory_tree(start_path=".", ignore_patterns=None, indent="", prefix
 
 
 def main():
-    # Exemplos de padrões a ignorar
+    """Main function to demonstrate directory tree generation."""
+    # Examples of patterns to ignore
     ignore_patterns = [
-        "*.pyc",  # Ignora arquivos .pyc
-        "__pycache__",  # Ignora diretório __pycache__
-        "venv",  # Ignora diretório venv
-        ".git",  # Ignora diretório .git
-        "node_modules",  # Ignora diretório node_modules
-        "*.log",  # Ignora arquivos de log
-        ".pytest_cache",  # Ignora diretório de cache do pytest
-        ".vscode",  # Ignora diretório de configuração do VSCode
-        "htmlcov",  # Ignora diretório de cobertura HTML
+        "*.pyc",  # Ignore .pyc files
+        "__pycache__",  # Ignore __pycache__ directory
+        "venv",  # Ignore venv directory
+        ".git",  # Ignore .git directory
+        "node_modules",  # Ignore node_modules directory
+        "*.log",  # Ignore log files
+        ".pytest_cache",  # Ignore pytest cache directory
+        ".vscode",  # Ignore VSCode configuration directory
+        "htmlcov",  # Ignore HTML coverage directory
     ]
 
     try:
-        print(f"Árvore de diretórios para: {Path('.').resolve()}")
-        print_directory_tree(ignore_patterns=ignore_patterns)
-    except Exception as e:
-        print(f"Erro ao gerar a árvore de diretórios: {e}")
+        print(f"Directory tree for: {Path('.').resolve()}")
+        print(print_directory_tree(ignore_patterns=ignore_patterns))
+    except OSError as e:
+        print(f"Error generating directory tree: {e}")
 
 
 if __name__ == "__main__":

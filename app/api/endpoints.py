@@ -12,24 +12,28 @@ from typing import Literal  # Removed since it's unused
 
 from fastapi import APIRouter, HTTPException
 
-from app.chroma.buscador_segmentos import _buscar_por_tags, buscar_segmentos_similares
-from app.chroma.buscador_tags import contar_tags
-from app.firestore.client import db  # Changed from relative to absolute import
-from app.llm.gemini import model
+from app.api.schemas import (
+    QueryInput,
+)  # Kept despite being unused (might be needed for type hints)
 from app.api.schemas import (  # Changed from relative to absolute import
     BuscarPorTagsRequest,
     JornadaPayload,
-    QueryInput,  # Kept despite being unused (might be needed for type hints)
     QueryRequest,
     RequisicaoRelato,
     SolucaoRequest,
     TextoTags,
 )
+from app.chroma.buscador_segmentos import _buscar_por_tags, buscar_segmentos_similares
+from app.chroma.buscador_tags import contar_tags
+from app.firestore.client import db  # Changed from relative to absolute import
+from app.llm.gemini import model
 
 router = APIRouter()
 
 # Caminho fixo do arquivo .jsonl
-ARQUIVO_RELATOS = "app/pipeline/dados/jsonl_enriquecidos/relatos_enriquecidos-20250529.jsonl"
+ARQUIVO_RELATOS = (
+    "app/pipeline/dados/jsonl_enriquecidos/relatos_enriquecidos-20250529.jsonl"
+)
 
 
 @router.post("/buscar-relato-completo")
@@ -65,7 +69,9 @@ def obter_tags_populares():
 
 @router.post("/buscar-por-tags")
 def buscar_por_tags(req: BuscarPorTagsRequest):
-    print(f"🔍 Buscando por tags: {req.tags}, modo: {req.modo}, k: {req.k}, log: {req.log}")
+    print(
+        f"🔍 Buscando por tags: {req.tags}, modo: {req.modo}, k: {req.k}, log: {req.log}"
+    )
 
     resultados = _buscar_por_tags(tags=req.tags, modo=req.modo, k=req.k, log=req.log)
     if not resultados:
@@ -204,10 +210,10 @@ Retorne somente um JSON puro. Não use ```json ou qualquer formatação de markd
         print("|" + response.text[:150] + "|")
         data = json.loads(raw)
         print(f"🔎 DADOS EXTRAÍDOS DO GEMINI: {data}")
-        
+
         current_tentativas = ref.get().to_dict().get("tentativas_llm", 0)
         print(f"🔄 Tentativas LLM atuais: {current_tentativas}")
-        
+
         ref.update(
             {
                 "tituloRelato": data.get("tituloRelato", "--"),

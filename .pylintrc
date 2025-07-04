@@ -6,7 +6,7 @@ jobs=1
 disable=E0401,C0114,C0115,C0116,missing-module-docstring,missing-class-docstring,missing-function-docstring
 
 [FORMAT]
-max-line-length=88
+max-line-length=124
 
 [REPORTS]
 output-format=colorized

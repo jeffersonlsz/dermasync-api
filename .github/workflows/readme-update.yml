@@ -2,7 +2,7 @@ name: Testes e Atualização do README
 
 on:
   push:
-    branches: ["main"]
+    branches: ["mainfra/observability-sprint1", "main"]
   pull_request:
     branches: ["main"]
   workflow_dispatch:

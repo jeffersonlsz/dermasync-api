@@ -4,7 +4,6 @@ import argparse
 import json
 import os
 import re
-
 # Importando o cliente Firestore
 import sys
 import unicodedata

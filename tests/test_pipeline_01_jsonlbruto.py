@@ -8,9 +8,8 @@ from pathlib import Path
 import pytest
 from jsonschema import ValidationError, validate
 
-from app.pipeline.a_extracao_bruta.gerar_jsonl_bruto import (
-    gerar_jsonl_bruto,
-)  # adapte para seu import real
+from app.pipeline.a_extracao_bruta.gerar_jsonl_bruto import \
+    gerar_jsonl_bruto  # adapte para seu import real
 
 logger = logging.getLogger(__name__)
 

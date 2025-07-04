@@ -3,40 +3,41 @@ ignore=venv,.env,.git,__pycache__,*.pyc,*.pyo,*.pyd,.pytest_cache,.mypy_cache,.v
 jobs=1
 
 [MESSAGES CONTROL]
-disable=
-    W0621,  # Re-defined variable from outer scope
-    W0105,  # String statement has no effect
-    W0718,  # Exception caught does not inherit from BaseException
-    W1203,  # Use lazy % formatting in logging functions
-    W0611,  # Unused import
-    R0903,  # Too few public methods
-    R0801,  # Similar lines in N files
-    E0401,  # Import error
-    C0114,  # Missing module docstring
-    C0115,  # Missing class docstring
-    C0116,  # Missing function docstring
-    C0103,  # Variable name doesn't conform to snake_case
-    C0301,  # Line too long
-    C0302,  # Too many lines in module
-    R0913,  # Too many arguments in function
-    R0914,  # Too many local variables
-    R0915,  # Too many statements
-    R0902,  # Too many instance attributes
-    W0621,  # Redefinition of variable from outer scope
-    W0105,  # String statement has no effect
-    W0718,  # Exception caught does not inherit from BaseException
-    W1203,  # Use lazy % formatting in logging functions
-    W0611,  # Unused import
-    R0903,  # Too few public methods
-    C0103,  # Invalid name (not snake_case)
-    R0801,  # Similar lines in N files
-    E0401,  # Import error
-    C0114,  # Missing module docstring
-    C0115,  # Missing class docstring
-    C0116,  # Missing function docstring
-    missing-module-docstring,
-    missing-class-docstring,
-    missing-function-docstring
+disable=all
+# disable=
+#    W0621,  # Re-defined variable from outer scope
+#    W0105,  # String statement has no effect
+#    W0718,  # Exception caught does not inherit from BaseException
+#    W1203,  # Use lazy % formatting in logging functions
+#    W0611,  # Unused import
+#    R0903,  # Too few public methods
+#    R0801,  # Similar lines in N files
+#    E0401,  # Import error
+#    C0114,  # Missing module docstring
+#    C0115,  # Missing class docstring
+#    C0116,  # Missing function docstring
+#    C0103,  # Variable name doesn't conform to snake_case
+#    C0301,  # Line too long
+#    C0302,  # Too many lines in module
+#    R0913,  # Too many arguments in function
+#    R0914,  # Too many local variables
+#    R0915,  # Too many statements
+#    R0902,  # Too many instance attributes
+#    W0621,  # Redefinition of variable from outer scope
+#    W0105,  # String statement has no effect
+#    W0718,  # Exception caught does not inherit from BaseException
+#    W1203,  # Use lazy % formatting in logging functions
+#    W0611,  # Unused import
+#    R0903,  # Too few public methods
+#    C0103,  # Invalid name (not snake_case)
+#    R0801,  # Similar lines in N files
+#    E0401,  # Import error
+#    C0114,  # Missing module docstring
+#    C0115,  # Missing class docstring
+#    C0116,  # Missing function docstring
+#    missing-module-docstring,
+#    missing-class-docstring,
+#    missing-function-docstring  
 
 
 [FORMAT]

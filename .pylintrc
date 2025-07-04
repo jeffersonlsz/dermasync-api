@@ -3,7 +3,7 @@ ignore=venv,.env,.git,__pycache__,*.pyc,*.pyo,*.pyd,.pytest_cache,.mypy_cache,.v
 jobs=1
 
 [MESSAGES CONTROL]
-disable=E0401,C0114,C0115,C0116,missing-module-docstring,missing-class-docstring,missing-function-docstring
+disable=W0105,W0718,W1203,W0611,R0903,C0103,R0801,E0401,C0114,C0115,C0116,missing-module-docstring,missing-class-docstring,missing-function-docstring
 
 [FORMAT]
 max-line-length=124

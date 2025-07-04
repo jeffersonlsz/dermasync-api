@@ -6,7 +6,6 @@ import json
 import logging
 import os
 import re
-
 # Importando o cliente Firestore
 import sys
 import unicodedata

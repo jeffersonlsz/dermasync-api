@@ -2,7 +2,8 @@ import logging
 
 import typer
 
-from app.observabilidade.log_parser import agrupar_por_request_id, carregar_logs
+from app.observabilidade.log_parser import (agrupar_por_request_id,
+                                            carregar_logs)
 from app.observabilidade.mermaid_generator import gerar_mermaid
 
 # Configuração do logger

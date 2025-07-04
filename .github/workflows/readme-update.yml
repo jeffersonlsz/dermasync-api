@@ -32,7 +32,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest black isort
+          
 
       - name: Criar arquivo de credenciais do Firebase (decodificado de base64)
         run: |

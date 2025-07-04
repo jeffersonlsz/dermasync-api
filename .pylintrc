@@ -1,0 +1,21 @@
+[MASTER]
+ignore=venv,.env,.git,__pycache__
+jobs=1
+load-plugins=pylint_flask
+
+[MESSAGES CONTROL]
+disable=C0114,C0115,C0116,missing-module-docstring,missing-class-docstring,missing-function-docstring
+
+[FORMAT]
+max-line-length=88
+
+[REPORTS]
+output-format=colorized
+score=yes
+
+[TYPECHECK]
+ignored-modules=fastapi,uvicorn,colorlog
+
+[DESIGN]
+max-args=8
+max-locals=25

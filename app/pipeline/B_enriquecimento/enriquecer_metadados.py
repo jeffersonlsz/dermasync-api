@@ -5,7 +5,7 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from llm_client.base import get_llm_client
+from ..llm_client.base import get_llm_client
 
 # === CONFIGURAÇÕES ===
 MODELO_LLM = "gemini-2.0-flash"

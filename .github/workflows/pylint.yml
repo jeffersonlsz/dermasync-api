@@ -20,5 +20,5 @@ jobs:
         pip install pylint
     - name: Analysing the code with pylint
       run: |
-        pylint --rcfile=.pylintrc --exit-zero $(find . -type f -name "*.py")
+        pylint --rcfile=.pylintrc --exit-zero $(find app/ -type f -name "*.py")
 

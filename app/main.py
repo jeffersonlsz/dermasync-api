@@ -1,15 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from app.middleware.log_requests import LogRequestMiddleware
-
-app = FastAPI()
-app.add_middleware(LogRequestMiddleware)
-
-
 from app.routes import health, imagens, relatos
 
 app = FastAPI(title="DermaSync API - Backend")
+
+app.add_middleware(LogRequestMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # ou especifique ["https://www.seusite.com"]

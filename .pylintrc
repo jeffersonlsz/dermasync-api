@@ -1,5 +1,5 @@
 [MASTER]
-ignore=venv,.env,.git,__pycache__
+ignore=venv,.env,.git,__pycache__,*.pyc,*.pyo,*.pyd,.pytest_cache,.mypy_cache,.vscode,docs,tests,build,dist,*.egg-info,*.eggs,*.log,*.db,*.sqlite3,.idea,.vscode
 jobs=1
 load-plugins=pylint_flask
 

@@ -1,6 +1,8 @@
 import json
 from datetime import datetime
+
 from .schemas import LogEntry
+
 
 def registrar_log(log_path: str, **kwargs):
     entry = LogEntry(timestamp=datetime.utcnow(), **kwargs)

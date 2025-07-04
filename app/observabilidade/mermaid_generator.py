@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 def gerar_mermaid(fluxo, nome_arquivo="fluxo.mmd"):
     linhas = ["sequenceDiagram"]
     participantes = set()
@@ -7,7 +8,7 @@ def gerar_mermaid(fluxo, nome_arquivo="fluxo.mmd"):
     for log in fluxo:
         participantes.add(log.caller)
         participantes.add(log.callee)
-    
+
     for p in participantes:
         linhas.append(f"    participant {p}")
 

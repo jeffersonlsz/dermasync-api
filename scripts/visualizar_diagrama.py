@@ -20,6 +20,7 @@ TEMPLATE_HTML = """
 </html>
 """
 
+
 def gerar_html(mmd_path: str):
     caminho = Path(mmd_path)
     if not caminho.exists():
@@ -28,12 +29,13 @@ def gerar_html(mmd_path: str):
 
     conteudo = caminho.read_text(encoding="utf-8")
     html = TEMPLATE_HTML.replace("{conteudo}", conteudo)
-    
+
     html_path = caminho.with_suffix(".html")
     html_path.write_text(html, encoding="utf-8")
 
     print(f"[OK] HTML gerado em: {html_path}")
     webbrowser.open(str(html_path.absolute()))
+
 
 if __name__ == "__main__":
     gerar_html("outputs/fluxo_req_001.mmd")

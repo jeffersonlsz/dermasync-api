@@ -1,9 +1,11 @@
 # app/schema/log_entry.py
 # This module defines the schema for log entries in the application.
 
-from pydantic import BaseModel
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel
+
 
 class LogEntry(BaseModel):
     timestamp: datetime

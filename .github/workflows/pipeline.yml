@@ -33,6 +33,27 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest
+          
+      - name: Instalar formatadores (black e isort)
+        run: |
+          pip install black isort
+      - name: Formatar código com black e isort
+        run: |
+          black .
+          isort .
+      - name: Commit e push de ajustes de formatação
+        run: |
+          git config --global user.name "formatter-bot"
+          git config --global user.email "formatter@users.noreply.github.com"
+          git add .
+          if git diff --cached --quiet; then
+            echo "✅ Código já formatado. Nenhum commit necessário."
+          else
+            git commit -m "🧹 Ajustes automáticos de formatação (black + isort)"
+            git push
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Criar arquivo de credenciais do Firebase (decodificado de base64)
         run: |

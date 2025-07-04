@@ -65,9 +65,6 @@ graph TD
 │   │   └── ingest_from_jsonl.py
 │   ├── core
 │   │   └── logger.py
-│   ├── db
-│   │   └── dermasync_chroma
-│   │       └── chroma.sqlite3
 │   ├── firestore
 │   │   ├── client.py
 │   │   └── persistencia.py
@@ -75,17 +72,21 @@ graph TD
 │   │   └── gemini.py
 │   ├── middleware
 │   │   └── log_requests.py
+│   ├── observabilidade
+│   │   ├── exemplos
+│   │   │   └── relato_log.jsonl
+│   │   ├── log_parser.py
+│   │   ├── logger.py
+│   │   ├── mermaid_generator.py
+│   │   └── schemas.py
 │   ├── pipeline
 │   │   ├── a_extracao_bruta
 │   │   │   └── gerar_jsonl_bruto.py
 │   │   ├── B_enriquecimento
-│   │   │   ├── templates
 │   │   │   ├── enriquecer_metadados.py
 │   │   │   ├── extrair_detalhes_terapeuticos.py
 │   │   │   ├── extrair_tags_llm.py
 │   │   │   └── gerar_microdepoimento.py
-│   │   ├── C_segmentacao
-│   │   ├── D_Persistencia_vetores
 │   │   ├── dados
 │   │   │   ├── jsonl_brutos
 │   │   │   │   ├── relatos-20250529.jsonl
@@ -110,7 +111,6 @@ graph TD
 │   │   │   ├── _llm_client
 │   │   │   │   ├── base.py
 │   │   │   │   └── gemini_client.py
-│   │   │   ├── llm_client
 │   │   │   ├── 01_gerar_jsonl_bruto.py
 │   │   │   ├── 02_enriquecer_metadados.py
 │   │   │   ├── 03_segmentar_para_vetores.py
@@ -122,6 +122,7 @@ graph TD
 │   │   ├── imagens.py
 │   │   └── relatos.py
 │   ├── schema
+│   │   ├── log_entry.py
 │   │   ├── relato.py
 │   │   └── relato_schema.json
 │   ├── services
@@ -130,6 +131,11 @@ graph TD
 │   ├── config.py
 │   └── logger_config.py
 ├── logs
+├── outputs
+│   ├── fluxo_req_001.html
+│   └── fluxo_req_001.mmd
+├── scripts
+│   └── visualizar_diagrama.py
 ├── tests
 │   ├── conftest.py
 │   ├── test_auth.py
@@ -142,17 +148,14 @@ graph TD
 │   ├── test_relatos.py
 │   ├── utils.py
 │   └── validar_jsonl.py
-├── .coverage
 ├── .gcloudignore
+├── .pylintrc
 ├── CHANGELOG.md
 ├── clean_docker_cache.bat
 ├── deploy_dermasync_api.bat
-├── dermasync-backend.json
-├── dermasync-key.json
-├── info_dev.md
-├── key.json
-├── test_report.md
-└── tokens.json
+├── gerar_diagrama.py
+├── pylint_report.txt
+└── test_report.md
 ```
 
 ## 📜 Detalhes do Projet
@@ -160,4 +163,4 @@ graph TD
 ![Arquitetura DermaSync](docs/arquitetura-dermasync.png)
 
 ## 📝 Atualização do README
-🕓 Última atualização automática: 03/07/2025 18:49:46
+🕓 Última atualização automática: 04/07/2025 21:24:13

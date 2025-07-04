@@ -13,10 +13,8 @@ from jsonschema import ValidationError, validate
 async def test_integracao_fase_01_e_02():
     from jsonschema import validate
 
-    from app.pipeline.a_extracao_bruta.gerar_jsonl_bruto import \
-        gerar_jsonl_bruto
-    from app.pipeline.B_enriquecimento.enriquecer_metadados import \
-        processar_relato
+    from app.pipeline.a_extracao_bruta.gerar_jsonl_bruto import gerar_jsonl_bruto
+    from app.pipeline.B_enriquecimento.enriquecer_metadados import processar_relato
 
     schema_path = Path("./app/schema/relato_schema.json")
     assert schema_path.exists(), "Schema JSON não encontrado."

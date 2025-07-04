@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.middleware.log_requests import LogRequestMiddleware
 from app.routes import health, imagens, relatos
 

@@ -12,15 +12,20 @@ from typing import Literal
 
 from fastapi import APIRouter, HTTPException
 
-from app.chroma.buscador_segmentos import (_buscar_por_tags,
-                                           buscar_segmentos_similares)
+from app.chroma.buscador_segmentos import _buscar_por_tags, buscar_segmentos_similares
 from app.chroma.buscador_tags import contar_tags
 
 from ..firestore.client import db
 from ..llm.gemini import model
-from .schemas import (BuscarPorTagsRequest, JornadaPayload, QueryInput,
-                      QueryRequest, RequisicaoRelato, SolucaoRequest,
-                      TextoTags)
+from .schemas import (
+    BuscarPorTagsRequest,
+    JornadaPayload,
+    QueryInput,
+    QueryRequest,
+    RequisicaoRelato,
+    SolucaoRequest,
+    TextoTags,
+)
 
 router = APIRouter()
 

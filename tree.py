@@ -1,22 +1,22 @@
 """Module for generating directory tree structures with filtering capabilities."""
 
-from pathlib import Path
 import fnmatch
+from pathlib import Path
 
 
 def print_directory_tree(start_path=".", ignore_patterns=None, indent="", prefix=""):
     """
     Generate a directory tree structure from the specified path, ignoring provided patterns.
-    
+
     Args:
         start_path: Root directory to start from (default: current directory)
         ignore_patterns: List of filename patterns to ignore
         indent: Current indentation level (used internally for recursion)
         prefix: Prefix for the current line (used internally for recursion)
-    
+
     Returns:
         String representation of the directory tree
-    
+
     Raises:
         OSError: If there are problems accessing the directory structure
     """

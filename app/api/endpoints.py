@@ -12,18 +12,11 @@ from typing import Literal  # Removed since it's unused
 
 from fastapi import APIRouter, HTTPException
 
-from app.api.schemas import (
-    QueryInput,
-)  # Kept despite being unused (might be needed for type hints)
-from app.api.schemas import (  # Changed from relative to absolute import
-    BuscarPorTagsRequest,
-    JornadaPayload,
-    QueryRequest,
-    RequisicaoRelato,
-    SolucaoRequest,
-    TextoTags,
-)
-from app.chroma.buscador_segmentos import _buscar_por_tags, buscar_segmentos_similares
+from app.api.schemas import (  # Kept despite being unused (might be needed for type hints); Changed from relative to absolute import
+    BuscarPorTagsRequest, JornadaPayload, QueryInput, QueryRequest,
+    RequisicaoRelato, SolucaoRequest, TextoTags)
+from app.chroma.buscador_segmentos import (_buscar_por_tags,
+                                           buscar_segmentos_similares)
 from app.chroma.buscador_tags import contar_tags
 from app.firestore.client import db  # Changed from relative to absolute import
 from app.llm.gemini import model

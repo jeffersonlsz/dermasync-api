@@ -1,0 +1,10 @@
+sequenceDiagram
+    participant frontend
+    participant firebase_storage
+    participant chromadb
+    participant relato_service
+    participant llm_extractor
+    frontend->>relato_service: POST /enviar-relato
+    relato_service->>firebase_storage: upload_imagem
+    relato_service->>llm_extractor: extrair_tags
+    llm_extractor->>chromadb: persistir_vetor

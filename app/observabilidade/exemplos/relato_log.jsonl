@@ -1,0 +1,4 @@
+{"timestamp": "2025-07-04T14:00:01Z", "request_id": "req_001", "caller": "frontend", "callee": "relato_service", "operation": "POST /enviar-relato", "status_code": 200, "duration_ms": 122}
+{"timestamp": "2025-07-04T14:00:02Z", "request_id": "req_001", "caller": "relato_service", "callee": "firebase_storage", "operation": "upload_imagem", "status_code": 200, "duration_ms": 321}
+{"timestamp": "2025-07-04T14:00:03Z", "request_id": "req_001", "caller": "relato_service", "callee": "llm_extractor", "operation": "extrair_tags", "status_code": 200, "duration_ms": 1522}
+{"timestamp": "2025-07-04T14:00:04Z", "request_id": "req_001", "caller": "llm_extractor", "callee": "chromadb", "operation": "persistir_vetor", "status_code": 200, "duration_ms": 88}

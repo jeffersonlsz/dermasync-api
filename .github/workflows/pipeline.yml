@@ -2,9 +2,9 @@ name: Testes e Atualização do README
 
 on:
   push:
-    branches: ["*"]
+    branches: ["main"]
   pull_request:
-    branches: ["*"]
+    branches: ["main"]
   workflow_dispatch:
 
 jobs:
@@ -42,36 +42,40 @@ jobs:
       - name: Definir variável GOOGLE_APPLICATION_CREDENTIALS
         run: echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase.json" >> $GITHUB_ENV
 
-      - name: Verificar se a variável GEMINI_API_KEY foi passada
+      - name: Verificar variáveis de ambiente obrigatórias
         run: |
           if [ -z "$GEMINI_API_KEY" ]; then
             echo "❌ Variável GEMINI_API_KEY não está definida!"
             exit 1
           else
-            echo "✅ Variável GEMINI_API_KEY está definida (valor oculto por segurança)"
+            echo "✅ Variável GEMINI_API_KEY está definida."
           fi
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
 
-      - name: Rodar os testes
+      - name: Rodar os testes automatizados
         run: pytest
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
 
-      - name: Atualizar README com estrutura de diretórios
+      - name: Gerar README com estrutura + Mermaid
         run: python atualizar_readme_estrutura.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
 
-      - name: Commit e push se README.md mudou
+      - name: Commit e push do novo README se houver mudanças
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@users.noreply.github.com"
           git add README.md
-          git diff --quiet && echo "Sem mudanças" || git commit -m "Atualizar estrutura do projeto no README [bot]"
-          git push
+          if git diff --cached --quiet; then
+            echo "✅ Nenhuma mudança detectada no README.md"
+          else
+            git commit -m "📄 Atualização automática do README com Mermaid e estrutura [bot]"
+            git push
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

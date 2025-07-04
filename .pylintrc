@@ -18,3 +18,7 @@ ignored-modules=fastapi,uvicorn,colorlog
 [DESIGN]
 max-args=8
 max-locals=25
+
+
+[RATING]
+min-rating=8.5

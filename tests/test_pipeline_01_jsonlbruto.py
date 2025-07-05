@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from jsonschema import ValidationError, validate
 
+from app.archlog_sync.logger import registrar_log as registrar_log
 from app.pipeline.a_extracao_bruta.gerar_jsonl_bruto import \
     gerar_jsonl_bruto  # adapte para seu import real
 
@@ -19,6 +20,8 @@ logger = logging.getLogger(__name__)
 # Além disso, deve validar o JSON contra um schema predefinido.
 @pytest.mark.asyncio
 async def test_gerar_jsonl_bruto_formato_valido():
+    """Teste para gerar um arquivo JSONL bruto a partir de um arquivo .txt mockado."""
+
     # 1. Cria diretório e arquivo .txt mockado
     with tempfile.TemporaryDirectory() as tmpdir:
         txt_path = Path(tmpdir) / "relato1.txt"

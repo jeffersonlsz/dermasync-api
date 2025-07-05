@@ -36,8 +36,12 @@ jobs:
           pip install pytest
 
       - name: Run tests
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
         run: |
           pytest --maxfail=1 --disable-warnings -q
+
 
       - name: Generate diagrams and metrics
         env:
@@ -48,10 +52,14 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_CLOUD_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
         run: |
-          python -m app.archlog_sync.parser app/archlog_sync/exemplos/relato_log.jsonl
-          python -m app.archlog_sync.mermaid_generator app/archlog_sync/exemplos/relato_log.jsonl
-          python -m app.archlog_sync.metrics app/archlog_sync/exemplos/relato_log.jsonl
-
+          python -m app.archlog_sync.parser logs/structured_logs.jsonl
+          python -m app.archlog_sync.metrics logs/structured_logs.jsonl
+          python -m app.archlog_sync.mermaid_generator logs/structured_logs.jsonl
+      - name: Upload architecture diagrams
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch-diagrams
+          path: docs/architecture/*.mmd
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

@@ -69,6 +69,7 @@ def get_firestore_client():
             )
             cred = credentials.Certificate(cred_path)
             firebase_admin.initialize_app(cred)
+           
         else:
             logger.info(
                 "Inicializando Firebase com credenciais implícitas do ambiente (ex: Cloud Run)"

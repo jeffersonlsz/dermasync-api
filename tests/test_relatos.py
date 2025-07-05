@@ -1,9 +1,13 @@
+import datetime
 import logging
+import uuid
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+
+from app.archlog_sync.logger import registrar_log
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +26,9 @@ async def test_get_relatos():
         response = await ac.get("/relatos/listar-todos")
 
     assert response.status_code == 200
+        # 0. Configurações iniciais
+
+
     dados = response.json()
     logger.info("Dados recebidos: %s", dados)
     logger.info("Quantidade de relatos: %d", dados.get("quantidade", 0))
@@ -29,6 +36,8 @@ async def test_get_relatos():
     assert "quantidade" in dados
     assert "dados" in dados
     assert isinstance(dados["dados"], list)
+
+
 
     # Valida um documento de exemplo se houver
     if dados["dados"]:

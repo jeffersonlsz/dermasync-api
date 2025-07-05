@@ -1,9 +1,13 @@
 #  File: app/archlog_sync/mermaid_generator.py
 # -*- coding: utf-8 -*-
+
+import sys
+
 """
 Este módulo contém funções para gerar diagramas de sequência em Mermaid a partir de eventos de log.
 """
 
+from parser import parse_logs
 
 def to_sequence_diagram(events: list[dict]) -> str:
     """
@@ -33,8 +37,13 @@ def to_sequence_diagram(events: list[dict]) -> str:
 
 # Exemplo de uso:
 if __name__ == "__main__":
-    from .parser import parse_logs
+    
 
-    groups = parse_logs("app/archlog_sync/exemplos/relato_log.jsonl")
-    diagram = to_sequence_diagram(groups["req_001"])
-    print(diagram)
+    if len(sys.argv) > 1:
+        file_path = sys.argv[1]
+        groups = parse_logs(file_path)
+        for req_id, entries in groups.items():
+            diagram = to_sequence_diagram(entries)
+            print(f"Diagram for {req_id}:\n{diagram}\n")
+    else:
+        print("Usage: python mermaid_generator.py <path_to_log_file>")

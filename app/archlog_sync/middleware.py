@@ -1,9 +1,12 @@
 import time
-
+from uuid import uuid4
+from datetime import datetime
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.logger import setup_logger
+
+from .logger import registrar_log
 
 logger = setup_logger("request_logger")
 

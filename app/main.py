@@ -1,9 +1,7 @@
 from fastapi import FastAPI
-
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.archlog_sync.middleware import LogRequestMiddleware
-
 from app.routes import health, imagens, relatos
 
 app = FastAPI(title="DermaSync API - Backend")

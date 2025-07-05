@@ -75,9 +75,6 @@ graph TD
 │   │   └── ingest_from_jsonl.py
 │   ├── core
 │   │   └── logger.py
-│   ├── db
-│   │   └── dermasync_chroma
-│   │       └── chroma.sqlite3
 │   ├── firestore
 │   │   ├── client.py
 │   │   └── persistencia.py
@@ -87,13 +84,10 @@ graph TD
 │   │   ├── a_extracao_bruta
 │   │   │   └── gerar_jsonl_bruto.py
 │   │   ├── B_enriquecimento
-│   │   │   ├── templates
 │   │   │   ├── enriquecer_metadados.py
 │   │   │   ├── extrair_detalhes_terapeuticos.py
 │   │   │   ├── extrair_tags_llm.py
 │   │   │   └── gerar_microdepoimento.py
-│   │   ├── C_segmentacao
-│   │   ├── D_Persistencia_vetores
 │   │   ├── dados
 │   │   │   ├── jsonl_brutos
 │   │   │   │   ├── relatos-20250529.jsonl
@@ -118,7 +112,6 @@ graph TD
 │   │   │   ├── _llm_client
 │   │   │   │   ├── base.py
 │   │   │   │   └── gemini_client.py
-│   │   │   ├── llm_client
 │   │   │   ├── 01_gerar_jsonl_bruto.py
 │   │   │   ├── 02_enriquecer_metadados.py
 │   │   │   ├── 03_segmentar_para_vetores.py
@@ -151,26 +144,20 @@ graph TD
 │   ├── test_enviar_relato.py
 │   ├── test_healthcheck.py
 │   ├── test_integracao_01_02.py
+│   ├── test_parser_metrics.py
 │   ├── test_pipeline_01_jsonlbruto.py
 │   ├── test_pipeline_02_enriquecer_metadados.py
 │   ├── test_relatos.py
 │   ├── utils.py
 │   └── validar_jsonl.py
-├── .coverage
 ├── .gcloudignore
 ├── .pylintrc
 ├── CHANGELOG.md
 ├── clean_docker_cache.bat
 ├── deploy_dermasync_api.bat
-├── dermasync-backend.json
-├── dermasync-key.json
 ├── gerar_diagrama.py
-├── info_dev.md
-├── key.json
 ├── pylint_report.txt
-├── report.json
-├── test_report.md
-└── tokens.json
+└── test_report.md
 ```
 
 ## 📜 Detalhes do Projet
@@ -178,4 +165,4 @@ graph TD
 ![Arquitetura DermaSync](docs/arquitetura-dermasync.png)
 
 ## 📝 Atualização do README
-🕓 Última atualização automática: 05/07/2025 07:37:58
+🕓 Última atualização automática: 05/07/2025 11:09:38

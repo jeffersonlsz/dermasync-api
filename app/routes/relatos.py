@@ -21,6 +21,7 @@ from app.services.relatos_service import listar_relatos
 router = APIRouter(prefix="/relatos", tags=["Relatos"])
 from app.archlog_sync.logger import registrar_log
 
+
 @router.get("/listar-todos")
 async def get_relatos():
     try:

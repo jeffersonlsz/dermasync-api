@@ -10,7 +10,7 @@ def parse_logs(path: str):
     groups = defaultdict(list)
     for line in Path(path).read_text().splitlines():
         entry = json.loads(line)
-        groups[entry["request_id"]].append(entry)
+        groups[entry["caller"]].append(entry)
     return groups
 
 

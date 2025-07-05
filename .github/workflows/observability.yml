@@ -1,0 +1,52 @@
+name: Observability (archlog_sync)
+
+on:
+  schedule:
+    # 02:00 BRT = 05:00 UTC
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run tests
+        run: |
+          pytest --maxfail=1 --disable-warnings -q
+
+      - name: Generate diagrams and metrics
+        env:
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+          FIREBASE_CREDENTIALS_BASE64: ${{ secrets.FIREBASE_CREDENTIALS_BASE64 }}
+          FIREBASE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_CREDENTIALS_JSON }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_CLOUD_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+        run: |
+          python -m app.archlog_sync.parser app/archlog_sync/exemplos/relato_log.jsonl
+          python -m app.archlog_sync.mermaid_generator app/archlog_sync/exemplos/relato_log.jsonl
+          python -m app.archlog_sync.metrics app/archlog_sync/exemplos/relato_log.jsonl
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: observability-artifacts
+          path: |
+            diagrams/*.mmd
+            metrics/*.json
+            alerts/*.json

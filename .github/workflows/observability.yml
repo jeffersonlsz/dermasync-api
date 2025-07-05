@@ -1,6 +1,8 @@
 name: Observability (archlog_sync)
 
 on:
+  push:
+    branches: ["infra/observability-sprint1", "main"]
   schedule:
     # 02:00 BRT = 05:00 UTC
     - cron: '0 5 * * *'

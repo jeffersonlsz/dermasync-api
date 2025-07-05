@@ -7,7 +7,7 @@ import sys
 Este módulo contém funções para gerar diagramas de sequência em Mermaid a partir de eventos de log.
 """
 
-from parser import parse_logs
+from .parser import parse_logs
 
 def to_sequence_diagram(events: list[dict]) -> str:
     """

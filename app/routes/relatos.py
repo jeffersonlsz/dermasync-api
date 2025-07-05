@@ -19,7 +19,7 @@ from app.services.imagens_service import salvar_imagem_base64
 from app.services.relatos_service import listar_relatos
 
 router = APIRouter(prefix="/relatos", tags=["Relatos"])
-
+from app.observabilidade.logger import registrar_log
 
 @router.get("/listar-todos")
 async def get_relatos():

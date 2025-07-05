@@ -3,13 +3,11 @@ import pytest
 from fastapi import APIRouter, Depends, FastAPI
 from fastapi.testclient import TestClient
 
+from app.archlog_sync.parser import parse_logs
 from app.auth.dependencies import get_current_user
 from app.auth.schemas import AuthUser
 from app.logger_config import configurar_logger_json
 
-
-
-from app.archlog_sync.parser import parse_logs
 
 @pytest.fixture
 def sample_events():

@@ -139,6 +139,7 @@ graph TD
 │   └── visualizar_diagrama.py
 ├── tests
 │   ├── conftest.py
+│   ├── test_archlog_sync_extra.py
 │   ├── test_auth.py
 │   ├── test_auth_rotas.py
 │   ├── test_enviar_relato.py
@@ -165,4 +166,4 @@ graph TD
 ![Arquitetura DermaSync](docs/arquitetura-dermasync.png)
 
 ## 📝 Atualização do README
-🕓 Última atualização automática: 05/07/2025 11:35:11
+🕓 Última atualização automática: 05/07/2025 11:50:03

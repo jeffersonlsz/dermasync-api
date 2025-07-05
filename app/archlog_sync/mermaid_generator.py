@@ -26,13 +26,12 @@ def to_sequence_diagram(events: list[dict]) -> str:
 
     # Append one arrow line per event, preserving order
     for e in events:
-        caller   = e.get("caller", "unknown")
-        callee   = e.get("callee", "unknown")
+        caller = e.get("caller", "unknown")
+        callee = e.get("callee", "unknown")
         operation = e.get("operation", "")
         lines.append(f"{caller}->>{callee}: {operation}")
 
     return "\n".join(lines)
-
 
 
 # Exemplo de uso:

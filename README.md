@@ -165,4 +165,4 @@ graph TD
 ![Arquitetura DermaSync](docs/arquitetura-dermasync.png)
 
 ## 📝 Atualização do README
-🕓 Última atualização automática: 05/07/2025 11:21:16
+🕓 Última atualização automática: 05/07/2025 11:35:11

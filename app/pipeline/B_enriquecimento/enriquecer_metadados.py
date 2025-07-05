@@ -5,6 +5,7 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
+
 from ..llm_client.base import get_llm_client
 
 # === CONFIGURAÇÕES ===
@@ -34,13 +35,13 @@ def extrair_idade_e_genero(_conteudo: str) -> dict:
 def extrair_tags(conteudo: str) -> dict:
     """
     Extrai sintomas, produtos naturais, terapias realizadas e medicamentos.
-    
+
     Args:
         conteudo: Texto do relato a ser processado
-    
+
     Returns:
         Dicionário com os campos extraídos prontos para uso no JSON final
-    
+
     Raises:
         ValueError: Se o cliente LLM não estiver configurado ou resposta inválida
     """
@@ -67,14 +68,14 @@ def extrair_tags(conteudo: str) -> dict:
     logger.info("Enviando prompt para LLM...")
     resposta = client.completar(prompt)
     logger.info("Resposta do LLM recebida")
-    
+
     # Normalização da saída
     if resposta.startswith("```json"):
         resposta = resposta.removeprefix("```json").removesuffix("```").strip()
     elif resposta.startswith("```"):
         resposta = resposta.removeprefix("```").removesuffix("```").strip()
     logger.info("Resposta sanitizada do LLM")
-    
+
     try:
         dados = json.loads(resposta)
     except json.JSONDecodeError as e:
@@ -100,10 +101,10 @@ def anonimizar_conteudo(_conteudo: str) -> str:
 def processar_relato(dado: dict) -> dict:
     """
     Processa um relato individual, enriquecendo com metadados.
-    
+
     Args:
         dado: Dicionário com os dados originais do relato
-    
+
     Returns:
         Dicionário com os dados enriquecidos
     """

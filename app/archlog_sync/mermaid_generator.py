@@ -9,6 +9,7 @@ Este módulo contém funções para gerar diagramas de sequência em Mermaid a p
 
 from .parser import parse_logs
 
+
 def to_sequence_diagram(events: list[dict]) -> str:
     """
     Generate a Mermaid sequence diagram from a list of structured log events.
@@ -36,7 +37,6 @@ def to_sequence_diagram(events: list[dict]) -> str:
 
 # Exemplo de uso:
 if __name__ == "__main__":
-    
 
     if len(sys.argv) > 1:
         file_path = sys.argv[1]

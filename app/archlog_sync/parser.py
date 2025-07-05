@@ -15,7 +15,6 @@ def parse_logs(path: str):
 
 
 if __name__ == "__main__":
-    
 
     for req_id, entries in parse_logs(sys.argv[1]).items():
         print(f"{req_id}: {len(entries)} eventos")

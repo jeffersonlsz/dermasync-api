@@ -1,21 +1,20 @@
 # app/archlog_sync/logger.py
 # -*- coding: utf-8 -*-
-""" Este módulo contém funções para registrar logs de eventos de forma estruturada em um arquivo JSONL.
-"""
+"""Este módulo contém funções para registrar logs de eventos de forma estruturada em um arquivo JSONL."""
 import json
-from pathlib import Path
-from .schemas import LogEntry
-
-from datetime import datetime
-
-from .schemas import LogEntry
-
 import logging
+from datetime import datetime
+from pathlib import Path
+
+from .schemas import LogEntry
+
 # Configuração do logger
 
 logger = logging.getLogger(__name__)
 
 LOG_FILE = Path("logs/structured_logs.jsonl")
+
+
 async def registrar_log(log_data: dict):
     logger.info("Registrando log: %s", log_data)
     """

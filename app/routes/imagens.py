@@ -4,25 +4,23 @@
 Este módulo contém os endpoints da API para gerenciamento de relatos.
 """
 import logging
-from uuid import uuid4
+from datetime import datetime, timezone
 from typing import List
+from uuid import uuid4
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
-from app.services.imagens_service import listar_imagens, salvar_imagem
-
-from datetime import datetime, timezone
-
-
 from app.archlog_sync.logger import registrar_log
+from app.services.imagens_service import listar_imagens, salvar_imagem
 
 router = APIRouter(prefix="/imagens", tags=["Serviços de Imagens"])
 
 logger = logging.getLogger(__name__)
 
+
 @router.post("/upload")
 async def upload_imagem(file: UploadFile = File(...)):
-    
+
     logger.info(f"Recebendo imagem: {file.filename}")
 
     try:
@@ -32,20 +30,22 @@ async def upload_imagem(file: UploadFile = File(...)):
         end = datetime.now(timezone.utc)
         duration_ms = int((end - start).total_seconds() * 1000)
 
-        logger.info(f"Imagem {file.filename} salva com sucesso em {url} - Tempo de processamento: {duration_ms}ms")
-        await registrar_log({
-            "timestamp": datetime.now(timezone.utc),
-            "request_id": request_id,
-            "caller": "imagens.py - upload_imagem",
-            "callee": "imagens_service",
-            "operation": "upload",
-            "status_code": 200,
-            "duration_ms": duration_ms,
-            "details": f"Imagem {file.filename} salva com sucesso",
-            "metadata": {
-                "url": url
+        logger.info(
+            f"Imagem {file.filename} salva com sucesso em {url} - Tempo de processamento: {duration_ms}ms"
+        )
+        await registrar_log(
+            {
+                "timestamp": datetime.now(timezone.utc),
+                "request_id": request_id,
+                "caller": "imagens.py - upload_imagem",
+                "callee": "imagens_service",
+                "operation": "upload",
+                "status_code": 200,
+                "duration_ms": duration_ms,
+                "details": f"Imagem {file.filename} salva com sucesso",
+                "metadata": {"url": url},
             }
-        })
+        )
         return {"status": "sucesso", "url": url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -61,25 +61,25 @@ async def get_imagens() -> List[dict]:
         end = datetime.now(timezone.utc)
         duration_ms = int((end - start).total_seconds() * 1000)
 
-        logger.info(f"Listagem de imagens concluída em {duration_ms}ms, total de {len(imagens)} imagens encontradas")
-        
-        await registrar_log({
-            "timestamp": datetime.now(timezone.utc),
-            "request_id": request_id,
-            "caller": "get_imagens",
-            "callee": "imagens_service",
-            "operation": "listar-todas",
-            "status_code": 200,
-            "duration_ms": duration_ms,
-            "details": "imagens.py - get_imagens - listagem de imagens concluída com sucesso",
-            "metadata": {
-                "quantidade": len(imagens),
-                "dados": imagens
+        logger.info(
+            f"Listagem de imagens concluída em {duration_ms}ms, total de {len(imagens)} imagens encontradas"
+        )
+
+        await registrar_log(
+            {
+                "timestamp": datetime.now(timezone.utc),
+                "request_id": request_id,
+                "caller": "get_imagens",
+                "callee": "imagens_service",
+                "operation": "listar-todas",
+                "status_code": 200,
+                "duration_ms": duration_ms,
+                "details": "imagens.py - get_imagens - listagem de imagens concluída com sucesso",
+                "metadata": {"quantidade": len(imagens), "dados": imagens},
             }
-        })
+        )
 
         return {"quantidade": len(imagens), "dados": imagens}
     except Exception as e:
         logger.error(f"Erro ao listar imagens: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-    

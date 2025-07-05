@@ -14,7 +14,3 @@ class LogEntry(BaseModel):
     duration_ms: Optional[int] = None
     details: Optional[str] = None
     metadata: Optional[dict] = None
-
-
-
-

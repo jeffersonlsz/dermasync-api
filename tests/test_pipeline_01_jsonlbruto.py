@@ -8,10 +8,9 @@ from pathlib import Path
 import pytest
 from jsonschema import ValidationError, validate
 
+from app.archlog_sync.logger import registrar_log as registrar_log
 from app.pipeline.a_extracao_bruta.gerar_jsonl_bruto import \
     gerar_jsonl_bruto  # adapte para seu import real
-
-from app.archlog_sync.logger import registrar_log as registrar_log
 
 logger = logging.getLogger(__name__)
 

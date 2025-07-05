@@ -1,6 +1,7 @@
 import time
-from uuid import uuid4
 from datetime import datetime
+from uuid import uuid4
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 

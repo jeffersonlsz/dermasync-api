@@ -12,19 +12,18 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from app.archlog_sync.logger import registrar_log
 from app.auth.dependencies import get_current_user
 from app.auth.schemas import AuthUser
 from app.firestore.persistencia import salvar_relato_firestore
 from app.schema.relato import RelatoCompletoInput
 from app.services.imagens_service import salvar_imagem_base64
 from app.services.relatos_service import listar_relatos
-from app.archlog_sync.logger import registrar_log
 
 logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/relatos", tags=["Relatos"])
-
 
 
 @router.get("/listar-todos")
@@ -35,22 +34,23 @@ async def get_relatos():
         request_id = uuid4().hex
         relatos = await listar_relatos()
         end = datetime.now(timezone.utc)
-        logger.info(f"Listagem de relatos concluída em {int((end - start).total_seconds() * 1000)}, total de {len(relatos)} relatos encontrados")
+        logger.info(
+            f"Listagem de relatos concluída em {int((end - start).total_seconds() * 1000)}, total de {len(relatos)} relatos encontrados"
+        )
         # Registrar log de listagem de relatos
-        await registrar_log({
-            "timestamp": datetime.now(timezone.utc),
-            "request_id": request_id,
-            "caller": "get_relatos",
-            "callee": "relatos_service",
-            "operation": "listar-todos",
-            "status_code": 200,
-            "duration_ms": int((end - start).total_seconds() * 1000),
-            "details": "relatos.py - get_relatos - listagem de relatos concluída com sucesso",
-            "metadata": {
-                "quantidade": len(relatos),
-                "dados": relatos
+        await registrar_log(
+            {
+                "timestamp": datetime.now(timezone.utc),
+                "request_id": request_id,
+                "caller": "get_relatos",
+                "callee": "relatos_service",
+                "operation": "listar-todos",
+                "status_code": 200,
+                "duration_ms": int((end - start).total_seconds() * 1000),
+                "details": "relatos.py - get_relatos - listagem de relatos concluída com sucesso",
+                "metadata": {"quantidade": len(relatos), "dados": relatos},
             }
-        })
+        )
 
         return {"quantidade": len(relatos), "dados": relatos}
     except Exception as e:
@@ -107,21 +107,23 @@ async def enviar_relato(relato: RelatoCompletoInput):
     duration_ms = int((end - start).total_seconds() * 1000)
     logger.info(f"Relato salvo com sucesso, ID: {doc_id}, duração: {duration_ms} ms")
     # Registrar log de envio de relato
-    await registrar_log({
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "request_id": request_id,
-        "caller": "enviar_relato",
-        "callee": "POST relatos/enviar-relato-completo",
-        "operation": "enviar_relato_completo",
-        "status_code": 200,
-        "duration_ms": duration_ms,
-        "details": "relatos.py - enviar_relato - relato salvo com sucesso",
-        "metadata": {
-            "id_relato": relato.id_relato,
-            "imagens_processadas": imagens_processadas,
-            "document_id": doc_id
+    await registrar_log(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "request_id": request_id,
+            "caller": "enviar_relato",
+            "callee": "POST relatos/enviar-relato-completo",
+            "operation": "enviar_relato_completo",
+            "status_code": 200,
+            "duration_ms": duration_ms,
+            "details": "relatos.py - enviar_relato - relato salvo com sucesso",
+            "metadata": {
+                "id_relato": relato.id_relato,
+                "imagens_processadas": imagens_processadas,
+                "document_id": doc_id,
+            },
         }
-    })
+    )
 
     return {
         "status": "sucesso",

@@ -132,6 +132,7 @@ graph TD
 │   ├── config.py
 │   └── logger_config.py
 ├── logs
+│   └── structured_logs.jsonl
 ├── outputs
 │   ├── fluxo_req_001.html
 │   └── fluxo_req_001.mmd
@@ -166,4 +167,4 @@ graph TD
 ![Arquitetura DermaSync](docs/arquitetura-dermasync.png)
 
 ## 📝 Atualização do README
-🕓 Última atualização automática: 05/07/2025 11:50:03
+🕓 Última atualização automática: 05/07/2025 15:04:35

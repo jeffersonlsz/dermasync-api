@@ -7,17 +7,18 @@
 import json
 
 import pytest
-
+import logging
 from app.archlog_sync.mermaid_generator import to_sequence_diagram
 from app.archlog_sync.metrics import compute_avg_latency, detect_slow_calls
 from app.archlog_sync.parser import parse_logs
 
-
+logger = logging.getLogger(__name__)
 # Fixture: carregando os 4 eventos de exemplo
 @pytest.fixture
 def sample_events():
     path = "app/archlog_sync/exemplos/relato_log.jsonl"
     groups = parse_logs(path)
+    logger.info(f"Loaded groups: {json.dumps(groups)}")
     return groups["req_001"]
 
 

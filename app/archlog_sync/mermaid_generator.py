@@ -2,15 +2,22 @@
 # -*- coding: utf-8 -*-
 
 import sys
-
+import logging
 """
 Este módulo contém funções para gerar diagramas de sequência em Mermaid a partir de eventos de log.
 """
 
 from .parser import parse_logs
 
+logger = logging.getLogger(__name__)
+
 
 def to_sequence_diagram(events: list[dict]) -> str:
+    logger.info("Gerando diagrama de sequência Mermaid a partir dos eventos de log")
+    logger.info(f"Total de eventos recebidos: {len(events)}")
+    if not events:
+        logger.warning("Nenhum evento fornecido, retornando diagrama vazio")
+        return "sequenceDiagram\n"
     """
     Generate a Mermaid sequence diagram from a list of structured log events.
 

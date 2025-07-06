@@ -31,6 +31,7 @@ graph TD
     Pipeline --> Firestore
 
 ```
+![Arquitetura DermaSync](docs/diagram.png)
 
 ## 📖 Sumário
 
@@ -144,10 +145,10 @@ graph TD
 │   ├── test_auth_rotas.py
 │   ├── test_enviar_relato.py
 │   ├── test_healthcheck.py
-│   ├── test_integracao_01_02.py
 │   ├── test_parser_metrics.py
 │   ├── test_pipeline_01_jsonlbruto.py
 │   ├── test_pipeline_02_enriquecer_metadados.py
+│   ├── test_pipeline_integracao_01_02.py
 │   ├── test_relatos.py
 │   ├── utils.py
 │   └── validar_jsonl.py
@@ -166,4 +167,4 @@ graph TD
 ![Arquitetura DermaSync](docs/arquitetura-dermasync.png)
 
 ## 📝 Atualização do README
-🕓 Última atualização automática: 05/07/2025 15:20:41
+🕓 Última atualização automática: 06/07/2025 21:07:25

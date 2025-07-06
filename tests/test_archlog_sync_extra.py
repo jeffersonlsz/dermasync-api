@@ -5,14 +5,13 @@
 
 
 import json
-
-import pytest
 import logging
 
-from app.archlog_sync import mermaid_generator, metrics, parser, logger
+import pytest
+
+from app.archlog_sync import logger, mermaid_generator, metrics, parser
 
 logger = logging.getLogger(__name__)
-
 
 
 # 1) Teste de erro ao abrir arquivo inexistente
@@ -43,16 +42,15 @@ def test_mermaid_empty():
     assert lines == ["sequenceDiagram"]
 
 
-
 # 4) mermaid_generator: mantém ordem original - teste desativado por enquanto
-def test_mermaid_order(sample_events): 
+def test_mermaid_order(sample_events):
     logger.info("Testando ordem de eventos no diagrama Mermaid")
     logger.info(f"Total de eventos no sample: {len(sample_events)}")
     logger.info(f"Tipo da variável sample_events: {type(sample_events)}")
     diagram = mermaid_generator.to_sequence_diagram(sample_events).splitlines()
     assert diagram[0] == "sequenceDiagram"
     assert diagram[1].startswith("frontend->>relato_service")
-    assert diagram[-1].startswith("llm_extractor->>chromadb") 
+    assert diagram[-1].startswith("llm_extractor->>chromadb")
 
 
 # 5) metrics: threshold de exatamente 1000 não conta como lento

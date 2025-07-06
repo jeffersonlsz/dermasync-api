@@ -1,8 +1,9 @@
 #  File: app/archlog_sync/mermaid_generator.py
 # -*- coding: utf-8 -*-
 
-import sys
 import logging
+import sys
+
 """
 Este módulo contém funções para gerar diagramas de sequência em Mermaid a partir de eventos de log.
 """

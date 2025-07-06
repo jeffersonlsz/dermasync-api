@@ -1,12 +1,13 @@
 # app/archlog_sync/parser.py
 # -*- coding: utf-8 -*-
 import json
-import sys
 import logging
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
 
 def parse_logs(path: str):
     logger.info(f"Parsing logs from: {path}")
@@ -15,18 +16,16 @@ def parse_logs(path: str):
     Returns a dictionary where keys are caller names and values are lists of log entries.
     """
     groups = defaultdict(list)
-    
+
     if not Path(path).exists():
         logger.error(f"Log file not found: {path}")
         raise FileNotFoundError(f"Log file not found: {path}")
-    
-
 
     for line in Path(path).read_text().splitlines():
         entry = json.loads(line)
         logger.info(f"Processing entry: {entry}")
         groups[entry["request_id"]].append(entry)
-    
+
     return groups
 
 

@@ -31,7 +31,6 @@ graph TD
     Pipeline --> Firestore
 
 ```
-![Arquitetura DermaSync](docs/diagram.png)
 
 ## 📖 Sumário
 

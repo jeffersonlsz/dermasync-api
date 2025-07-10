@@ -1,7 +1,9 @@
 name: Baixar modelo Gemma GGUF
 # alterar
+
 on:
-  workflow_dispatch:
+  push:
+    branches: ["infra/observability-sprint1"]
 
 jobs:
   baixar-e-salvar:

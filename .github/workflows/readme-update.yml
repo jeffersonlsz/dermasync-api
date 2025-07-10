@@ -1,100 +1,18 @@
-name: Testes e Atualização do README
+name: Baixar modelo Gemma GGUF
 
 on:
-  push:
-    branches: ["infra/observability-sprint1", "main"]
-  pull_request:
-    branches: ["main"]
   workflow_dispatch:
 
 jobs:
-  build:
+  baixar-e-salvar:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
+      - name: Baixar modelo do Hugging Face
+        run: |
+          curl -L -o gemma-3-1b-it-q4_0.gguf "https://huggingface.co/google/gemma-3-1b-it-qat-q4_0-gguf/resolve/main/gemma-3-1b-it-q4_0.gguf"
 
-      - name: Configurar Python
-        uses: actions/setup-python@v5
+      - name: Upload do artefato
+        uses: actions/upload-artifact@v4
         with:
-          python-version: '3.11'
-
-      - name: Cache de pacotes pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Instalar dependências
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          
-
-      - name: Criar arquivo de credenciais do Firebase (decodificado de base64)
-        run: |
-          echo "${{ secrets.FIREBASE_CREDENTIALS_BASE64 }}" | base64 --decode > $HOME/firebase.json
-        shell: bash
-
-      - name: Definir variável GOOGLE_APPLICATION_CREDENTIALS
-        run: echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase.json" >> $GITHUB_ENV
-
-      - name: Verificar variáveis de ambiente obrigatórias
-        run: |
-          if [ -z "$GEMINI_API_KEY" ]; then
-            echo "❌ Variável GEMINI_API_KEY não está definida!"
-            exit 1
-          else
-            echo "✅ Variável GEMINI_API_KEY está definida."
-          fi
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
-
-      - name: Rodar os testes automatizados
-        run: pytest
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
-
-      - name: Formatar código com black e isort
-        run: |
-          black .
-          isort .
-
-      - name: Commit e push de ajustes de formatação
-        run: |
-          git config --global user.name "formatter-bot"
-          git config --global user.email "formatter@users.noreply.github.com"
-          git add .
-          if git diff --cached --quiet; then
-            echo "✅ Código já formatado. Nenhum commit necessário."
-          else
-            git commit -m "🧹 Ajustes automáticos de formatação (black + isort)"
-            git push
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Gerar README com estrutura + Mermaid
-        run: python atualizar_readme_estrutura.py
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
-
-      - name: Commit e push do novo README se houver mudanças
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@users.noreply.github.com"
-          git add README.md
-          if git diff --cached --quiet; then
-            echo "✅ Nenhuma mudança detectada no README.md"
-          else
-            git commit -m "📄 Atualização automática do README com Mermaid e estrutura [bot]"
-            git push
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: gemma-3-1b-it-q4_0
+          path: gemma-3-1b-it-q4_0.gguf

@@ -1,5 +1,4 @@
-name: Baixar modelo Gemma GGUF
-# alterar
+name: Baixar modelo DeepSeek GGUF
 
 on:
   push:
@@ -9,17 +8,19 @@ jobs:
   baixar-e-salvar:
     runs-on: ubuntu-latest
     steps:
+      - name: Limpar arquivos antigos
+        run: |
+          rm -f deepseek-coder-1.3b-instruct-q4_k_m.gguf
+
       - name: Baixar modelo com autenticação
         run: |
-          curl -L -o gemma-3-1b-it-q4_0.gguf \
+          curl -L -o deepseek-coder-1.3b-instruct-q4_k_m.gguf \
             -H "Authorization: Bearer ${{ secrets.HF_TOKEN }}" \
             -H "User-Agent: Mozilla/5.0" \
-            "https://huggingface.co/google/gemma-3-1b-it-qat-q4_0-gguf/resolve/main/gemma-3-1b-it-q4_0.gguf"
-
-
+            "https://huggingface.co/raghav0/deepseek-coder-1.3b-instruct-Q4_K_M-GGUF/resolve/main/deepseek-coder-1.3b-instruct-q4_k_m.gguf"
 
       - name: Upload do artefato
         uses: actions/upload-artifact@v4
         with:
-          name: gemma-3-1b-it-q4_0
-          path: gemma-3-1b-it-q4_0.gguf
+          name: deepseek-coder-1.3b-instruct-q4_k_m
+          path: deepseek-coder-1.3b-instruct-q4_k_m.gguf

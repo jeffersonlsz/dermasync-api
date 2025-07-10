@@ -9,11 +9,13 @@ jobs:
   baixar-e-salvar:
     runs-on: ubuntu-latest
     steps:
-      - name: Baixar modelo do Hugging Face
+      - name: Baixar modelo com autenticação
         run: |
           curl -L -o gemma-3-1b-it-q4_0.gguf \
+            -H "Authorization: Bearer ${{ secrets.HF_TOKEN }}" \
             -H "User-Agent: Mozilla/5.0" \
             "https://huggingface.co/google/gemma-3-1b-it-qat-q4_0-gguf/resolve/main/gemma-3-1b-it-q4_0.gguf"
+
 
 
       - name: Upload do artefato

@@ -1,0 +1,25 @@
+name: Baixar modelo Ollama
+
+on:
+  workflow_dispatch:
+
+jobs:
+  baixar-modelo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar modelo com Python
+        run: |
+          pip install requests
+          python -c "
+import requests
+url = 'https://registry.ollama.ai/v2/library/gemma3/manifests/1b'
+r = requests.get(url)
+with open('manifest.json', 'wb') as f:
+    f.write(r.content)
+"
+
+      - name: Upload do artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: gemma3-manifest
+          path: manifest.json

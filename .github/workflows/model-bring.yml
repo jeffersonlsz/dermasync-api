@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Limpar arquivos antigos
         run: |
-          rm -f deepseek-coder-1.3b-instruct-q4_k_m.gguf
+          rm -f *.gguf
 
       - name: Baixar modelo com autenticação
         run: |

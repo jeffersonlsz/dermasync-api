@@ -1,7 +1,8 @@
 name: Baixar pacotes Python e zipar site-packages
 
 on:
-  workflow_dispatch:
+    push:
+      branches: ["infra/observability-sprint1"]
 
 jobs:
   instalar-e-zipar:

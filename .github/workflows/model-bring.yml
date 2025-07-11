@@ -1,26 +1,29 @@
-name: Baixar modelo DeepSeek GGUF
+name: Baixar pacotes Python e zipar site-packages
 
 on:
-  push:
-    branches: ["infra/observability-sprint1"]
+  workflow_dispatch:
 
 jobs:
-  baixar-e-salvar:
+  instalar-e-zipar:
     runs-on: ubuntu-latest
     steps:
-      - name: Limpar arquivos antigos
+      - name: Criar ambiente virtual e instalar pacotes
         run: |
-          rm -f *.gguf
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install requests nltk
 
-      - name: Baixar modelo com autenticação
+      - name: Copiar site-packages
         run: |
-          curl -L -oGemma-3-Gaia-PT-BR-4b-it_Q8_0.gguf \
-            -H "Authorization: Bearer ${{ secrets.HF_TOKEN }}" \
-            -H "User-Agent: Mozilla/5.0" \
-            "https://huggingface.co/althayr/Gemma-3-Gaia-PT-BR-4b-it-Q8_0-GGUF/resolve/main/Gemma-3-Gaia-PT-BR-4b-it_Q8_0.gguf"
+          mkdir site_packages_zip
+          cp -r venv/lib/python*/site-packages/* site_packages_zip/
+
+      - name: Compactar site-packages
+        run: zip -r site-packages.zip site_packages_zip
 
       - name: Upload do artefato
         uses: actions/upload-artifact@v4
         with:
-          name: Gemma-3-Gaia-PT-BR-4b-it_Q8_0.gguf
-          path: Gemma-3-Gaia-PT-BR-4b-it_Q8_0.gguf
+          name: site-packages.zip
+          path: site-packages.zip

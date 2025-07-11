@@ -1,9 +1,9 @@
-import json
+# File: tests/test_enviar_relato.py
+# -*- coding: utf-8 -*-
 import logging
 import uuid
 from pathlib import Path
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app

@@ -3,7 +3,8 @@ import logging
 import sys
 
 #
-# Para logs diferentes por ambiente (dev, prod, test): use uma variável de ambiente e condicional
+# Para logs diferentes por ambiente (dev, prod, test): use uma variável de ambiente e
+# condicional
 #
 
 

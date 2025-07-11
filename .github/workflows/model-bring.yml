@@ -1,0 +1,30 @@
+name: Baixar pacotes Python e zipar site-packages
+
+on:
+    push:
+      branches: ["infra/observability-sprint1"]
+
+jobs:
+  instalar-e-zipar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Criar ambiente virtual e instalar pacotes
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install requests nltk
+
+      - name: Copiar site-packages
+        run: |
+          mkdir site_packages_zip
+          cp -r venv/lib/python*/site-packages/* site_packages_zip/
+
+      - name: Compactar site-packages
+        run: zip -r site-packages.zip site_packages_zip
+
+      - name: Upload do artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-packages.zip
+          path: site-packages.zip

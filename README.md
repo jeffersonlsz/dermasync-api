@@ -55,6 +55,16 @@ graph TD
 │   │   ├── endpoints_videos.py
 │   │   ├── routes.py
 │   │   └── schemas.py
+│   ├── archlog_sync
+│   │   ├── exemplos
+│   │   │   └── relato_log.jsonl
+│   │   ├── log_parser.py
+│   │   ├── logger.py
+│   │   ├── mermaid_generator.py
+│   │   ├── metrics.py
+│   │   ├── middleware.py
+│   │   ├── parser.py
+│   │   └── schemas.py
 │   ├── auth
 │   │   ├── dependencies.py
 │   │   └── schemas.py
@@ -63,9 +73,8 @@ graph TD
 │   │   ├── buscador_tags.py
 │   │   ├── factory.py
 │   │   └── ingest_from_jsonl.py
-│   ├── db
-│   │   └── dermasync_chroma
-│   │       └── chroma.sqlite3
+│   ├── core
+│   │   └── logger.py
 │   ├── firestore
 │   │   ├── client.py
 │   │   └── persistencia.py
@@ -75,13 +84,10 @@ graph TD
 │   │   ├── a_extracao_bruta
 │   │   │   └── gerar_jsonl_bruto.py
 │   │   ├── B_enriquecimento
-│   │   │   ├── templates
 │   │   │   ├── enriquecer_metadados.py
 │   │   │   ├── extrair_detalhes_terapeuticos.py
 │   │   │   ├── extrair_tags_llm.py
 │   │   │   └── gerar_microdepoimento.py
-│   │   ├── C_segmentacao
-│   │   ├── D_Persistencia_vetores
 │   │   ├── dados
 │   │   │   ├── jsonl_brutos
 │   │   │   │   ├── relatos-20250529.jsonl
@@ -113,9 +119,11 @@ graph TD
 │   │   │   └── corrige.py
 │   │   └── data_reader.py
 │   ├── routes
+│   │   ├── health.py
 │   │   ├── imagens.py
 │   │   └── relatos.py
 │   ├── schema
+│   │   ├── log_entry.py
 │   │   ├── relato.py
 │   │   └── relato_schema.json
 │   ├── services
@@ -124,27 +132,34 @@ graph TD
 │   ├── config.py
 │   └── logger_config.py
 ├── logs
+│   └── structured_logs.jsonl
+├── outputs
+│   ├── fluxo_req_001.html
+│   └── fluxo_req_001.mmd
+├── scripts
+│   └── visualizar_diagrama.py
 ├── tests
 │   ├── conftest.py
+│   ├── test_archlog_sync_extra.py
 │   ├── test_auth.py
 │   ├── test_auth_rotas.py
 │   ├── test_enviar_relato.py
-│   ├── test_integracao_01_02.py
+│   ├── test_healthcheck.py
+│   ├── test_parser_metrics.py
 │   ├── test_pipeline_01_jsonlbruto.py
 │   ├── test_pipeline_02_enriquecer_metadados.py
+│   ├── test_pipeline_integracao_01_02.py
 │   ├── test_relatos.py
 │   ├── utils.py
 │   └── validar_jsonl.py
-├── .coverage
 ├── .gcloudignore
+├── .pylintrc
+├── CHANGELOG.md
 ├── clean_docker_cache.bat
 ├── deploy_dermasync_api.bat
-├── dermasync-backend.json
-├── dermasync-key.json
-├── info_dev.md
-├── key.json
-├── test_report.md
-└── tokens.json
+├── gerar_diagrama.py
+├── pylint_report.txt
+└── test_report.md
 ```
 
 ## 📜 Detalhes do Projet
@@ -152,4 +167,4 @@ graph TD
 ![Arquitetura DermaSync](docs/arquitetura-dermasync.png)
 
 ## 📝 Atualização do README
-🕓 Última atualização automática: 03/07/2025 07:34:47
+🕓 Última atualização automática: 06/07/2025 21:07:25

@@ -14,10 +14,10 @@ jobs:
 
       - name: Baixar modelo com autenticação
         run: |
-          curl -L -o deepseek-coder-1.3b-instruct-q4_k_m.gguf \
+          curl -L -o Gemma-3-Gaia-PT-BR-4b-it.gguf \
             -H "Authorization: Bearer ${{ secrets.HF_TOKEN }}" \
             -H "User-Agent: Mozilla/5.0" \
-            "https://huggingface.co/MaziyarPanahi/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct.Q4_K_M.gguf"
+            "https://huggingface.co/althayr/Gemma-3-Gaia-PT-BR-4b-it-GGUF/resolve/main/Gemma-3-Gaia-PT-BR-4b-it.gguf"
 
       - name: Upload do artefato
         uses: actions/upload-artifact@v4

@@ -17,7 +17,7 @@ jobs:
           curl -L -o deepseek-coder-1.3b-instruct-q4_k_m.gguf \
             -H "Authorization: Bearer ${{ secrets.HF_TOKEN }}" \
             -H "User-Agent: Mozilla/5.0" \
-            "https://huggingface.co/raghav0/deepseek-coder-1.3b-instruct-Q4_K_M-GGUF/resolve/main/deepseek-coder-1.3b-instruct-q4_k_m.gguf"
+            "https://huggingface.co/MaziyarPanahi/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it.Q4_K_M.gguf"
 
       - name: Upload do artefato
         uses: actions/upload-artifact@v4

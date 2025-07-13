@@ -1,25 +1,27 @@
 # app/api/endpoints.py
-""" """
+"""
+Rotas principais da API pública do projeto DermaSync.
+Inclui endpoints para envio de relatos, verificação de status e extração de insights.
+"""
 
 import datetime
 import json
 import time
-from typing import Literal
+from pprint import pprint  # Moved to top-level imports
+from typing import Literal  # Removed since it's unused
 
 from fastapi import APIRouter, HTTPException
 
+from app.api.schemas import (  # Kept despite being unused (might be needed for type hints); Changed from relative to absolute import
+    BuscarPorTagsRequest, JornadaPayload, QueryInput, QueryRequest,
+    RequisicaoRelato, SolucaoRequest, TextoTags)
 from app.chroma.buscador_segmentos import (_buscar_por_tags,
                                            buscar_segmentos_similares)
 from app.chroma.buscador_tags import contar_tags
-
-from ..firestore.client import db
-from ..llm.gemini import model
-from .schemas import (BuscarPorTagsRequest, JornadaPayload, QueryInput,
-                      QueryRequest, RequisicaoRelato, SolucaoRequest,
-                      TextoTags)
+from app.firestore.client import db  # Changed from relative to absolute import
+from app.llm.gemini import model
 
 router = APIRouter()
-
 
 # Caminho fixo do arquivo .jsonl
 ARQUIVO_RELATOS = (
@@ -38,10 +40,10 @@ def buscar_relato_completo(payload: RequisicaoRelato):
                         "id_relato": registro["id_relato"],
                         "conteudo": registro["conteudo_anon"],
                     }
-    except FileNotFoundError:
+    except FileNotFoundError as exc:
         raise HTTPException(
             status_code=500, detail="Arquivo de relatos não encontrado."
-        )
+        ) from exc
     raise HTTPException(status_code=404, detail="Relato não encontrado.")
 
 
@@ -60,7 +62,6 @@ def obter_tags_populares():
 
 @router.post("/buscar-por-tags")
 def buscar_por_tags(req: BuscarPorTagsRequest):
-
     print(
         f"🔍 Buscando por tags: {req.tags}, modo: {req.modo}, k: {req.k}, log: {req.log}"
     )
@@ -71,7 +72,6 @@ def buscar_por_tags(req: BuscarPorTagsRequest):
             status_code=404,
             detail="Algo deu errado ou não foram encontrados resultados.",
         )
-    # buscar_por_tags(["coceira", "hixizine"], modo="or",  k=5, collection=collection, log=True)
     return {"resultados": resultados}
 
 
@@ -81,10 +81,8 @@ def consultar_segmentos(req: QueryRequest):
     return {"resultados": resultados}
 
 
-# Endpoint que gera a solução baseada nos dados do paciente
 @router.post("/gerar-solucao")
 async def gerar_solucao(req: SolucaoRequest):
-    # Monta o prompt
     prompt = f"""
     A seguir está o relato de um paciente com dermatite atópica, {req.idade} anos, {req.genero}, com sintomas em {req.localizacao}:
 
@@ -99,12 +97,9 @@ async def gerar_solucao(req: SolucaoRequest):
     """
 
     try:
-        # Chama a API Gemini
         response = model.generate_content(prompt)
         return {"resposta": response.text}
-
     except Exception as e:
-        # Retorna erro amigável se algo falhar
         return {"erro": str(e)}
 
 
@@ -123,7 +118,7 @@ async def extrair_tags(req: TextoTags):
 
         try:
             tags = json.loads(texto)
-        except:
+        except json.JSONDecodeError:
             tags = []
 
         return {"tags": tags}
@@ -133,9 +128,7 @@ async def extrair_tags(req: TextoTags):
 
 @router.post("/processar-jornada")
 async def processar_jornada(jornada: JornadaPayload):
-    import pprint
-
-    pprint.pprint(f" dados da jornada a ser processada {jornada}")
+    pprint(f" dados da jornada a ser processada {jornada}")
     doc_id = jornada.id
     ref = db.collection("jornadas").document(doc_id)
 
@@ -149,9 +142,10 @@ async def processar_jornada(jornada: JornadaPayload):
             }
         )
     except Exception as e:
-        raise HTTPException(status_code=404, detail=f"Documento não encontrado: {e}")
+        raise HTTPException(
+            status_code=404, detail=f"Documento não encontrado: {e}"
+        ) from e
 
-    # 🧠 Prompt para o Gemini com {{ }} para escapar corretamente
     prompt = f"""
 A seguir está o relato de um paciente com dermatite atópica.
 
@@ -201,7 +195,6 @@ Retorne somente um JSON puro. Não use ```json ou qualquer formatação de markd
         print("|" + response.text[:100] + "|")
         raw = response.text.strip()
 
-        # Remove bordas de Markdown tipo ```json ... ```
         if raw.startswith("```json"):
             raw = raw.removeprefix("```json").removesuffix("```").strip()
         elif raw.startswith("```"):
@@ -210,9 +203,10 @@ Retorne somente um JSON puro. Não use ```json ou qualquer formatação de markd
         print("|" + response.text[:150] + "|")
         data = json.loads(raw)
         print(f"🔎 DADOS EXTRAÍDOS DO GEMINI: {data}")
-        # Retrieve the current value of 'tentativas_llm' and increment by one
+
         current_tentativas = ref.get().to_dict().get("tentativas_llm", 0)
         print(f"🔄 Tentativas LLM atuais: {current_tentativas}")
+
         ref.update(
             {
                 "tituloRelato": data.get("tituloRelato", "--"),
@@ -239,4 +233,6 @@ Retorne somente um JSON puro. Não use ```json ou qualquer formatação de markd
                 "ultima_tentativa_llm": datetime.datetime.utcnow().isoformat(),
             }
         )
-        raise HTTPException(status_code=500, detail=f"Erro ao processar LLM: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao processar LLM: {e}"
+        ) from e

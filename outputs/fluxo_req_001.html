@@ -1,0 +1,26 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Diagrama Mermaid</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true });
+  </script>
+</head>
+<body>
+  <pre class="mermaid">
+sequenceDiagram
+    participant frontend
+    participant firebase_storage
+    participant chromadb
+    participant relato_service
+    participant llm_extractor
+    frontend->>relato_service: POST /enviar-relato
+    relato_service->>firebase_storage: upload_imagem
+    relato_service->>llm_extractor: extrair_tags
+    llm_extractor->>chromadb: persistir_vetor
+  </pre>
+</body>
+</html>

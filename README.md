@@ -35,7 +35,7 @@ graph TD
 ## 📖 Sumário
 
 
-## 🔧 Resumo Técnico
+### 🔧 Resumo Técnico
 
 - **API**: FastAPI com rotas em `app/api`, organizadas por domínio.
 - **Serviços**: Camada lógica está em `app/services` (e subpastas).
@@ -46,7 +46,7 @@ graph TD
 - **Deploy**: Automação com `Dockerfile`, `.bat` scripts e futura integração contínua.
 
 
-## 📁 Estrutura de Pastas
+### 📁 Estrutura de Pastas
 ```text
 ├── app
 │   ├── api
@@ -161,8 +161,7 @@ graph TD
 └── test_report.md
 ```
 
-## 📜 Detalhes do Projet
-# 🌱 Projeto DermaSync – Estrutura Atualizada
+# 🌱 Estrutura Atualizada
 ![Arquitetura DermaSync](docs/arquitetura-dermasync.png)
 
 ## 📝 Atualização do README

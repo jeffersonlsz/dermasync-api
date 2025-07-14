@@ -171,9 +171,10 @@ def criar_cadeia_analisadora(output_schema: BaseModel, nome_modelo: str= "poc-ge
     logger.info(f"{log_location()[40:]} 📜 Conteúdo do prompt: {prompt.format_prompt(**new_var)}")
 
     model = ChatOllama(
-        model="poc-gemma-01",
+        model="poc-gemma-gaia",
         format="json",
-        temperature=0.0
+        temperature=0.0,
+        base_url="http://localhost:11434/"
     )
 
     logger.info(f"{log_location()[40:]} ℹ️ Fim da cadeia de análise.")

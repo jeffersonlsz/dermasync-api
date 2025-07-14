@@ -2,92 +2,326 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Relato DermaSync",
   "type": "object",
-  "required": ["id_relato", "origem", "data_modificacao", "conteudo_original", "versao_pipeline"],
+  "required": [
+    "id_relato",
+    "origem",
+    "data_modificacao",
+    "conteudo_original",
+    "versao_pipeline"
+  ],
   "properties": {
-    "id_relato": { "type": "string", "minLength": 10 },
-    "versao_pipeline": { "type": "string", "minLength": 3},
+    "id_relato": {
+      "type": "string",
+      "minLength": 10
+    },
+    "versao_pipeline": {
+      "type": "string",
+      "minLength": 3
+    },
     "origem": {
       "type": "object",
-          "properties": {
-            "plataforma": {
-              "type": "string",
-              "enum": ["firestore", "facebook", "telegram", "reddit", "whatsapp", "local"]
-            },
-            "link": { "type": ["string", "null"] },
-            "tipo": { "type": ["string", "null"] },
-            "ano_postagem": { "type": ["integer", "null"] },
-            "grupo": { "type": ["string", "null"] }
+      "properties": {
+        "plataforma": {
+          "type": "string",
+          "enum": [
+            "firestore",
+            "facebook",
+            "telegram",
+            "reddit",
+            "whatsapp",
+            "local"
+          ]
+        },
+        "link": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tipo": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ano_postagem": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "grupo": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       },
-      "required": ["plataforma"]
+      "required": [
+        "plataforma"
+      ]
     },
-    "data_modificacao": { "type": "string", "format": "date-time" },
-    "conteudo_original": { "type": "string", "minLength": 1 },
-    "conteudo_anonimizado": { "type": ["string", "null"] },
+    "data_modificacao": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "conteudo_original": {
+      "type": "string",
+      "minLength": 1
+    },
+    "conteudo_tratado": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "tags_extraidas": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
-    "classificacao_etaria": { "type": "string" },
-    "idade": { "type": ["integer", "string", "null"] },
-    "genero": { "type": ["string", "null"] },
+    "classificacao_etaria": {
+      "type": "string",
+      "enum": [
+        "infantil",
+        "adolescente",
+        "adulto",
+        "idoso"
+      ]
+    },
+    "idade": {
+      "type": [
+        "integer",
+        "string",
+        "null"
+      ]
+    },
+    "genero": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "masculino",
+        "feminino",
+        "outro",
+        "não informado",
+        null
+      ]
+    },
     "regioes_afetadas": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
-    "sintomas": {
+    "quadro_clinico": {
+      "type": "object",
+      "properties": {
+        "sintomas_descritos": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "localizacao_lesoes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "severidade_percebida": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "gatilhos_mencionados": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "duracao_crise": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "sintomas_descritos"
+      ]
+    },
+    "intervencoes_produtos_naturais": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
-    "produtos_naturais": {
+    "intervencoes_terapias_realizadas": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
-    "terapias_realizadas": {
-      "type": "array",
-      "items": { "type": "string" }
-    },
-    "medicamentos": {
+    "intervencoes_medicamentos": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
-          "nome_comercial": { "type": ["string", "null"] },
-          "principio_ativo": { "type": ["string", "null"] },
-          "frequencia": { "type": ["string", "null"] },
-          "duracao": { "type": ["string", "null"] },
-          "via": { "type": ["string", "null"] },
-          "eficacia_percebida": { "type": ["string", "null"] },
+          "nome_comercial": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "principio_ativo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "forma_farmaceutica": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "via_de_administracao": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tempo_uso": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "frequencia_uso": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "eficacia_percebida": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "efeitos_colaterais": {
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
+          },
+          "comentario_extraido": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "trecho_referente": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tipo_intervencao": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cid10_relacionado": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ordem_temporal": {
+            "type": [
+              "integer",
+              "null"
+            ]
           }
-        },
-        "required": ["nome_comercial"]
+        }
       }
     },
-    "intervencoes_extraidas": { "type": "array" },
-    "microdepoimento": { "type": ["string", "null"] },
-    "status_llm": { "type": ["string", "null"] },
+    "intervencoes_extraidas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "microdepoimento": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status_llm": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "llm_processamento": {
       "type": "object",
       "properties": {
-        "inicio": { "type": "string", "format": "date-time" },
-        "fim": { "type": "string", "format": "date-time" },
-        "duracao_ms": { "type": "integer" },
-        "tentativas": { "type": "integer" },
-        "erro": { "type": ["string", "null"] }
+        "inicio": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "fim": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "duracao_ms": {
+          "type": "integer"
+        },
+        "tentativas": {
+          "type": "integer"
+        },
+        "erro": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       },
-      "required": ["inicio", "fim", "duracao_ms", "tentativas"]
+      "required": [
+        "inicio",
+        "fim",
+        "duracao_ms",
+        "tentativas"
+      ]
     },
     "imagens": {
       "type": "object",
       "properties": {
-        "antes": { "type": ["string", "null"] },
+        "antes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "durante": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
-        "depois": { "type": ["string", "null"] }
+        "depois": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     }
   },

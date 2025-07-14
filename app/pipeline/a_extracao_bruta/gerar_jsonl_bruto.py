@@ -16,6 +16,7 @@ from pathlib import Path
 import firebase_admin
 from firebase_admin import credentials, firestore
 from google.cloud import firestore
+from archlog_sync.logs import setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -28,18 +29,20 @@ VERSAO_PIPELINE = "v0.0.1"  # Versão do pipeline, pode ser alterada conforme ne
 
 # ===== FUNÇÕES DE LIMPEZA =====
 
-
 def remover_emojis(texto: str) -> str:
     return "".join(
         c for c in list(texto) if not unicodedata.category(c[0]).startswith("So")
     )
-
 
 def limpar_texto(texto: str) -> str:
     texto = remover_emojis(texto)
     texto = re.sub(r"[^\w\s.,!?-]", "", texto)  # Remove caracteres especiais
     texto = re.sub(r"\s+", " ", texto)  # Remove múltiplos espaços
     texto = re.sub(r"\.(?=\S)", ". ", texto)  # Garante espaço após ponto
+    texto = re.sub(r"\s*\.\s*", ". ", texto)  # Remove espaços antes e depois de pontos
+    texto = re.sub(r"\s*!\s*", "! ", texto)  # Remove espaços antes e depois de exclamações
+    texto = re.sub(r"\s*\?\s*", "? ", texto)  # Remove espaços antes e depois de interrogações
+    texto = texto.strip()  # Remove espaços no início e no fim  
     return texto.strip()
 
 
@@ -48,7 +51,8 @@ def limpar_texto(texto: str) -> str:
 
 def extrair_firestore_documentos(colecao: str):
     cred = credentials.Certificate("./dermasync-key.json")
-    firebase_admin.initialize_app(cred)
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(cred)
     db = firestore.Client()
 
     documentos = db.collection(colecao).stream()
@@ -74,16 +78,29 @@ def extrair_firestore_documentos(colecao: str):
 
 
 def salvar_jsonl(lista, caminho_saida):
+    """Salva uma lista de dicionários em um arquivo JSONL."""
+    if not lista:
+        logger.warning("A lista está vazia. Nada será salvo.")
+        return  # Retorna sem salvar nada se a lista estiver vazia
+    # Verifica se o diretório de saída existe, se não, cria
+    os.makedirs(os.path.dirname(caminho_saida), exist_ok=True)
+    logger.info(f"Salvando {len(lista)} registros em {caminho_saida}")
+    # Abre o arquivo para escrita
+    # --- CORREÇÃO PRINCIPAL ---
+    # O formato JSONL é uma linha por registro, então usamos json.dumps para cada item
     with open(caminho_saida, "w", encoding="utf-8") as f:
         for item in lista:
             f.write(json.dumps(item, ensure_ascii=False) + "\n")
 
 
-async def gerar_jsonl_bruto(input_dir: dict, output_path: str):
-    logger.info("Iniciando a geração do JSONL bruto...")
-    logger.info(f"Parâmetros de entrada: {input_dir}, {output_path}")
-    registros = []
+def gerar_jsonl_bruto(input_dir: dict, 
+                            output_path: str):
+    
+    """Gera um arquivo JSONL bruto a partir de arquivos de texto em um diretório."""
 
+    logger.info(f"Iniciando a geração do JSONL bruto a partir do diretório: {input_dir} para o arquivo: {output_path}")
+    
+    registros = []
     # === Parâmetros ===
     origem_dict = input_dir.get("origem", {})
     fonte_plataforma = (
@@ -97,7 +114,7 @@ async def gerar_jsonl_bruto(input_dir: dict, output_path: str):
     if not src_dir:
         raise ValueError("src_dir is required in input_dir dict")
 
-    print(f"📂 Lendo arquivos do diretório: {src_dir} ({fonte_plataforma})")
+    logger.info(f"📂 Lendo arquivos do diretório: {src_dir} ({fonte_plataforma})")
 
     for file in Path(src_dir).glob("*.txt"):
         with open(file, "r", encoding="utf-8") as f:
@@ -124,12 +141,13 @@ async def gerar_jsonl_bruto(input_dir: dict, output_path: str):
         }
 
         registros.append(registro)
+        logger.debug(f"Registro adicionado: {registro['id_relato']} (len={len(registro['conteudo_original'])})")
 
     # === Escrita ===
     with open(output_path, "w", encoding="utf-8") as fout:
         for r in registros:
             fout.write(json.dumps(r, ensure_ascii=False) + "\n")
-        print(f"💾 {len(registros)} registros salvos em {output_path}")
+        logger.info(f"💾 {len(registros)} registros salvos em {output_path}")
 
 
 if __name__ == "__main__":
@@ -170,19 +188,15 @@ if __name__ == "__main__":
     origem = "facebook"  # ou 'youtube', dependendo do contexto
     ARQUIVO_SAIDA = f"relatos-{data_hoje}-{origem}-{VERSAO_PIPELINE}.jsonl"
 
-    async def main():
-        await gerar_jsonl_bruto(
-            {
-                "origem": origem,
-                "src_dir": "D:\\workspace_projects_001\\fotos_dados\\resultados\\depoimentos",
-                "grupo": "Dermatite Atópica Brasil",
-                "ctx_id": "1234567890",
-                "tipo": "comentario",
-            },
-            f"{OUTPUT_DIR}/{ARQUIVO_SAIDA}",
-        )
+    
+    for entrada in diretorios:
+        origem = entrada["origem"]
+        data_hoje = datetime.now().strftime("%Y%m%d")
+        nome_saida = f"relatos-{data_hoje}-{origem}-{VERSAO_PIPELINE}.jsonl"
+        gerar_jsonl_bruto(entrada, f"{OUTPUT_DIR}/{nome_saida}")
 
-    asyncio.run(main())
+
+    
     # print("📂 Lendo arquivos dos diretórios:", diretorios)
     # registros = processar_diretorios(diretorios, 'local-youtube')
     # print(f"📄 Encontrados {len(registros)} registros nos diretórios.")

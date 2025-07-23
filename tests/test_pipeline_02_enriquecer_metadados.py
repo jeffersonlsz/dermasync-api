@@ -8,8 +8,10 @@ from pathlib import Path
 import pytest
 from jsonschema import ValidationError, validate
 
-from app.pipeline.B_enriquecimento.enriquecer_metadados import \
-    processar_relato  # adapte para seu import real
+from app.pipeline.B_enriquecimento.enriquecer_metadados import (
+    processar_relato,
+    
+)  # adapte para seu import real
 
 logger = logging.getLogger(__name__)
 

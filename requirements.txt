@@ -30,5 +30,7 @@ pytest-asyncio
 python-dotenv
 python-multipart
 pyyaml
+requests
+pytest-mock
 
 pillow

@@ -16,7 +16,7 @@ from pathlib import Path
 import firebase_admin
 from firebase_admin import credentials, firestore
 from google.cloud import firestore
-from archlog_sync.logs import setup_logging
+from app.archlog_sync.logs import setup_logging
 
 logger = logging.getLogger(__name__)
 

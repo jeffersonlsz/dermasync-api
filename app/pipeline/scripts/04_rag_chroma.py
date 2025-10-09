@@ -4,7 +4,7 @@ import os
 import unicodedata
 
 import chromadb
-from _llm_client.base import get_llm_client
+from app.llm.factory import get_llm_client
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     resultados = buscar_semelhantes(collection, "Dermatite no rosto", embed_model)
 
     print("🧠 Enviando para LLM...")
-    llm = get_llm_client("gemini")
+    llm = get_llm_client()
     prompt = montar_prompt("Dermatite no rosto", resultados)
     resposta = llm.completar(prompt)
 

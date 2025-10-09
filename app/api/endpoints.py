@@ -13,7 +13,7 @@ from app.chroma.buscador_segmentos import (_buscar_por_tags,
 from app.chroma.buscador_tags import contar_tags
 
 from ..firestore.client import db
-from ..llm.gemini import model
+from ..llm.factory import get_llm_client
 from .schemas import (BuscarPorTagsRequest, JornadaPayload, QueryInput,
                       QueryRequest, RequisicaoRelato, SolucaoRequest,
                       TextoTags)
@@ -99,9 +99,9 @@ async def gerar_solucao(req: SolucaoRequest):
     """
 
     try:
-        # Chama a API Gemini
-        response = model.generate_content(prompt)
-        return {"resposta": response.text}
+        llm_client = get_llm_client()
+        response = llm_client.completar(prompt)
+        return {"resposta": response}
 
     except Exception as e:
         # Retorna erro amigável se algo falhar
@@ -118,8 +118,9 @@ async def extrair_tags(req: TextoTags):
     """
 
     try:
-        response = model.generate_content(prompt)
-        texto = response.text.strip()
+        llm_client = get_llm_client()
+        response = llm_client.completar(prompt)
+        texto = response.strip()
 
         try:
             tags = json.loads(texto)
@@ -193,10 +194,10 @@ Retorne somente um JSON puro. Não use ```json ou qualquer formatação de markd
 """
     try:
         inicio = time.time()
-        response = model.generate_content(prompt)
-        fim = time.time()
+        llm_client = get_llm_client()
+        response = llm_client.completar(prompt)
 
-        raw = response.text
+        raw = response
         print("🔎 RESPOSTA BRUTA DO GEMINI:")
         print("|" + response.text[:100] + "|")
         raw = response.text.strip()

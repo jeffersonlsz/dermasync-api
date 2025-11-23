@@ -1,107 +1,226 @@
-from fastapi import APIRouter, Depends, FastAPI
-from fastapi.testclient import TestClient
+import pytest
+from fastapi import status
+from httpx import AsyncClient
+from app.auth.schemas import User
+from datetime import datetime, timezone, timedelta
+import jwt
+from app.config import APP_JWT_SECRET
+from app.core.errors import AUTH_ERROR_MESSAGES
 
-from app.auth.dependencies import get_current_user
-from app.auth.schemas import AuthUser
+@pytest.mark.asyncio
+async def test_external_login_sucesso(client: AsyncClient, mocker):
+    """
+    Testa o fluxo de login externo com sucesso.
+    """
+    user_data = {
+        "id": "usr_test_123",
+        "firebase_uid": "test_firebase_uid",
+        "email": "test@example.com",
+        "display_name": "Test User",
+        "avatar_url": "http://example.com/avatar.jpg",
+        "role": "usuario_logado",
+        "is_active": True,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+    }
+    user = User(**user_data)
+    mocker.patch("app.routes.auth.verify_firebase_token", return_value={"firebase_uid": "test_firebase_uid", "email": "test@example.com", "name": "Test User", "picture": "http://example.com/avatar.jpg"})
+    mocker.patch("app.routes.auth.get_or_create_internal_user", return_value=user)
 
+    response = await client.post(
+        "/auth/external-login",
+        json={"provider_token": "fake_firebase_token"},
+    )
 
-# 🔧 Mock para testes
-def mock_user_admin():
-    return AuthUser(uid="admin_test_001", email="admin@test.com", role="admin")
-
-
-def mock_user_anon():
-    return AuthUser(uid="anon_test_001", email="anon@test.com", role="anonimo")
-
-
-# ⚙️ Rota protegida de exemplo
-router = APIRouter()
-
-
-@router.get("/rota-protegida")
-def rota_protegida(user: AuthUser = Depends(get_current_user)):
-    return {"message": f"Acesso autorizado para {user.role}", "email": user.email}
-
-
-# 🏗️ Criação do app exclusivo para teste
-def criar_app_para_teste():
-    app = FastAPI()
-    app.include_router(router)
-    return app
-
-
-# ✅ Teste com usuário ADMIN
-def test_rota_com_admin():
-    app = criar_app_para_teste()
-    app.dependency_overrides[get_current_user] = mock_user_admin
-
-    client = TestClient(app)
-    response = client.get("/rota-protegida")
-
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["message"] == "Acesso autorizado para admin"
-    assert data["email"] == "admin@test.com"
+    assert "api_token" in data
+    assert "refresh_token" in data
+    assert data["user"]["display_name"] == "Test User"
 
-    app.dependency_overrides.clear()
+
+@pytest.mark.asyncio
+async def test_get_me_sem_token(client: AsyncClient):
+    """
+    Testa a rota /me sem um token de autenticação.
+    """
+    response = await client.get("/auth/me")
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-# ✅ Teste com usuário ANÔNIMO
-def test_rota_com_anonimo():
-    app = criar_app_para_teste()
-    app.dependency_overrides[get_current_user] = mock_user_anon
-
-    client = TestClient(app)
-    response = client.get("/rota-protegida")
-
-    assert response.status_code == 200
+@pytest.mark.asyncio
+async def test_get_me_com_token(client: AsyncClient, mock_current_user_usuario_logado):
+    """
+    Testa a rota /me com um usuário logado mockado via dependency_overrides.
+    """
+    response = await client.get("/auth/me")
+    assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["message"] == "Acesso autorizado para anonimo"
-    assert data["email"] == "anon@test.com"
-
-    app.dependency_overrides.clear()
+    assert data["display_name"] == "Usuário de Teste"
 
 
-def test_admin_tem_acesso(client_admin):
-    response = client_admin.get("/rota-protegida")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["message"] == "Acesso autorizado para admin"
-    assert data["email"] == "admin@fixture.com"
+@pytest.mark.asyncio
+async def test_get_me_com_token_expirado(client: AsyncClient, mocker):
+    """
+    Testa a rota /auth/me com um token JWT expirado.
+    """
+    expired_payload = {
+        "sub": "test_expired_user",
+        "role": "usuario_logado",
+        "type": "access",
+        "firebase_uid": "fb_test_expired",
+        "exp": datetime.now(timezone.utc) - timedelta(minutes=5),
+    }
+    expired_token = jwt.encode(expired_payload, APP_JWT_SECRET, algorithm="HS256")
+
+    mocker.patch(
+        "app.auth.service.get_user_from_db",
+        return_value=User(
+            id="test_expired_user",
+            firebase_uid="fb_test_expired",
+            email="expired@test.com",
+            display_name="Expired User",
+            role="usuario_logado",
+            is_active=True,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        ),
+    )
+
+    response = await client.get(
+        "/auth/me", headers={"Authorization": f"Bearer {expired_token}"}
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {"detail": AUTH_ERROR_MESSAGES["TOKEN_EXPIRED"]}
 
 
-def test_logado_tem_acesso(client_logado):
-    response = client_logado.get("/rota-protegida")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["message"] == "Acesso autorizado para usuario_logado"
-    assert data["email"] == "user@fixture.com"
+@pytest.mark.asyncio
+async def test_get_me_com_token_invalido(client: AsyncClient, mocker):
+    """
+    Testa a rota /auth/me com um token JWT com assinatura inválida/adulterado.
+    """
+    valid_payload = {
+        "sub": "test_invalid_signature_user",
+        "role": "usuario_logado",
+        "type": "access",
+        "firebase_uid": "fb_test_invalid_signature",
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=5),
+    }
+    invalid_signature_token = jwt.encode(
+        valid_payload, "wrong_secret", algorithm="HS256"
+    )
+
+    mocker.patch(
+        "app.auth.service.get_user_from_db",
+        return_value=User(
+            id="test_invalid_signature_user",
+            firebase_uid="fb_test_invalid_signature",
+            email="invalid_sig@test.com",
+            display_name="Invalid Signature User",
+            role="usuario_logado",
+            is_active=True,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        ),
+    )
+
+    response = await client.get(
+        "/auth/me", headers={"Authorization": f"Bearer {invalid_signature_token}"}
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {"detail": AUTH_ERROR_MESSAGES["TOKEN_INVALID"]}
 
 
-def test_anonimo_tem_acesso(client_anon):
-    response = client_anon.get("/rota-protegida")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["message"] == "Acesso autorizado para anonimo"
-    assert data["email"] == "anon@fixture.com"
+@pytest.mark.asyncio
+async def test_get_me_com_token_role_adulterada(client: AsyncClient, mocker):
+    """
+    Testa a rota /auth/me com um token JWT onde o 'role' foi adulterado
+    (diferente do armazenado no DB).
+    """
+    user_id = "test_tampered_role_user"
+    original_role = "usuario_logado"
+    tampered_role = "admin"
+
+    tampered_payload = {
+        "sub": user_id,
+        "role": tampered_role,
+        "type": "access",
+        "firebase_uid": "fb_test_tampered_role",
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=5),
+    }
+    tampered_token = jwt.encode(tampered_payload, APP_JWT_SECRET, algorithm="HS256")
+
+    mocker.patch(
+        "app.auth.service.get_user_from_db",
+        return_value=User(
+            id=user_id,
+            firebase_uid="fb_test_tampered_role",
+            email="tampered_role@test.com",
+            display_name="Tampered Role User",
+            role=original_role,
+            is_active=True,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        ),
+    )
+
+    response = await client.get(
+        "/auth/me", headers={"Authorization": f"Bearer {tampered_token}"}
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {"detail": AUTH_ERROR_MESSAGES["ROLE_MISMATCH"]}
+	
+@pytest.mark.asyncio
+async def test_external_login_usuario_inativo(client: AsyncClient, mocker):
+    """
+    Testa o fluxo de login externo com um usuário inativo.
+    """
+    user_data = {
+        "id": "usr_inactive_123",
+        "firebase_uid": "test_firebase_uid_inactive",
+        "email": "inactive@example.com",
+        "display_name": "Inactive User",
+        "avatar_url": "http://example.com/avatar_inactive.jpg",
+        "role": "usuario_logado",
+        "is_active": False,  # Usuário inativo
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+    }
+    inactive_user = User(**user_data)
+
+    mocker.patch(
+        "app.routes.auth.verify_firebase_token",
+        return_value={
+            "firebase_uid": "test_firebase_uid_inactive",
+            "email": "inactive@example.com",
+            "name": "Inactive User",
+            "picture": "http://example.com/avatar_inactive.jpg",
+        },
+    )
+    mocker.patch(
+        "app.routes.auth.get_or_create_internal_user", return_value=inactive_user
+    )
+
+    response = await client.post(
+        "/auth/external-login",
+        json={"provider_token": "fake_firebase_token_inactive"},
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {"detail": AUTH_ERROR_MESSAGES["USER_INACTIVE"]}
 
 
-def test_admin(client_com_usuario):
-    client = client_com_usuario("admin")
-    res = client.get("/rota-protegida")
-    assert res.status_code == 200
-    assert res.json()["message"] == "Acesso autorizado para admin"
 
 
-def test_usuario_logado(client_com_usuario):
-    client = client_com_usuario("usuario_logado")
-    res = client.get("/rota-protegida")
-    assert res.status_code == 200
-    assert res.json()["email"] == "usuario_logado@fixture.com"
 
-
-def test_anonimo(client_com_usuario):
-    client = client_com_usuario("anonimo")
-    res = client.get("/rota-protegida")
-    assert res.status_code == 200
-    assert "anonimo" in res.json()["message"]
+@pytest.mark.asyncio
+async def test_external_login_sem_provider_token(client: AsyncClient):
+    """
+    Testa a rota /auth/external-login sem o campo 'provider_token'.
+    Espera-se um erro de validação 422.
+    """
+    response = await client.post("/auth/external-login", json={})
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

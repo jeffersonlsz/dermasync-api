@@ -13,9 +13,20 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.archlog_sync.logger import registrar_log
 from app.archlog_sync.middleware import LogRequestMiddleware
-from app.routes import health, imagens, relatos
+from app.routes import auth, health, imagens, relatos
 
 app = FastAPI(title="DermaSync API - Backend")
+
+# TODO: Implementar rate limiting por IP e por usuário.
+# Biblioteca recomendada: 'slowapi'
+# Exemplo de implementação:
+# from slowapi import Limiter, _rate_limit_exceeded_handler
+# from slowapi.util import get_remote_address
+# from slowapi.errors import RateLimitExceeded
+#
+# limiter = Limiter(key_func=get_remote_address)
+# app.state.limiter = limiter
+# app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(LogRequestMiddleware)
 
@@ -48,6 +59,7 @@ app.add_middleware(
 app.include_router(imagens.router)
 app.include_router(relatos.router)
 app.include_router(health.router)
+app.include_router(auth.router)
 
 
 @app.get("/")

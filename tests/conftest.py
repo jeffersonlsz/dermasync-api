@@ -1,113 +1,109 @@
-# tests/conftest.py
+import os
+os.environ["STORAGE_BUCKET"] = "fake-bucket.appspot.com"
+
 import pytest
-from fastapi import APIRouter, Depends, FastAPI
-from fastapi.testclient import TestClient
-
+import pytest_asyncio
+from fastapi import FastAPI
+from httpx import AsyncClient, ASGITransport
+from app.main import app as main_app
+from app.auth.schemas import User
 from app.auth.dependencies import get_current_user
-from app.auth.schemas import AuthUser
-from app.logger_config import configurar_logger_json
+from datetime import datetime, timezone
 
-from app.archlog_sync.parser import parse_logs
+@pytest.fixture(scope="session")
+def app() -> FastAPI:
+    return main_app
+
+@pytest_asyncio.fixture
+async def client(app: FastAPI):
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        yield ac
+
+@pytest.fixture
+def mock_current_user_colaborador(app: FastAPI):
+    user = User(
+        id="colab_001",
+        firebase_uid="fb_colab_001", 
+        email="colab@test.com", 
+        display_name="Colaborador de Teste", 
+        role="colaborador", 
+        is_active=True, 
+        created_at=datetime.now(timezone.utc), 
+        updated_at=datetime.now(timezone.utc)
+    )
+    app.dependency_overrides[get_current_user] = lambda: user
+    yield
+    app.dependency_overrides.clear()
+
+@pytest.fixture
+def mock_current_user_usuario_logado(app: FastAPI):
+    user = User(
+        id="user_123", 
+        firebase_uid="fb_user_123",
+        email="user@test.com", 
+        display_name="Usuário de Teste", 
+        role="usuario_logado", 
+        is_active=True, 
+        created_at=datetime.now(timezone.utc), 
+        updated_at=datetime.now(timezone.utc)
+    )
+    app.dependency_overrides[get_current_user] = lambda: user
+    yield
+    app.dependency_overrides.clear()
+
+@pytest.fixture
+def mock_current_user_admin(app: FastAPI):
+    user = User(
+        id="admin_001",
+        firebase_uid="fb_admin_001", 
+        email="admin@test.com", 
+        display_name="Admin de Teste", 
+        role="admin", 
+        is_active=True, 
+        created_at=datetime.now(timezone.utc), 
+        updated_at=datetime.now(timezone.utc)
+    )
+    app.dependency_overrides[get_current_user] = lambda: user
+    yield
+    app.dependency_overrides.clear()
 
 @pytest.fixture
 def sample_events():
-    path = "app/archlog_sync/exemplos/relato_log.jsonl"
-    groups = parse_logs(path)
-    return groups.get("req_001", [])
-
-
-@pytest.fixture(autouse=True)
-def configurar_logger_para_testes():
-    configurar_logger_json(nivel="INFO", para_arquivo=False)
-
-
-# 🔧 Mocks
-def mock_user_admin():
-    return AuthUser(uid="admin_fixture", email="admin@fixture.com", role="admin")
-
-
-def mock_user_logado():
-    return AuthUser(uid="user_fixture", email="user@fixture.com", role="usuario_logado")
-
-
-def mock_user_anon():
-    return AuthUser(uid="anon_fixture", email="anon@fixture.com", role="anonimo")
-
-
-# 🔁 Cria app com rota protegida para testes
-@pytest.fixture
-def test_app():
-    router = APIRouter()
-
-    @router.get("/rota-protegida")
-    def rota_protegida(user: AuthUser = Depends(get_current_user)):
-        return {"message": f"Acesso autorizado para {user.role}", "email": user.email}
-
-    app = FastAPI()
-    app.include_router(router)
-    return app
-
-
-# 🧪 Client com mock de admin
-@pytest.fixture
-def client_admin(test_app):
-    test_app.dependency_overrides[get_current_user] = mock_user_admin
-    client = TestClient(test_app)
-    yield client
-    test_app.dependency_overrides.clear()
-
-
-# 🧪 Client com mock de logado
-@pytest.fixture
-def client_logado(test_app):
-    test_app.dependency_overrides[get_current_user] = mock_user_logado
-    client = TestClient(test_app)
-    yield client
-    test_app.dependency_overrides.clear()
-
-
-# 🧪 Client com mock de anônimo
-@pytest.fixture
-def client_anon(test_app):
-    test_app.dependency_overrides[get_current_user] = mock_user_anon
-    client = TestClient(test_app)
-    yield client
-    test_app.dependency_overrides.clear()
-
-
-# 🔁 Rota de teste compartilhada
-def criar_app_para_testes():
-    router = APIRouter()
-
-    @router.get("/rota-protegida")
-    def rota(user: AuthUser = Depends(get_current_user)):
-        return {"message": f"Acesso autorizado para {user.role}", "email": user.email}
-
-    app = FastAPI()
-    app.include_router(router)
-    return app
-
-
-# 🔧 Função geradora de mocks por role
-def gerar_mock(role: str) -> AuthUser:
-    return AuthUser(uid=f"{role}_uid_001", email=f"{role}@fixture.com", role=role)
-
-
-@pytest.fixture
-def client_com_usuario():
-    """
-    Fixture dinâmica que permite simular qualquer papel de usuário.
-    Use: client = client_com_usuario("admin")
-    """
-    app = criar_app_para_testes()
-
-    def _cliente_com_role(role: str = "anonimo"):
-        def mock_usuario():
-            return gerar_mock(role)
-
-        app.dependency_overrides[get_current_user] = mock_usuario
-        client = TestClient(app)
-        return client
-
-    yield _cliente_com_role
-    app.dependency_overrides.clear()
+    return [
+        {
+            "timestamp": "2025-07-04T14:00:01Z",
+            "request_id": "req_001",
+            "caller": "frontend",
+            "callee": "relato_service",
+            "operation": "POST /enviar-relato",
+            "status_code": 200,
+            "duration_ms": 122,
+        },
+        {
+            "timestamp": "2025-07-04T14:00:02Z",
+            "request_id": "req_001",
+            "caller": "relato_service",
+            "callee": "firebase_storage",
+            "operation": "upload_imagem",
+            "status_code": 200,
+            "duration_ms": 321,
+        },
+        {
+            "timestamp": "2025-07-04T14:00:03Z",
+            "request_id": "req_001",
+            "caller": "relato_service",
+            "callee": "llm_extractor",
+            "operation": "extrair_tags",
+            "status_code": 200,
+            "duration_ms": 1522,
+        },
+        {
+            "timestamp": "2025-07-04T14:00:04Z",
+            "request_id": "req_001",
+            "caller": "llm_extractor",
+            "callee": "chromadb",
+            "operation": "persistir_vetor",
+            "status_code": 200,
+            "duration_ms": 88,
+        },
+    ]

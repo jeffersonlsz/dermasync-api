@@ -1,31 +1,57 @@
-from fastapi import Depends
+"""
+Este módulo define as dependências de segurança para as rotas da API.
+"""
+from typing import List
 
-from .schemas import AuthUser
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 
+from app.auth.schemas import User
+from app.auth.service import decode_and_validate_api_jwt
 
-# Mocks individuais
-def mock_user_anonimo() -> AuthUser:
-    return AuthUser(uid="mock_anonimo_001", email="anonimo@example.com", role="anonimo")
-
-
-def mock_user_logado() -> AuthUser:
-    return AuthUser(
-        uid="mock_user_002", email="usuario@example.com", role="usuario_logado"
-    )
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/external-login")
 
 
-def mock_user_admin() -> AuthUser:
-    return AuthUser(uid="mock_admin_999", email="admin@dermasync.com.br", role="admin")
-
-
-# Dependency principal
-def get_current_user(role: str = "anonimo") -> AuthUser:
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+) -> User:
     """
-    Mock flexível da autenticação.
-    Troque o valor padrão de 'role' para simular outros usuários.
+    Dependência que valida o token JWT e retorna o objeto User completo.
     """
-    if role == "usuario_logado":
-        return mock_user_logado()
-    if role == "admin":
-        return mock_user_admin()
-    return mock_user_anonimo()
+    user = await decode_and_validate_api_jwt(token)
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Usuário inativo"
+        )
+    return user
+
+
+def require_roles(roles: List[str]):
+    """
+    Cria uma dependência que verifica se o usuário atual tem uma das roles permitidas.
+    """
+
+    async def role_checker(current_user: User = Depends(get_current_user)) -> None:
+        if current_user.role not in roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Acesso negado. Requer uma das seguintes roles: {', '.join(roles)}",
+            )
+
+    return role_checker
+
+
+def require_authenticated():
+    """
+    Verifica se o usuário não é anônimo.
+    """
+
+    async def auth_checker(current_user: User = Depends(get_current_user)) -> None:
+        if current_user.role == "anon":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Acesso negado para usuários anônimos.",
+            )
+
+    return auth_checker

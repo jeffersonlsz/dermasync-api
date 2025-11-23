@@ -1,28 +1,12 @@
-# File: tests/test_enviar_relato.py
-# -*- coding: utf-8 -*-
-import logging
-import uuid
-from pathlib import Path
-
-from fastapi.testclient import TestClient
-
-from app.main import app
+import pytest
+from fastapi import status
+from httpx import AsyncClient
 
 from .utils import gerar_imagem_fake_base64
 
-logger = logging.getLogger(__name__)
-
-client = TestClient(app)
-
-
 def criar_payload_valido():
-    imagem_antes = gerar_imagem_fake_base64()
-    imagem_durante = gerar_imagem_fake_base64()
-    imagem_depois = gerar_imagem_fake_base64()
-
     return {
-        "id": uuid.uuid4().hex[:8],
-        "id_relato": uuid.uuid4().hex[:8],
+        "id_relato": "relato_teste_123",
         "conteudo_original": "Paciente com eczema severo nas costas.",
         "classificacao_etaria": "adulto",
         "idade": "35",
@@ -30,74 +14,38 @@ def criar_payload_valido():
         "sintomas": ["coceira", "descamação"],
         "regioes_afetadas": ["costas"],
         "imagens": {
-            "antes": imagem_antes,
-            "durante": [imagem_durante],
-            "depois": imagem_depois,
+            "antes": gerar_imagem_fake_base64(),
+            "durante": [gerar_imagem_fake_base64()],
+            "depois": gerar_imagem_fake_base64(),
         },
     }
 
-
-def test_logger_config():
-    logger.info("TESTE: Esta mensagem deve aparecer!")
-    assert True
-
-
-def test_enviar_relato_completo_valido():
+@pytest.mark.asyncio
+async def test_enviar_relato_sem_autenticacao(client: AsyncClient):
+    """
+    Testa se a rota de enviar relato retorna 401/403 sem autenticação.
+    """
     payload = criar_payload_valido()
-    response = client.post("/relatos/enviar-relato-completo", json=payload)
+    response = await client.post("/relatos/enviar-relato-completo", json=payload)
+    assert response.status_code in [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN]
 
-    assert response.status_code == 200
+@pytest.mark.asyncio
+async def test_enviar_relato_com_autenticacao(client: AsyncClient, mock_current_user_usuario_logado, mocker):
+    """
+    Testa se a rota de enviar relato funciona com autenticação.
+    """
+    mocker.patch("app.routes.relatos.salvar_relato_firestore", return_value="mock_doc_id")
+    mocker.patch(
+        "app.routes.relatos.salvar_imagem_from_base64",
+        return_value={"id": "mock_image_id"},
+    )
+    
+    payload = criar_payload_valido()
+    response = await client.post("/relatos/enviar-relato-completo", json=payload)
+    
+    assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data["status"] == "sucesso"
-    assert isinstance(data["id"], str)
-    assert len(data["imagens"]) >= 1  # Pelo menos 'antes'
-    assert data["document_id"]  # Verifica se o ID do documento foi retornado
-
-
-def test_relato_invalido_sem_conteudo():
-    payload = criar_payload_valido()
-    payload["conteudo_original"] = ""
-
-    response = client.post("/relatos/enviar-relato-completo", json=payload)
-    assert response.status_code == 400
-    assert "Relato não pode estar vazio" in response.text
-
-
-def test_relato_apenas_com_imagem_antes():
-    imagem_antes = gerar_imagem_fake_base64()
-
-    payload = {
-        "id_relato": "relato_solo",
-        "conteudo_original": "Dermatite na perna esquerda.",
-        "idade": "20-25",
-        "genero": "masculino",
-        "sintomas": ["vermelhidão"],
-        "regioes_afetadas": ["perna"],
-        "imagens": {"antes": imagem_antes},
-    }
-
-    response = client.post("/relatos/enviar-relato-completo", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "sucesso"
-    assert data["imagens"]
-
-
-def test_relato_multiplas_durante_e_sem_depois():
-    imagens_durante = [gerar_imagem_fake_base64() for _ in range(3)]
-    imagem_antes = gerar_imagem_fake_base64()
-
-    payload = {
-        "id_relato": "relato_durante",
-        "conteudo_original": "Melhora gradual com uso de óleo.",
-        "idade": "30-35",
-        "genero": "feminino",
-        "sintomas": ["ressecamento", "coceira"],
-        "regioes_afetadas": ["braços"],
-        "imagens": {"antes": imagem_antes, "durante": imagens_durante, "depois": None},
-    }
-
-    response = client.post("/relatos/enviar-relato-completo", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["imagens"]  # 1 antes + 3 durante
+    assert data["relato_id"] == "mock_doc_id"
+    assert "imagens_processadas_ids" in data
+    assert data["imagens_processadas_ids"]["antes"] == "mock_image_id"

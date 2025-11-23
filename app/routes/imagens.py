@@ -1,85 +1,111 @@
 # app/routes/imagens.py
 
 """
-Este módulo contém os endpoints da API para gerenciamento de relatos.
+Este módulo contém os endpoints da API para gerenciamento de imagens,
+com autenticação e autorização.
 """
 import logging
-from datetime import datetime, timezone
-from typing import List
-from uuid import uuid4
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
-from app.archlog_sync.logger import registrar_log
-from app.services.imagens_service import listar_imagens, salvar_imagem
+from app.auth.dependencies import get_current_user, require_roles
+from app.auth.schemas import User
+from app.schema.imagem import (
+    ImageListResponse,
+    ImagemMetadata,
+    UploadSuccessResponse,
+    ImagemSignedUrlResponse, # NEW IMPORT
+)
+from app.services.imagens_service import (
+    get_imagem_by_id,
+    listar_imagens_publicas,
+    salvar_imagem,
+    get_imagem_signed_url,
+    listar_todas_imagens_admin, # NEW IMPORT
+)
 
 router = APIRouter(prefix="/imagens", tags=["Serviços de Imagens"])
-
 logger = logging.getLogger(__name__)
 
 
-@router.post("/upload")
-async def upload_imagem(file: UploadFile = File(...)):
-
-    logger.info(f"Recebendo imagem: {file.filename}")
+@router.post("/upload", response_model=UploadSuccessResponse)
+async def upload_imagem(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Endpoint para upload de imagens. Requer autenticação.
+    A imagem é validada, e metadados como `owner_user_id` e `sha256` são salvos.
+    """
+    logger.info(f"Recebendo imagem: {file.filename} por usuário {current_user.id}")
 
     try:
-        start = datetime.now(timezone.utc)
-        request_id = uuid4().hex
-        url = await salvar_imagem(file)
-        end = datetime.now(timezone.utc)
-        duration_ms = int((end - start).total_seconds() * 1000)
-
-        logger.info(
-            f"Imagem {file.filename} salva com sucesso em {url} - Tempo de processamento: {duration_ms}ms"
+        imagem_metadata = await salvar_imagem(
+            file=file, owner_user_id=current_user.id
         )
-        await registrar_log(
-            {
-                "timestamp": datetime.now(timezone.utc),
-                "request_id": request_id,
-                "caller": "imagens.py - upload_imagem",
-                "callee": "imagens_service",
-                "operation": "upload",
-                "status_code": 200,
-                "duration_ms": duration_ms,
-                "details": f"Imagem {file.filename} salva com sucesso",
-                "metadata": {"url": url},
-            }
-        )
-        return {"status": "sucesso", "url": url}
+        return {"image_id": imagem_metadata["id"]}
+    except HTTPException as e:
+        logger.error(f"Erro de validação ao salvar imagem: {e.detail}")
+        raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Erro inesperado no upload de imagem.")
+        raise HTTPException(status_code=500, detail="Erro interno no servidor.")
 
 
-@router.get("/listar-todas")
-async def get_imagens() -> List[dict]:
-    logger.info("Iniciando a listagem de imagens")
+@router.get(
+    "/listar-todas",
+    response_model=ImageListResponse,
+    dependencies=[Depends(require_roles(["admin", "colaborador"]))],
+)
+async def get_imagens_admin(
+    current_user: User = Depends(get_current_user) # ADDED current_user
+):
+    """
+    Lista todas as imagens para administradores e colaboradores.
+    Endpoint protegido.
+    """
+    logger.info("Admin/colaborador listando todas as imagens.")
+    imagens = await listar_todas_imagens_admin(requesting_user=current_user) # MODIFIED CALL
+    return {"quantidade": len(imagens), "dados": imagens}
+
+
+@router.get("/listar-publicas", response_model=ImageListResponse)
+async def get_imagens_publicas():
+    """
+    Lista imagens aprovadas para exibição pública.
+    Endpoint público.
+    """
+    logger.info("Listando imagens públicas.")
     try:
-        start = datetime.now(timezone.utc)
-        request_id = uuid4().hex
-        imagens = await listar_imagens()
-        end = datetime.now(timezone.utc)
-        duration_ms = int((end - start).total_seconds() * 1000)
-
-        logger.info(
-            f"Listagem de imagens concluída em {duration_ms}ms, total de {len(imagens)} imagens encontradas"
-        )
-
-        await registrar_log(
-            {
-                "timestamp": datetime.now(timezone.utc),
-                "request_id": request_id,
-                "caller": "get_imagens",
-                "callee": "imagens_service",
-                "operation": "listar-todas",
-                "status_code": 200,
-                "duration_ms": duration_ms,
-                "details": "imagens.py - get_imagens - listagem de imagens concluída com sucesso",
-                "metadata": {"quantidade": len(imagens), "dados": imagens},
-            }
-        )
-
+        imagens = await listar_imagens_publicas()
         return {"quantidade": len(imagens), "dados": imagens}
     except Exception as e:
-        logger.error(f"Erro ao listar imagens: {str(e)}")
+        logger.error(f"Erro ao listar imagens públicas: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{image_id}", response_model=ImagemSignedUrlResponse) # MODIFIED response_model
+async def get_imagem(
+    image_id: str, current_user: User = Depends(get_current_user)
+):
+    """
+    Busca os metadados de uma imagem pelo ID e retorna um URL assinado temporário.
+    Regras de acesso:
+    - O dono da imagem pode ver.
+    - Administradores e colaboradores podem ver.
+    """
+    logger.info(f"Usuário {current_user.id} buscando imagem {image_id}")
+    
+    # Get image metadata (already performs permission check)
+    imagem_metadata = await get_imagem_by_id(
+        image_id=image_id, requesting_user=current_user
+    )
+    
+    # Get signed URL (already performs permission check internally, but get_imagem_by_id handles it first)
+    signed_url = await get_imagem_signed_url(
+        image_id=image_id, requesting_user=current_user
+    )
+    
+    # Combine metadata and signed URL
+    return {**imagem_metadata, "signed_url": signed_url}
+

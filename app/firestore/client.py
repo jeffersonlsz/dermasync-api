@@ -21,10 +21,15 @@ load_dotenv()
 
 def get_storage_bucket():
     _initialize_firebase_app()
+    storage_bucket_name = os.getenv("FIREBASE_STORAGE_BUCKET")
+    if not storage_bucket_name:
+        logger.error("FIREBASE_STORAGE_BUCKET environment variable is not set.")
+        raise ValueError("Storage bucket name not specified in environment.")
+
     logger.info(
-        f"Obtendo o bucket de armazenamento do Firebase ... ${os.getenv('FIREBASE_STORAGE_BUCKET')}"
+        f"Obtendo o bucket de armazenamento do Firebase ... ${storage_bucket_name}"
     )
-    return fb_storage.bucket()
+    return fb_storage.bucket(name=storage_bucket_name)
 
 
 @lru_cache

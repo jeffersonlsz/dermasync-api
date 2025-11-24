@@ -28,23 +28,27 @@ async def test_enviar_relato_falha_firestore_rollback(
     """
     Testa se o rollback de imagens é acionado quando salvar o relato no Firestore falha.
     """
+    # Mock the environment variable for Firebase Storage Bucket
+    mocker.patch("os.getenv", side_effect=lambda key, default=None: "test-bucket" if key == "FIREBASE_STORAGE_BUCKET" else default)
     # Mock para simular sucesso no salvamento da imagem
     mocker.patch(
-        "app.routes.relatos.salvar_imagem_from_base64",
+        "app.services.relatos_service.salvar_imagem_from_base64",
         return_value={"id": "mock_image_id_rollback"},
     )
     
     # Mock para simular falha ao salvar no Firestore
     mocker.patch(
-        "app.routes.relatos.salvar_relato_firestore",
+        "app.services.relatos_service.salvar_relato_firestore",
         side_effect=Exception("Falha ao conectar com o Firestore"),
     )
     
     # Mock para espionar a chamada da função de rollback
     mocker.patch(
-        "app.routes.relatos.mark_image_as_orphaned",
+        "app.services.relatos_service.mark_image_as_orphaned",
         return_value=None,
     )
+    # Mock for enqueue_relato_processing
+    mocker.patch("app.services.relatos_service.enqueue_relato_processing", return_value=None)
 
     payload = criar_payload_valido()
     response = await client.post("/relatos/enviar-relato-completo", json=payload)

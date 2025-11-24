@@ -34,11 +34,15 @@ async def test_enviar_relato_com_autenticacao(client: AsyncClient, mock_current_
     """
     Testa se a rota de enviar relato funciona com autenticação.
     """
-    mocker.patch("app.routes.relatos.salvar_relato_firestore", return_value="mock_doc_id")
+    mocker.patch("app.services.relatos_service.salvar_relato_firestore", return_value="mock_doc_id")
     mocker.patch(
-        "app.routes.relatos.salvar_imagem_from_base64",
+        "app.services.relatos_service.salvar_imagem_from_base64",
         return_value={"id": "mock_image_id"},
     )
+    mocker.patch("app.services.relatos_service.mark_image_as_orphaned", return_value=None)
+    mocker.patch("app.services.relatos_service.enqueue_relato_processing", return_value=None)
+    # Mock the environment variable for Firebase Storage Bucket
+    mocker.patch("os.getenv", side_effect=lambda key, default=None: "test-bucket" if key == "FIREBASE_STORAGE_BUCKET" else default)
     
     payload = criar_payload_valido()
     response = await client.post("/relatos/enviar-relato-completo", json=payload)

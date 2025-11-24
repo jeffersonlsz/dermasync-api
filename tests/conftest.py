@@ -1,5 +1,5 @@
 import os
-os.environ["STORAGE_BUCKET"] = "fake-bucket.appspot.com"
+os.environ["FIREBASE_STORAGE_BUCKET"] = "fake-bucket.appspot.com"
 
 import pytest
 import pytest_asyncio

@@ -53,7 +53,7 @@ def gerar_resumo_tecnico():
     return """
 ## 🔧 Resumo Técnico
 
-- **API**: FastAPI com rotas em `app/api`, organizadas por domínio.
+
 - **Serviços**: Camada lógica está em `app/services` (e subpastas).
 - **Integração com LLMs**: Em `app/llm`, com chamadas e prompts dinâmicos via `load_prompt`.
 - **Pipeline de dados**: Com etapas modulares em `app/pipeline/scripts`.

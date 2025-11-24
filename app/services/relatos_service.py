@@ -1,15 +1,16 @@
 import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Union, List # NEW IMPORT
+from typing import Union, List
 
 from fastapi import HTTPException
 from app.auth.schemas import User
 from app.archlog_sync.logger import registrar_log
 from app.firestore.client import get_firestore_client
 from app.logger_config import configurar_logger_json
-from app.schema.relato import RelatoFullOutput, RelatoPublicoOutput # NEW IMPORTS
-from app.services.imagens_service import get_imagem_by_id # NEW IMPORT
+from app.schema.relato import RelatoFullOutput, RelatoPublicoOutput, RelatoCompletoInput
+from app.services.imagens_service import get_imagem_by_id, salvar_imagem_from_base64, mark_image_as_orphaned
+from app.firestore.persistencia import salvar_relato_firestore
 
 # Para produção (chame uma vez no início do seu main ou serviço)
 configurar_logger_json()
@@ -236,3 +237,88 @@ async def update_relato_status(
     except Exception as e:
         logger.exception(f"Falha ao atualizar status do relato {relato_id} para '{new_status}'.")
         raise HTTPException(status_code=500, detail=f"Erro ao atualizar status do relato: {str(e)}")
+
+
+async def process_and_save_relato(relato: RelatoCompletoInput, current_user: User) -> dict:
+    """
+    Processa um relato completo, incluindo o salvamento de imagens em base64,
+    persiste o relato no Firestore e o enfileira para processamento.
+    """
+    if not relato.conteudo_original.strip():
+        raise HTTPException(status_code=400, detail="Relato não pode estar vazio.")
+
+    logger.info(f"Usuário {current_user.id} enviando relato {relato.id_relato}")
+
+    imagens_ids = {"antes": None, "durante": [], "depois": None}
+    uploaded_image_ids = []
+
+    try:
+        if relato.imagens.antes:
+            metadata = await salvar_imagem_from_base64(
+                base64_str=relato.imagens.antes,
+                owner_user_id=current_user.id,
+                filename=f"{relato.id_relato}_antes.jpg",
+            )
+            imagens_ids["antes"] = metadata["id"]
+            uploaded_image_ids.append(metadata["id"])
+
+        for i, imagem_base64 in enumerate(relato.imagens.durante):
+            metadata = await salvar_imagem_from_base64(
+                base64_str=imagem_base64,
+                owner_user_id=current_user.id,
+                filename=f"{relato.id_relato}_durante_{i}.jpg",
+            )
+            imagens_ids["durante"].append(metadata["id"])
+            uploaded_image_ids.append(metadata["id"])
+
+        if relato.imagens.depois:
+            metadata = await salvar_imagem_from_base64(
+                base64_str=relato.imagens.depois,
+                owner_user_id=current_user.id,
+                filename=f"{relato.id_relato}_depois.jpg",
+            )
+            imagens_ids["depois"] = metadata["id"]
+            uploaded_image_ids.append(metadata["id"])
+
+    except HTTPException as e:
+        logger.error(f"Erro ao processar imagens do relato. Limpando {len(uploaded_image_ids)} imagens parcialmente salvas.")
+        for img_id in uploaded_image_ids:
+            await mark_image_as_orphaned(img_id)
+        raise e
+    except Exception as e:
+        logger.exception("Erro inesperado ao processar imagens do relato. Limpando imagens parcialmente salvas.")
+        for img_id in uploaded_image_ids:
+            await mark_image_as_orphaned(img_id)
+        raise HTTPException(status_code=500, detail="Erro ao salvar imagens.")
+
+    doc_relato = {
+        "id": uuid.uuid4().hex,
+        "id_relato_cliente": relato.id_relato,
+        "owner_user_id": current_user.id,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "conteudo_original": relato.conteudo_original,
+        "classificacao_etaria": relato.classificacao_etaria,
+        "idade": relato.idade,
+        "genero": relato.genero,
+        "sintomas": relato.sintomas,
+        "imagens_ids": imagens_ids,
+        "regioes_afetadas": relato.regioes_afetadas,
+        "status": "novo",
+    }
+
+    try:
+        doc_id = salvar_relato_firestore(doc_relato)
+        logger.info(f"Relato {doc_id} salvo com sucesso no Firestore.")
+        await enqueue_relato_processing(doc_id)
+    except Exception as e:
+        logger.exception("Erro ao salvar relato no Firestore. Executando rollback das imagens.")
+        for img_id in uploaded_image_ids:
+            await mark_image_as_orphaned(img_id)
+        raise HTTPException(status_code=500, detail="Erro ao persistir o relato.")
+
+    return {
+        "status": "sucesso",
+        "message": "Relato recebido com sucesso!",
+        "relato_id": doc_id,
+        "imagens_processadas_ids": imagens_ids,
+    }

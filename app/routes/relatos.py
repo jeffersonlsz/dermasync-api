@@ -21,9 +21,10 @@ from app.services.relatos_service import (
     enqueue_relato_processing,
     get_relatos_by_owner_id,
     get_relato_by_id,
-    attach_image_to_relato, # NEW IMPORT
-    list_pending_moderation_relatos, # NEW IMPORT
-    update_relato_status, # NEW IMPORT
+    attach_image_to_relato,
+    list_pending_moderation_relatos,
+    update_relato_status,
+    process_and_save_relato, # NEW IMPORT
 )
 
 
@@ -101,93 +102,7 @@ async def enviar_relato(
     Recebe um relato completo, incluindo imagens em base64, e o persiste.
     Requer autenticação.
     """
-    if not relato.conteudo_original.strip():
-        raise HTTPException(status_code=400, detail="Relato não pode estar vazio.")
-
-    logger.info(f"Usuário {current_user.id} enviando relato {relato.id_relato}")
-
-    # Dicionário para armazenar os IDs das imagens processadas
-    imagens_ids = {"antes": None, "durante": [], "depois": None}
-    uploaded_image_ids = [] # NEW: List to keep track of successfully uploaded images
-
-    try:
-        # Processar imagem 'antes'
-        if relato.imagens.antes:
-            metadata = await salvar_imagem_from_base64(
-                base64_str=relato.imagens.antes,
-                owner_user_id=current_user.id,
-                filename=f"{relato.id_relato}_antes.jpg",
-            )
-            imagens_ids["antes"] = metadata["id"]
-            uploaded_image_ids.append(metadata["id"]) # NEW
-
-        # Processar imagens 'durante'
-        for i, imagem_base64 in enumerate(relato.imagens.durante):
-            metadata = await salvar_imagem_from_base64(
-                base64_str=imagem_base64,
-                owner_user_id=current_user.id,
-                filename=f"{relato.id_relato}_durante_{i}.jpg",
-            )
-            imagens_ids["durante"].append(metadata["id"])
-            uploaded_image_ids.append(metadata["id"]) # NEW
-
-        # Processar imagem 'depois'
-        if relato.imagens.depois:
-            metadata = await salvar_imagem_from_base64(
-                base64_str=relato.imagens.depois,
-                owner_user_id=current_user.id,
-                filename=f"{relato.id_relato}_depois.jpg",
-            )
-            imagens_ids["depois"] = metadata["id"]
-            uploaded_image_ids.append(metadata["id"]) # NEW
-
-    except HTTPException as e:
-        # Erros de validação da imagem são repassados
-        # If image processing fails, no relato should be saved, and images already uploaded should be cleaned up.
-        # This cleanup handles cases where some images are saved but others fail, leading to an overall failure.
-        logger.error(f"Erro ao processar imagens do relato. Limpando {len(uploaded_image_ids)} imagens parcialmente salvas.")
-        for img_id in uploaded_image_ids:
-            await mark_image_as_orphaned(img_id)
-        raise e
-    except Exception as e:
-        logger.exception("Erro inesperado ao processar imagens do relato. Limpando imagens parcialmente salvas.")
-        for img_id in uploaded_image_ids:
-            await mark_image_as_orphaned(img_id)
-        raise HTTPException(status_code=500, detail="Erro ao salvar imagens.")
-
-    # Montar o documento para persistência no Firestore
-    doc_relato = {
-        "id": uuid4().hex,
-        "id_relato_cliente": relato.id_relato,
-        "owner_user_id": current_user.id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "conteudo_original": relato.conteudo_original,
-        "classificacao_etaria": relato.classificacao_etaria,
-        "idade": relato.idade,
-        "genero": relato.genero,
-        "sintomas": relato.sintomas,
-        "imagens_ids": imagens_ids,  # Armazena os IDs das imagens
-        "regioes_afetadas": relato.regioes_afetadas,
-        "status": "novo",
-    }
-
-    try:
-        doc_id = salvar_relato_firestore(doc_relato)
-        logger.info(f"Relato {doc_id} salvo com sucesso no Firestore.")
-        await enqueue_relato_processing(doc_id) # NEW: Enqueue for processing
-    except Exception as e:
-        logger.exception("Erro ao salvar relato no Firestore. Executando rollback das imagens.")
-        # Rollback: Marcar imagens como órfãs se o relato falhar ao ser salvo
-        for img_id in uploaded_image_ids:
-            await mark_image_as_orphaned(img_id)
-        raise HTTPException(status_code=500, detail="Erro ao persistir o relato.")
-
-    return {
-        "status": "sucesso",
-        "message": "Relato recebido com sucesso!",
-        "relato_id": doc_id,
-        "imagens_processadas_ids": imagens_ids,
-    }
+    return await process_and_save_relato(relato, current_user)
 
 
 @router.post(

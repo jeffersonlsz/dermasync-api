@@ -10,7 +10,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def salvar_relato_firestore(doc: dict, collection: str = "relatos-completos") -> str:
+def salvar_relato_firestore(doc: dict, collection: str = "relatos") -> str:
     logger.info(f"Salvando documento na coleção '{collection}': {doc['id']}")
     db = get_firestore_client()
 

@@ -7,7 +7,7 @@ DermaSync é uma API de código aberto para auxiliar no diagnóstico e tratament
 ```mermaid
 graph TD
     Frontend["Frontend Web (Vue / Galeria)"]
-    API["FastAPI: /app/api/routes.py"]
+    
     Auth["/app/auth/*"]
     RelatosService["Relatos Service"]
     ImagensService["Imagens Service"]
@@ -38,7 +38,7 @@ graph TD
 
 ### 🔧 Resumo Técnico
 
-- **API**: FastAPI com rotas em `app/api`, organizadas por domínio.
+
 - **Serviços**: Camada lógica está em `app/services` (e subpastas).
 - **Integração com LLMs**: Em `app/llm`, com chamadas e prompts dinâmicos via `load_prompt`.
 - **Pipeline de dados**: Com etapas modulares em `app/pipeline/scripts`.
@@ -50,11 +50,7 @@ graph TD
 ### 📁 Estrutura de Pastas
 ```text
 ├── app
-│   ├── api
-│   │   ├── endpoints.py
-│   │   ├── endpoints_videos.py
-│   │   ├── routes.py
-│   │   └── schemas.py
+
 │   ├── archlog_sync
 │   │   ├── exemplos
 │   │   │   └── relato_log.jsonl
@@ -162,8 +158,22 @@ graph TD
 └── test_report.md
 ```
 
+## Banco de dados local (Postgres) — dev rápido
+
+Este projeto fornece um ambiente local de Postgres + pgAdmin para desenvolvimento e testes.
+
+### Estrutura
+`dermasync-db/` contém o `docker-compose.yml` e scripts de inicialização. NÃO comite `dermasync-db/.env` com credenciais reais.
+
+### Preparar (primeira vez)
+1. Copie o exemplo de variáveis e edite se precisar:
+   ```bash
+   cp dermasync-db/.env.example dermasync-db/.env
+   # edite dermasync-db/.env se quiser alterar portas/credenciais
+
+
 # 🌱 Estrutura Atualizada
 ![Arquitetura DermaSync](docs/arquitetura-dermasync.png)
 
 ## 📝 Atualização do README
-🕓 Última atualização automática: 06/07/2025 21:07:25
+🕓 Última atualização : 23/11/2025 19:43:25

@@ -15,6 +15,7 @@ from app.archlog_sync.logger import registrar_log
 from app.archlog_sync.middleware import LogRequestMiddleware
 from app.routes import auth, health, imagens, relatos
 
+
 app = FastAPI(title="DermaSync API - Backend")
 
 # TODO: Implementar rate limiting por IP e por usuário.
@@ -31,18 +32,7 @@ app = FastAPI(title="DermaSync API - Backend")
 app.add_middleware(LogRequestMiddleware)
 
 
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    start = datetime.datetime.now(datetime.timezone.utc)
-    request_id = uuid4().hex
 
-    # Executa o endpoint
-    response = await call_next(request)
-
-    end = datetime.datetime.now(datetime.timezone.utc)
-    duration_ms = int((end - start).total_seconds() * 1000)
-
-    return response
 
 
 app.add_middleware(
@@ -60,6 +50,7 @@ app.include_router(imagens.router)
 app.include_router(relatos.router)
 app.include_router(health.router)
 app.include_router(auth.router)
+
 
 
 @app.get("/")

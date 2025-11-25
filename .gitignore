@@ -5,6 +5,7 @@ db/dermasync_chroma/
 dermasync-backend.json
 info_dev.md
 app/db/
+dermasync-db/*
 tokens.json
 temp_storage/
 report.json
@@ -12,7 +13,7 @@ report.json
 __pycache__/
 *.py[cod]
 *$py.class
-dermasync-db/
+
 # C extensions
 *.so
 

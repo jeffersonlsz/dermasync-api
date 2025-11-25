@@ -28,6 +28,8 @@ from app.routes import relatos
 # Router novo da autenticação (JWT)
 from app.auth.router import router as auth_v2_router
 
+from app.routes import me
+
 
 # ============================================================
 # Inicialização do FastAPI
@@ -77,7 +79,7 @@ app.include_router(auth_routes.router)   # Se quiser remover depois, é só apag
 app.include_router(imagens.router)
 app.include_router(relatos.router)
 app.include_router(health.router)
-
+app.include_router(me.router)
 
 # ============================================================
 # Endpoints básicos

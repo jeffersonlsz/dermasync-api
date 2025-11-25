@@ -12,7 +12,7 @@ report.json
 __pycache__/
 *.py[cod]
 *$py.class
-
+dermasync-db/
 # C extensions
 *.so
 

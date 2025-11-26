@@ -9,7 +9,7 @@ from pathlib import Path
 from ..llm_client.base import get_llm_client
 
 # === CONFIGURAÇÕES ===
-MODELO_LLM = "local"
+MODELO_LLM = "gemini"
 DIRETORIO_JSONS_BRUTOS = Path("app/pipeline/dados/jsonl_brutos")
 ENTRADA_JSONL_BRUTO = "relatos-20250620-facebook-v0.0.1.jsonl"
 OUTPUT_DIR = Path("app/pipeline/dados/jsonl_enriquecidos")

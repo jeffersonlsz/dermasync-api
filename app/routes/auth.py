@@ -34,17 +34,7 @@ from sqlalchemy import create_engine, select, Table, MetaData, Column, String
 from sqlalchemy.exc import NoResultFound
 from dotenv import load_dotenv
 
-load_dotenv()
-
-# Imports from app/auth/login.py
-from jose import jwt as jose_jwt # Renaming to avoid conflict with 'jwt'
-from passlib.context import CryptContext
-from pydantic import BaseModel as PydanticBaseModel # Renaming to avoid conflict with 'BaseModel'
-from sqlalchemy import create_engine, select, Table, MetaData, Column, String
-from sqlalchemy.exc import NoResultFound
-from dotenv import load_dotenv
-
-load_dotenv()
+load_dotenv()  # Carrega variáveis de ambiente do arquivo .env
 
 
 # Config from app/auth/login.py

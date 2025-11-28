@@ -43,6 +43,15 @@ from pydantic import BaseModel as PydanticBaseModel # Renaming to avoid conflict
 from sqlalchemy import create_engine, select, Table, MetaData, Column, String
 from sqlalchemy.exc import NoResultFound
 from dotenv import load_dotenv
+from app.auth.refresh_service import (
+    login_with_password,
+    refresh_token_flow,
+    verify_access_token_and_check_version,
+    revoke_refresh_token,
+    revoke_all_user_tokens,
+)
+from app.auth.schemas import RefreshTokenRequest
+
 
 load_dotenv()
 
@@ -176,6 +185,33 @@ async def refresh_access_token(request: RefreshTokenRequest):
         ),
     )
 
+@router.post("/logout", status_code=status.HTTP_200_OK)
+async def logout(request: RefreshTokenRequest):
+    """
+    Logout simples: revoga o refresh token fornecido.
+    Idempotente — retorna 200 mesmo se o token já estiver revogado ou não existir.
+    """
+    try:
+        revoked = revoke_refresh_token(request.refresh_token)
+    except Exception:
+        # Não expor detalhes; log interno se necessário
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao executar logout")
+    return {"ok": True, "revoked": bool(revoked)}
+
+
+@router.post("/logout-all", status_code=status.HTTP_200_OK)
+async def logout_all(current_user: User = Depends(get_current_user)):
+    """
+    Logout em todos dispositivos: revoga todos os refresh tokens e incrementa token_version.
+    Deve ser chamado por usuário autenticado.
+    """
+    try:
+        # current_user.id pode ser UUID ou str - garantimos string
+        uid = str(current_user.id)
+        revoke_all_user_tokens(uid)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao revogar tokens")
+    return {"ok": True}
 
 @router.get("/me", response_model=User)
 async def get_me(current_user: User = Depends(get_current_user)):

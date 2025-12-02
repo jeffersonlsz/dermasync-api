@@ -2,6 +2,7 @@
 Este módulo contém os endpoints para autenticação.
 """
 import os
+import sys
 from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
@@ -30,7 +31,7 @@ from app.core.errors import AUTH_ERROR_MESSAGES
 from jose import jwt as jose_jwt # Renaming to avoid conflict with 'jwt'
 from passlib.context import CryptContext
 from pydantic import BaseModel as PydanticBaseModel # Renaming to avoid conflict with 'BaseModel'
-from sqlalchemy import create_engine, select, Table, MetaData, Column, String
+from sqlalchemy import create_engine, select, Table, MetaData
 from sqlalchemy.exc import NoResultFound
 from dotenv import load_dotenv
 
@@ -40,8 +41,8 @@ load_dotenv()
 from jose import jwt as jose_jwt # Renaming to avoid conflict with 'jwt'
 from passlib.context import CryptContext
 from pydantic import BaseModel as PydanticBaseModel # Renaming to avoid conflict with 'BaseModel'
-from sqlalchemy import create_engine, select, Table, MetaData, Column, String
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy import create_engine, select, Table, MetaData
+from sqlalchemy.exc import NoResultFound, OperationalError
 from dotenv import load_dotenv
 from app.auth.refresh_service import (
     login_with_password,
@@ -68,11 +69,18 @@ pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # sqlalchemy quick table reflection for users (works with our simple seed)
 engine = create_engine(DATABASE_URL, future=True)
 metadata = MetaData()
-users_table = Table(
-    "users",
-    metadata,
-    autoload_with=engine,
-)
+
+try:
+    users_table = Table(
+        "users",
+        metadata,
+        autoload_with=engine,
+    )
+except OperationalError as e:
+    print("FATAL: Could not connect to the database to reflect the 'users' table.", file=sys.stderr)
+    print(f"Error: {e}", file=sys.stderr)
+    sys.exit(1)
+
 
 # Models from app/auth/login.py
 class TokenOut(PydanticBaseModel):

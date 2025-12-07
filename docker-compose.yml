@@ -1,0 +1,32 @@
+# docker-compose.yml (corrigido - pgAdmin usa pasta separada)
+services:
+  postgres:
+    image: postgres:16
+    container_name: dermasync_postgres
+    env_file: .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./dermasync-db/data:/var/lib/postgresql/data
+      - ./migrations/create_full_db.sql:/docker-entrypoint-initdb.d/01_create_full_db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:7
+    container_name: dermasync_pgadmin
+    env_file: .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "${PGADMIN_PORT:-8080}:80"
+    volumes:
+      - ./dermasync-db/pgadmin:/var/lib/pgadmin    # <--- pasta separada (antes estava dentro data/)
+    depends_on:
+      - postgres
+    restart: unless-stopped

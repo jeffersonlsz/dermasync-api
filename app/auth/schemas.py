@@ -1,3 +1,4 @@
+# app/auth/schemas.py
 """
 Este módulo define os schemas (modelos de dados) para autenticação e usuários.
 """

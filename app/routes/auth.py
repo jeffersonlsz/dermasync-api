@@ -1,10 +1,11 @@
-# app/auth/auth.py
+# app/routes/auth.py
 """
 Endpoints de autenticação (limpo, robusto e idempotente).
 Mantive a mesma API pública (/auth/login, /auth/refresh, /auth/logout, /auth/logout-all, /auth/external-login, /me)
 mas reestruturei imports, inicialização do engine/tables e tratamento de erros.
 """
 
+import logging
 import os
 from datetime import datetime, timedelta
 from typing import Optional
@@ -82,6 +83,9 @@ def get_users_table():
         # Não encerre o processo aqui — propague um erro tratável
         raise RuntimeError(f"Database unavailable: {e}") from e
 
+# Logger para este módulo. Uvicorn irá capturar a saída.
+logger = logging.getLogger(__name__)
+
 
 # Pydantic models locais
 class TokenOut(PydanticBaseModel):
@@ -118,14 +122,16 @@ def create_access_token(subject: str, expires_delta: Optional[timedelta] = None)
 router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
 
-@router.post("/login", response_model=TokenOut)
+@router.post("/login", response_model=TokenSchema)
 def login(payload: LoginIn):
     """
     Login utilizando a tabela users diretamente (sync).
     Observações:
      - Faz reflect lazy da tabela; se DB não estiver pronto, retorna 503.
      - Garante que o subject do token seja string (UUID -> str).
+     - Agora retorna também refresh_token + refresh_token_expires_in_days.
     """
+    logger.debug("Tentativa de login recebida para o e-mail: %s", payload.email)
     email = payload.email.lower().strip()
     try:
         users_table = get_users_table()
@@ -139,16 +145,44 @@ def login(payload: LoginIn):
         res = conn.execute(sel).first()
         if not res:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas")
-        user = dict(res._mapping)
-        hashed = user.get("password_hash") or user.get("password")
+        user_row = dict(res._mapping)
+        hashed = user_row.get("password_hash") or user_row.get("password")
         if not hashed or not verify_password(payload.password, hashed):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas")
 
-        raw_subject = user.get("id") or email
-        subject = str(raw_subject)  # garanto string (UUID vira str)
+        # Normaliza/constroi um objeto User (Pydantic) para reutilizar issue_api_jwt / issue_refresh_token
+        # Atenção: campos ausentes serão preenchidos pelos defaults do schema.
+        user_obj = User(
+            id=str(user_row.get("id") or user_row.get("uid") or email),
+            firebase_uid=user_row.get("firebase_uid"),
+            email=user_row.get("email"),
+            display_name=user_row.get("display_name"),
+            avatar_url=user_row.get("avatar_url"),
+            role=user_row.get("role") or "usuario_logado",
+            is_active=bool(user_row.get("is_active") if user_row.get("is_active") is not None else True),
+            created_at=user_row.get("created_at"),
+            updated_at=user_row.get("updated_at"),
+        )
 
-        token, expires_at = create_access_token(subject)
-        return {"access_token": token, "token_type": "bearer", "expires_at": expires_at}
+        # Emissão de tokens via serviço compartilhado (consistência com external-login)
+        access_token = issue_api_jwt(user_obj)
+        refresh_token_str = issue_refresh_token(user_obj)
+        logger.info("Token de acesso e refresh emitidos para o usuário: %s", user_obj.email)
+        logger.debug("Access Token: %s", access_token) # Use DEBUG para informações sensíveis/verbosas
+        logger.debug("Refresh Token: %s", refresh_token_str)
+
+        return TokenSchema(
+            access_token=access_token,
+            expires_in_seconds=API_TOKEN_EXPIRE_SECONDS,
+            refresh_token=refresh_token_str,
+            refresh_token_expires_in_days=REFRESH_TOKEN_EXPIRE_DAYS,
+            user=UserPublicProfile(
+                user_id=str(user_obj.id),
+                display_name=getattr(user_obj, "display_name", None),
+                avatar_url=getattr(user_obj, "avatar_url", None),
+                role=getattr(user_obj, "role", None),
+            ),
+        )
 
 
 @router.post("/external-login", response_model=TokenSchema)
@@ -166,7 +200,7 @@ async def external_login(request: ExternalLoginRequest):
     refresh_token_str = issue_refresh_token(user)
 
     return TokenSchema(
-        api_token=api_token,
+        access_token=api_token,
         expires_in_seconds=API_TOKEN_EXPIRE_SECONDS,
         refresh_token=refresh_token_str,
         refresh_token_expires_in_days=REFRESH_TOKEN_EXPIRE_DAYS,
@@ -184,7 +218,7 @@ async def refresh_access_token(request: RefreshTokenRequest):
     new_api_token, user = await refresh_api_token(request.refresh_token)
 
     return TokenSchema(
-        api_token=new_api_token,
+        access_token=new_api_token,
         expires_in_seconds=API_TOKEN_EXPIRE_SECONDS,
         refresh_token=request.refresh_token,
         refresh_token_expires_in_days=REFRESH_TOKEN_EXPIRE_DAYS,
@@ -243,4 +277,3 @@ async def get_me(current_user: User = Depends(get_current_user)):
     }
 
     return user_payload
-

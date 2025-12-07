@@ -69,8 +69,14 @@ def create_user(db_conn):
 
 
 def test_login_and_refresh(create_user):
+    """
+    Verifica fluxo básico de login_with_password + refresh_token_flow.
+    """
     creds = login_with_password(create_user["email"], create_user["password"])
-    assert "access_token" in creds and "refresh_token" in creds
+    assert isinstance(creds, dict), f"login_with_password deve retornar dict, retornou: {type(creds)}"
+    assert "access_token" in creds and "refresh_token" in creds, f"Credenciais incompletas: {creds.keys()}"
+
     # try refresh
     refreshed = refresh_token_flow(creds["refresh_token"])
-    assert "access_token" in refreshed and "refresh_token" in refreshed
+    assert isinstance(refreshed, dict), f"refresh_token_flow deve retornar dict, retornou: {type(refreshed)}"
+    assert "access_token" in refreshed and "refresh_token" in refreshed, f"Resposta de refresh incompleta: {refreshed.keys()}"

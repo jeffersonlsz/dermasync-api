@@ -41,7 +41,8 @@ async def test_refresh_token_sucesso(client: AsyncClient, mocker):
     print("Response:", response.json())
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["api_token"] == new_access_token
+    # adaptado para o novo contrato (access_token em vez de api_token)
+    assert data["access_token"] == new_access_token
     assert data["refresh_token"] == refresh_token
     assert data["user"]["user_id"] == user.id
 

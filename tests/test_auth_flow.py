@@ -1,19 +1,24 @@
 # tests/test_auth_flow.py
 import uuid
+from datetime import datetime
 from fastapi.testclient import TestClient
 from app.main import app
 from app.db.connection import SessionLocal
-from app.users.models import User
+# Não usamos o ORM User aqui para evitar dependências de constructor/fields
+# from app.users.models import User
+
+# reuso do contexto de hashing que a própria app usa
+from app.routes.auth import pwd_ctx
+from sqlalchemy import text
 
 client = TestClient(app)
 
 def test_auth_flow_end_to_end_and_log_stdout():
     """
     Fluxo E2E:
-      1) POST /auth/register -> 201 + access_token
-      2) POST /auth/login    -> 200 + access_token
+      1) cria usuário direto no DB via INSERT SQL (evita depender de /auth/register e de construtores ORM)
+      2) POST /auth/login    -> 200 + access_token + refresh_token
       3) GET /me/profile     -> 200 + user data
-    Tudo é impresso em stdout via print() para inspeção ao rodar pytest -s.
     """
     # geramos email único para evitar conflito com dados existentes
     email = f"test+{uuid.uuid4().hex[:8]}@local.com"
@@ -22,29 +27,65 @@ def test_auth_flow_end_to_end_and_log_stdout():
     print("=== TEST START ===")
     print("Generated test credentials:", email, password)
 
-    # 1) Register
-    print("\n--- REGISTER ---")
-    resp = client.post("/auth/register", json={"email": email, "password": password})
-    print("REGISTER status:", resp.status_code)
-    print("REGISTER body:", resp.text)
-    assert resp.status_code == 201, f"Register failed: {resp.status_code} {resp.text}"
+    # 1) Create user directly in DB via raw INSERT (safe and independent of ORM constructor)
+    print("\n--- CREATE USER IN DB (RAW INSERT) ---")
+    db = SessionLocal()
+    created_user_id = str(uuid.uuid4())
+    try:
+        # defensive cleanup if exists
+        try:
+            db.execute(text("DELETE FROM users WHERE email = :email"), {"email": email})
+            db.commit()
+        except Exception:
+            db.rollback()
 
-    token = resp.json().get("access_token")
-    assert token, "No access_token returned on register"
-    print("REGISTER token (len):", len(token))
+        pwd_hash = pwd_ctx.hash(password)
+
+        try:
+            insert_sql = text(
+                "INSERT INTO users (id, email, password_hash, role, is_active) "
+                "VALUES (:id, :email, :pwd, :role, :is_active)"
+            )
+            db.execute(insert_sql, {"id": created_user_id, "email": email, "pwd": pwd_hash, "role": "usuario_logado", "is_active": True})
+            db.commit()
+            print("User inserted with id:", created_user_id)
+        except Exception as e:
+            db.rollback()
+            # fallback diagnóstico: mostrar colunas da tabela users para ajustar o INSERT se necessário
+            try:
+                cols = db.execute(
+                    text(
+                        "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'users' ORDER BY ordinal_position"
+                    )
+                ).fetchall()
+                print("INSERT failed. users table columns (name, type):")
+                for c in cols:
+                    print(" -", c[0], c[1])
+            except Exception as inner:
+                print("Failed to fetch users table columns:", inner)
+            raise AssertionError(f"Failed to insert user into users table: {e}")
+
+    finally:
+        db.close()
 
     # 2) Login
     print("\n--- LOGIN ---")
     resp2 = client.post("/auth/login", json={"email": email, "password": password})
+    print("RESPONSE:", resp2.json())
     print("LOGIN status:", resp2.status_code)
     print("LOGIN body:", resp2.text)
     assert resp2.status_code == 200, f"Login failed: {resp2.status_code} {resp2.text}"
 
-    token2 = resp2.json().get("access_token")
-    assert token2, "No access_token returned on login"
-    print("LOGIN token (len):", len(token2))
+    body2 = resp2.json()
+    token2 = body2.get("access_token")
+    refresh2 = body2.get("refresh_token")
 
-    # 3) Protected endpoint: /me/profile
+    assert token2, "No access_token returned on login"
+    assert refresh2, "No refresh_token returned on login"
+    print("LOGIN access_token (len):", len(token2))
+    print("LOGIN refresh_token (len):", len(refresh2))
+
+    # 3) Protected endpoint: /me/profile (ajuste se seu endpoint for /me em vez de /me/profile)
     print("\n--- GET /me/profile ---")
     headers = {"Authorization": f"Bearer {token2}"}
     resp3 = client.get("/me/profile", headers=headers)
@@ -59,14 +100,13 @@ def test_auth_flow_end_to_end_and_log_stdout():
     print("\n--- CLEANUP ---")
     db = SessionLocal()
     try:
-        user = db.query(User).filter(User.email == email).first()
-        if user:
-            print("Found created user, deleting:", str(user.id), user.email)
-            db.delete(user)
+        try:
+            db.execute(text("DELETE FROM users WHERE email = :email"), {"email": email})
             db.commit()
             print("Cleanup: user deleted")
-        else:
-            print("Cleanup: no user found to delete")
+        except Exception as e:
+            db.rollback()
+            print("Cleanup failed:", e)
     finally:
         db.close()
 

@@ -1,9 +1,8 @@
-# app/auth/schemas.py
 """
 Este módulo define os schemas (modelos de dados) para autenticação e usuários.
 """
 from datetime import datetime
-from typing import List, Literal, Optional
+from typing import List, Optional, Literal
 
 from pydantic import BaseModel, Field
 
@@ -13,31 +12,45 @@ class User(BaseModel):
     Representa um usuário no sistema interno.
     """
 
-    id: str = Field(..., description="ID interno da aplicação, ex: \"usr_a82f91c3\"")
-    firebase_uid: str = Field(..., description="UID vindo do Firebase")
-    email: str
-    display_name: str
+    id: str = Field(..., description='ID interno da aplicação, ex: "usr_a82f91c3"')
+    firebase_uid: Optional[str] = Field(None, description="UID vindo do Firebase")
+    email: Optional[str] = None
+    display_name: Optional[str] = None
     avatar_url: Optional[str] = None
-    role: Literal["admin", "colaborador", "usuario_logado", "anon"]
-    is_active: bool = Field(
-        ..., description="Se false, bloqueia acesso imediatamente"
-    )
-    idade_aprox: Optional[int] = Field(
-        None, description="Pode ser usado para personalização do feed"
-    )
+    role: Literal["admin", "colaborador", "usuario_logado", "anon"] = "usuario_logado"
+    is_active: bool = Field(True, description="Se false, bloqueia acesso imediatamente")
+    idade_aprox: Optional[int] = Field(None, description="Pode ser usado para personalização do feed")
     principais_areas_pele: Optional[List[str]] = Field(
         None, description='ex ["mãos","pescoço"]'
     )
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+class UserPublicProfile(BaseModel):
+    """
+    Informações públicas do usuário, seguras para retornar ao cliente.
+    """
+
+    user_id: str
+    display_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    role: Optional[str] = None
 
 
 class Token(BaseModel):
     """
-    Representa o token de acesso da API.
+    Representa o token de acesso da API (contrato unificado).
+
+    Campos:
+      - access_token: token JWT de acesso (curta duração)
+      - expires_in_seconds: duração do access token em segundos (tempo de vida)
+      - refresh_token: token de refresh (long-lived)
+      - refresh_token_expires_in_days: validade do refresh token em dias
+      - user: informações públicas do usuário
     """
 
-    api_token: str
+    access_token: str
     expires_in_seconds: int
     refresh_token: str
     refresh_token_expires_in_days: int
@@ -49,18 +62,6 @@ class RefreshTokenRequest(BaseModel):
     Corpo da requisição para o endpoint de refresh de token.
     """
     refresh_token: str
-
-
-
-class UserPublicProfile(BaseModel):
-    """
-    Informações públicas do usuário, seguras para retornar ao cliente.
-    """
-
-    user_id: str
-    display_name: str
-    avatar_url: Optional[str] = None
-    role: str
 
 
 class ExternalLoginRequest(BaseModel):
@@ -80,6 +81,6 @@ class CurrentUser(BaseModel):
     role: str
     is_active: bool
 
-# O Pydantic v2 lida com referências de tipo forward automaticamente.
-# Se estivesse no Pydantic v1, precisaria de UserPublicProfile.update_forward_refs(User=User)
-Token.model_rebuild() # No Pydantic v2, model_rebuild() é o substituto para update_forward_refs
+
+# Em Pydantic v2, model_rebuild re-resolves forward refs
+Token.model_rebuild()

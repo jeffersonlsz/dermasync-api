@@ -26,7 +26,7 @@ from app.routes import imagens
 from app.routes import relatos
 
 # Router novo da autenticação (JWT)
-from app.auth.router import router as auth_v2_router
+#from app.auth.router import router as auth_v2_router
 
 from app.routes import me
 
@@ -72,7 +72,7 @@ app.add_middleware(
 # ============================================================
 
 # 🔐 Autenticação NOVA (JWT + SQLAlchemy + Postgres)
-app.include_router(auth_v2_router)
+#app.include_router(auth_v2_router)
 
 # Rotas antigas/mantidas:
 app.include_router(auth_routes.router)   # Se quiser remover depois, é só apagar esta linha

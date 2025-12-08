@@ -34,7 +34,8 @@ async def test_external_login_sucesso(client: AsyncClient, mocker):
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert "api_token" in data
+    # atualiza a checagem para o campo 'access_token' (contrato unificado)
+    assert "access_token" in data
     assert "refresh_token" in data
     assert data["user"]["display_name"] == "Test User"
 

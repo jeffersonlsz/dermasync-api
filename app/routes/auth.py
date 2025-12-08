@@ -1,23 +1,35 @@
+# app/routes/auth.py
 """
-Este módulo contém os endpoints para autenticação.
+Endpoints de autenticação (limpo, robusto e idempotente).
+Mantive a mesma API pública (/auth/login, /auth/refresh, /auth/logout, /auth/logout-all, /auth/external-login, /me)
+mas reestruturei imports, inicialização do engine/tables e tratamento de erros.
 """
+
+import logging
 import os
 from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from jose import jwt as jose_jwt
+from passlib.context import CryptContext
+from pydantic import BaseModel as PydanticBaseModel
+from sqlalchemy import create_engine, select, Table, MetaData
+from sqlalchemy.exc import NoResultFound, OperationalError
+from dotenv import load_dotenv
+
+# imports do seu pacote (mantidos)
 from app.auth.dependencies import get_current_user
 from app.auth.schemas import (
     ExternalLoginRequest,
     RefreshTokenRequest,
-    Token,
+    Token as TokenSchema,
     User,
     UserPublicProfile,
 )
 from app.auth.service import (
     get_or_create_internal_user,
-    get_user_from_db,
     issue_api_jwt,
     issue_refresh_token,
     refresh_api_token,
@@ -26,53 +38,73 @@ from app.auth.service import (
 from app.config import API_TOKEN_EXPIRE_SECONDS, REFRESH_TOKEN_EXPIRE_DAYS
 from app.core.errors import AUTH_ERROR_MESSAGES
 
-# Imports from app/auth/login.py
-from jose import jwt as jose_jwt # Renaming to avoid conflict with 'jwt'
-from passlib.context import CryptContext
-from pydantic import BaseModel as PydanticBaseModel # Renaming to avoid conflict with 'BaseModel'
-from sqlalchemy import create_engine, select, Table, MetaData, Column, String
-from sqlalchemy.exc import NoResultFound
-from dotenv import load_dotenv
-
-load_dotenv()  # Carrega variáveis de ambiente do arquivo .env
-
-
-# Config from app/auth/login.py
-JWT_SECRET = os.environ.get("JWT_SECRET", "change_me_now")
-JWT_ALGO = os.environ.get("JWT_ALGO", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://dev:devpass@localhost:5432/dermasync_dev")
-
-# password context
-pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# sqlalchemy quick table reflection for users (works with our simple seed)
-engine = create_engine(DATABASE_URL, future=True)
-metadata = MetaData()
-users_table = Table(
-    "users",
-    metadata,
-    autoload_with=engine,
+# imports de refresh_service (mantidos)
+from app.auth.refresh_service import (
+    login_with_password,
+    refresh_token_flow,
+    verify_access_token_and_check_version,
+    revoke_refresh_token,
+    revoke_all_user_tokens,
 )
 
-# Models from app/auth/login.py
+# Carrega .env (uma vez)
+load_dotenv()
+
+# Config (usei variáveis com fallback)
+JWT_SECRET = os.environ.get("JWT_SECRET", "change_me_now")
+JWT_ALGO = os.environ.get("JWT_ALGO", "HS256")
+# Nota: harmonize com app.config / API_TOKEN_EXPIRE_SECONDS se preferir segundos.
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
+DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://dermasync_dev:devpass@localhost:5432/dermasync_dev")
+
+# Password hashing context
+pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Engine e metadata (criados no módulo, mas tabela será refletida de forma preguiçosa)
+engine = create_engine(DATABASE_URL, future=True)
+metadata = MetaData()
+_users_table = None  # cache para tabela refletida
+
+
+def get_users_table():
+    """
+    Reflect users table lazily and cache it. Não falha com sys.exit
+    — lança exceção que pode ser capturada no endpoint.
+    """
+    global _users_table
+    if _users_table is not None:
+        return _users_table
+
+    try:
+        tbl = Table("users", metadata, autoload_with=engine)
+        _users_table = tbl
+        return tbl
+    except OperationalError as e:
+        # Não encerre o processo aqui — propague um erro tratável
+        raise RuntimeError(f"Database unavailable: {e}") from e
+
+# Logger para este módulo. Uvicorn irá capturar a saída.
+logger = logging.getLogger(__name__)
+
+
+# Pydantic models locais
 class TokenOut(PydanticBaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_at: Optional[str] = None
 
+
 class LoginIn(PydanticBaseModel):
     email: str
     password: str
 
-# Functions from app/auth/login.py
+
+# utilidades
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_ctx.verify(plain, hashed)
 
+
 def create_access_token(subject: str, expires_delta: Optional[timedelta] = None):
-    """
-    Gera um JWT. O `subject` DEVE ser uma string serializável (ex: id como str ou email).
-    """
     now = datetime.utcnow()
     if expires_delta:
         expire = now + expires_delta
@@ -83,43 +115,78 @@ def create_access_token(subject: str, expires_delta: Optional[timedelta] = None)
         "iat": int(now.timestamp()),
         "exp": int(expire.timestamp()),
     }
-    token = jose_jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGO) # Use jose_jwt here
+    token = jose_jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGO)
     return token, expire.isoformat()
 
 
 router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
-@router.post("/login", response_model=TokenOut)
+
+@router.post("/login", response_model=TokenSchema)
 def login(payload: LoginIn):
+    """
+    Login utilizando a tabela users diretamente (sync).
+    Observações:
+     - Faz reflect lazy da tabela; se DB não estiver pronto, retorna 503.
+     - Garante que o subject do token seja string (UUID -> str).
+     - Agora retorna também refresh_token + refresh_token_expires_in_days.
+    """
+    logger.debug("Tentativa de login recebida para o e-mail: %s", payload.email)
     email = payload.email.lower().strip()
+    try:
+        users_table = get_users_table()
+    except RuntimeError as e:
+        # DB não pronto: informe 503 para orquestrador/retry
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
+
+    # Conexão síncrona (ok para dev). Para alto desempenho, mover para contexto assíncrono/worker.
     with engine.connect() as conn:
         sel = select(users_table).where(users_table.c.email == email)
         res = conn.execute(sel).first()
         if not res:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas")
-        user = dict(res._mapping)
-        hashed = user.get("password_hash") or user.get("password")
+        user_row = dict(res._mapping)
+        hashed = user_row.get("password_hash") or user_row.get("password")
         if not hashed or not verify_password(payload.password, hashed):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas")
 
-        # >>> CORREÇÃO CRUCIAL: garanta que subject seja string (não UUID)
-        raw_subject = user.get("id") or email
-        # Converte UUID para string se necessário
-        if isinstance(raw_subject, UUID):
-            subject = str(raw_subject)
-        else:
-            subject = str(raw_subject)
+        # Normaliza/constroi um objeto User (Pydantic) para reutilizar issue_api_jwt / issue_refresh_token
+        # Atenção: campos ausentes serão preenchidos pelos defaults do schema.
+        user_obj = User(
+            id=str(user_row.get("id") or user_row.get("uid") or email),
+            firebase_uid=user_row.get("firebase_uid"),
+            email=user_row.get("email"),
+            display_name=user_row.get("display_name"),
+            avatar_url=user_row.get("avatar_url"),
+            role=user_row.get("role") or "usuario_logado",
+            is_active=bool(user_row.get("is_active") if user_row.get("is_active") is not None else True),
+            created_at=user_row.get("created_at"),
+            updated_at=user_row.get("updated_at"),
+        )
 
-        token, expires_at = create_access_token(subject)
-        return {"access_token": token, "token_type": "bearer", "expires_at": expires_at}
+        # Emissão de tokens via serviço compartilhado (consistência com external-login)
+        access_token = issue_api_jwt(user_obj)
+        refresh_token_str = issue_refresh_token(user_obj)
+        logger.info("Token de acesso e refresh emitidos para o usuário: %s", user_obj.email)
+        logger.debug("Access Token: %s", access_token) # Use DEBUG para informações sensíveis/verbosas
+        logger.debug("Refresh Token: %s", refresh_token_str)
+
+        return TokenSchema(
+            access_token=access_token,
+            expires_in_seconds=API_TOKEN_EXPIRE_SECONDS,
+            refresh_token=refresh_token_str,
+            refresh_token_expires_in_days=REFRESH_TOKEN_EXPIRE_DAYS,
+            user=UserPublicProfile(
+                user_id=str(user_obj.id),
+                display_name=getattr(user_obj, "display_name", None),
+                avatar_url=getattr(user_obj, "avatar_url", None),
+                role=getattr(user_obj, "role", None),
+            ),
+        )
 
 
-@router.post("/external-login", response_model=Token)
+@router.post("/external-login", response_model=TokenSchema)
 async def external_login(request: ExternalLoginRequest):
-    """
-    Recebe o token do Firebase, valida, cria/atualiza o usuário interno
-    e retorna o JWT curto da API.
-    """
     firebase_data = verify_firebase_token(request.provider_token)
 
     user = await get_or_create_internal_user(firebase_data)
@@ -132,44 +199,81 @@ async def external_login(request: ExternalLoginRequest):
     api_token = issue_api_jwt(user)
     refresh_token_str = issue_refresh_token(user)
 
-    return Token(
-        api_token=api_token,
+    return TokenSchema(
+        access_token=api_token,
         expires_in_seconds=API_TOKEN_EXPIRE_SECONDS,
         refresh_token=refresh_token_str,
         refresh_token_expires_in_days=REFRESH_TOKEN_EXPIRE_DAYS,
         user=UserPublicProfile(
             user_id=user.id,
-            display_name=user.display_name,
-            avatar_url=user.avatar_url,
-            role=user.role,
+            display_name=getattr(user, "display_name", None),
+            avatar_url=getattr(user, "avatar_url", None),
+            role=getattr(user, "role", None),
         ),
     )
 
 
-@router.post("/refresh", response_model=Token)
+@router.post("/refresh", response_model=TokenSchema)
 async def refresh_access_token(request: RefreshTokenRequest):
-    """
-    Recebe um refresh token e retorna um novo conjunto de tokens.
-    """
     new_api_token, user = await refresh_api_token(request.refresh_token)
 
-    return Token(
-        api_token=new_api_token,
+    return TokenSchema(
+        access_token=new_api_token,
         expires_in_seconds=API_TOKEN_EXPIRE_SECONDS,
-        refresh_token=request.refresh_token,  # Retorna o mesmo refresh token
-        refresh_token_expires_in_days=REFRESH_TOKEN_EXPIRE_DAYS,  # A expiração não muda
+        refresh_token=request.refresh_token,
+        refresh_token_expires_in_days=REFRESH_TOKEN_EXPIRE_DAYS,
         user=UserPublicProfile(
             user_id=user.id,
-            display_name=user.display_name,
-            avatar_url=user.avatar_url,
-            role=user.role,
+            display_name=getattr(user, "display_name", None),
+            avatar_url=getattr(user, "avatar_url", None),
+            role=getattr(user, "role", None),
         ),
     )
+
+
+@router.post("/logout", status_code=status.HTTP_200_OK)
+async def logout(request: RefreshTokenRequest):
+    try:
+        revoked = revoke_refresh_token(request.refresh_token)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao executar logout")
+    return {"ok": True, "revoked": bool(revoked)}
+
+
+@router.post("/logout-all", status_code=status.HTTP_200_OK)
+async def logout_all(current_user: User = Depends(get_current_user)):
+    try:
+        uid = str(current_user.id)
+        revoke_all_user_tokens(uid)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao revogar tokens")
+    return {"ok": True}
 
 
 @router.get("/me", response_model=User)
 async def get_me(current_user: User = Depends(get_current_user)):
     """
     Retorna informações da conta associada ao api_token interno atual.
+    Construímos explicitamente o dict de retorno para garantir que a
+    validação do Pydantic seja satisfeita (id como string e campos
+    obrigatórios presentes).
     """
-    return current_user
+    # current_user pode ser um objeto ORM ou um Pydantic model — normalizamos.
+    def safe_attr(obj, name, default=None):
+        return getattr(obj, name, default) if obj is not None else default
+
+    user_payload = {
+        "id": str(safe_attr(current_user, "id", "")),
+        "email": safe_attr(current_user, "email", ""),
+        "role": safe_attr(current_user, "role", "usuario"),
+        "is_active": bool(safe_attr(current_user, "is_active", True)),
+        # campos que seu schema exige — preencha com valores seguros
+        "firebase_uid": safe_attr(current_user, "firebase_uid", None),
+        "display_name": safe_attr(current_user, "display_name", None),
+        "avatar_url": safe_attr(current_user, "avatar_url", None),
+        "created_at": safe_attr(current_user, "created_at", None),
+        "updated_at": safe_attr(current_user, "updated_at", None),
+        # qualquer outro campo esperado no schema User pode ser adicionado aqui
+    }
+
+    return user_payload

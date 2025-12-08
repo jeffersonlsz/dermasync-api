@@ -35,12 +35,14 @@ async def test_refresh_token_sucesso(client: AsyncClient, mocker):
         "app.routes.auth.refresh_api_token",
         return_value=(new_access_token, user),
     )
-
+    print("New Access Token esperado:", new_access_token)
+    print("Refresh Token gerado:", refresh_token)
     response = await client.post("/auth/refresh", json={"refresh_token": refresh_token})
-
+    print("Response:", response.json())
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["api_token"] == new_access_token
+    # adaptado para o novo contrato (access_token em vez de api_token)
+    assert data["access_token"] == new_access_token
     assert data["refresh_token"] == refresh_token
     assert data["user"]["user_id"] == user.id
 

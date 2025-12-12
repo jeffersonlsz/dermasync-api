@@ -1,5 +1,5 @@
 # app/schema/relato.py
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 from datetime import datetime # NEW IMPORT
 
 from pydantic import BaseModel, Field
@@ -13,6 +13,22 @@ class ImagensSchema(BaseModel):
     depois: Union[str, None] = Field(
         default=None, description="URL da imagem depois do tratamento (pode ser null)"
     )
+
+
+class FormularioMeta(BaseModel):
+    descricao: str
+    idade: Optional[str] = None
+    sexo: Optional[str] = None
+    classificacao: Optional[str] = None
+    consentimento: bool
+    metadados: Optional[Dict] = {}
+
+
+class RelatoStatusOutput(BaseModel):
+    relato_id: str
+    status: str
+    progress: Optional[int] = None
+    last_error: Optional[str] = None
 
 
 class RelatoCompletoInput(BaseModel):

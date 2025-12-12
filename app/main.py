@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 """
 Main entry point for the DermaSync API backend.
-
-- Inicializa a aplicação FastAPI
-- Integra SQLAlchemy + Postgres
-- Configura middlewares de logging
-- Configura CORS
-- Inclui rotas de autenticação, saúde, imagens e relatos
 """
 
-from fastapi import FastAPI
+import logging
+import time
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 # Middleware de logging
 from app.archlog_sync.middleware import LogRequestMiddleware
@@ -24,11 +22,29 @@ from app.routes import auth as auth_routes
 from app.routes import health
 from app.routes import imagens
 from app.routes import relatos
-
-# Router novo da autenticação (JWT)
-#from app.auth.router import router as auth_v2_router
-
 from app.routes import me
+
+
+class LoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start = time.time()
+        request_body = None
+        try:
+            request_body = await request.body()
+        except Exception:
+            request_body = b"[could not read body]"
+        try:
+            response = await call_next(request)
+            status = response.status_code
+            duration = (time.time() - start) * 1000
+            logging.info("%s %s %s -> %d (%.1fms) body_len=%d",
+                         request.method, request.url.path, request.client.host if request.client else "-",
+                         status, duration, len(request_body or b""))
+            return response
+        except Exception as e:
+            duration = (time.time() - start) * 1000
+            logging.exception("Unhandled exception for %s %s (%.1fms): %s", request.method, request.url.path, duration, e)
+            raise
 
 
 # ============================================================
@@ -41,50 +57,49 @@ app = FastAPI(
     description="Backend moderno do DermaSync com Postgres, SQLAlchemy e autenticação JWT."
 )
 
+# ============================================================
+# CORS — CONFIGURE AQUI IMEDIATAMENTE (antes de outros middlewares)
+# ============================================================
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    # "https://seu-dominio.com"  # produção: coloque aqui
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,        # se usar cookies / Authorization credentials
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
 
 # ============================================================
 # Banco de dados — Criar tabelas (apenas ambiente dev)
 # ============================================================
-
-# Em ambiente real, usar Alembic!
 Base.metadata.create_all(bind=engine)
 
-
 # ============================================================
-# Middlewares
+# Middlewares (custom) — depois do CORS
 # ============================================================
-
-# Logging (arquitetura ArchLog)
 app.add_middleware(LogRequestMiddleware)
-
-# CORS — liberar frontend durante dev
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],            # Ajuste para produção
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(LoggingMiddleware)
 
 
 # ============================================================
 # Rotas — incluir routers
 # ============================================================
-
-# 🔐 Autenticação NOVA (JWT + SQLAlchemy + Postgres)
-#app.include_router(auth_v2_router)
-
-# Rotas antigas/mantidas:
-app.include_router(auth_routes.router)   # Se quiser remover depois, é só apagar esta linha
+app.include_router(auth_routes.router)
 app.include_router(imagens.router)
 app.include_router(relatos.router)
 app.include_router(health.router)
 app.include_router(me.router)
 
+
 # ============================================================
 # Endpoints básicos
 # ============================================================
-
 @app.get("/")
 def home():
     return {"mensagem": "API online."}

@@ -347,10 +347,14 @@ def _iso_to_datetime(s: str) -> Optional[datetime]:
             return None
 
 
-async def listar_imagens_publicas(include_signed_url: bool = False) -> List[dict]:
+async def listar_imagens_publicas(include_signed_url: bool = False, thumb: bool = False) -> List[dict]:
     """
     Lista metadados de imagens públicas normalizando shape e types esperados pelo response_model.
     Preenche campos obrigatórios com defaults válidos ('' para strings, 0 para ints, datetime ISO para datas).
+
+    Parâmetros:
+      - include_signed_url: se True, anexa campos signed (signed_url, signed_urls).
+      - thumb: se True, tenta localizar um thumbnail e anexa thumb_url (signed). Se não existir thumb, usa image_url como fallback.
     """
     db = get_firestore_client()
     coll = db.collection("imagens")
@@ -372,33 +376,102 @@ async def listar_imagens_publicas(include_signed_url: bool = False) -> List[dict
 
     # signed urls (defensivo). Gera signed_url(s) com base em storage_path ou em paths[]
     if include_signed_url and normalized:
-        def _attach_signed_sync(imgs):
+        def _attach_signed_sync(imgs, thumb_flag: bool):
+            """
+            Função síncrona que anexa signed URLs a cada item. Será executada em thread via asyncio.to_thread.
+            """
             for item in imgs:
                 signed_urls = []
+                image_url = None
+                thumb_url = None
                 try:
                     sp = item.get("storage_path")
+                    # 1) full image a partir de storage_path
                     if sp:
                         s = _generate_signed_url_sync(sp)
                         if s:
                             signed_urls.append(s)
-                    # se não gerou ou houver paths, tenta gerar para cada path (compatibilidade)
+                            image_url = image_url or s
+
+                    # 2) se não gerou via storage_path, tenta paths[]
                     if not signed_urls and item.get("paths"):
                         for p in item.get("paths") or []:
                             try:
                                 s2 = _generate_signed_url_sync(p)
                                 if s2:
                                     signed_urls.append(s2)
+                                    image_url = image_url or s2
                             except Exception:
                                 logger.debug("Falha ao gerar signed_url para path %s (ignorado)", p)
+
+                    # 3) se thumb solicitado, tente heurísticas de thumb
+                    if thumb_flag:
+                        # candidates baseados em id + original filename
+                        candidates = []
+                        orig = (item.get("original_filename") or "").strip()
+                        id_part = item.get("id") or ""
+                        if orig:
+                            # thumb with prefix
+                            candidates.append(f"{id_part}/thumb_{orig}")
+                            # thumb with same filename under a thumb/ or thumbnail/
+                            candidates.append(f"{id_part}/thumb_{orig.split('/')[-1]}")
+                        # generic candidates
+                        candidates.append(f"{id_part}/thumb.jpg")
+                        candidates.append(f"{id_part}/thumbnail.jpg")
+                        candidates.append(f"{id_part}/thumb_{id_part}.jpg")
+                        # tentar cada candidate até encontrar um existente (por tentativa de signed_url)
+                        for cand in candidates:
+                            try:
+                                s_thumb = _generate_signed_url_sync(cand)
+                                if s_thumb:
+                                    thumb_url = s_thumb
+                                    break
+                            except Exception:
+                                logger.debug("Falha ao gerar signed_url para candidate thumb %s (ignorado)", cand)
+                        # fallback heurístico: tentar gerar signed_url para "<id>/antes_<orig>" e "<id>/depois_<orig>" (caso padrão do upload)
+                        if not thumb_url and orig:
+                            try:
+                                alt1 = f"{id_part}/antes_{orig}"
+                                s_alt1 = _generate_signed_url_sync(alt1)
+                                if s_alt1:
+                                    thumb_url = s_alt1
+                            except Exception:
+                                pass
+                            if not thumb_url:
+                                try:
+                                    alt2 = f"{id_part}/depois_{orig}"
+                                    s_alt2 = _generate_signed_url_sync(alt2)
+                                    if s_alt2:
+                                        thumb_url = s_alt2
+                                except Exception:
+                                    pass
+
+                    # 4) fallback: se nenhuma thumb encontrada e existe image_url, usar a image_url como thumb
+                    if not thumb_url and image_url:
+                        thumb_url = image_url
+
                 except Exception as ex:
                     logger.exception("Erro ao gerar signed URLs para %s: %s", item.get("id"), ex)
 
-                # anexa resultados (pode ser lista vazia)
+                # anexa resultados (pode ser lista vazia/None)
                 item["signed_urls"] = signed_urls if signed_urls else None
                 item["signed_url"] = signed_urls[0] if signed_urls else None
+                item["image_url"] = image_url
+                item["thumb_url"] = thumb_url
             return imgs
 
-        normalized = await asyncio.to_thread(_attach_signed_sync, normalized)
+        # Executa a versão síncrona em thread
+        try:
+            normalized = await asyncio.to_thread(_attach_signed_sync, normalized, thumb)
+        except TypeError as te:
+            # Caso o caller não espere thumb param no service original, tentamos sem thumb (fallback defensivo)
+            logger.warning("listar_imagens_publicas _attach_signed_sync TypeError: %s. Retry without thumb", te)
+            normalized = await asyncio.to_thread(_attach_signed_sync, normalized, False)
+        except Exception as e:
+            logger.exception("Erro ao anexar signed urls (thread): %s", e)
+            # não falhar totalmente: retornar normalized sem signed urls
+            # mas logar para correção
+            return normalized
 
     return normalized
 

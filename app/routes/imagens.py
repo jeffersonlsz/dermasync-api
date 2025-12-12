@@ -179,17 +179,92 @@ async def get_imagens_admin(current_user: User = Depends(get_current_user)):
 # 🌍 LISTAR PÚBLICAS
 # ============================================================
 @router.get("/listar-publicas", response_model=ImageListResponse)
-async def get_imagens_publicas(include_signed_url: bool = Query(False, description="Incluir signed_url(s)")):
-    logger.info("Listando imagens públicas.")
+async def get_imagens_publicas(
+    include_signed_url: bool = Query(False, description="Incluir signed_url(s)"),
+    thumb: bool = Query(False, description="Incluir/gerar thumbnail signed_url quando aplicável"),
+):
+    """
+    Lista imagens públicas. Se include_signed_url=True o serviço tentará
+    anexar signed URLs. Se thumb=True, pede ao serviço thumbnails assinadas
+    quando disponíveis (melhor para exibição em grid).
+    """
+    logger.info(f"Listando imagens públicas. include_signed_url={include_signed_url} thumb={thumb}")
     try:
-        imagens = await listar_imagens_publicas(include_signed_url=include_signed_url)
-        imagens_serial = [_serialize_image_meta_for_response(i) for i in imagens]
+        # Passa thumb para o service para que ele saiba se deve gerar/retornar thumbs
+        imagens = await listar_imagens_publicas(include_signed_url=include_signed_url, thumb=thumb)
+        imagens_serial = []
+
+        for raw_meta in imagens:
+            meta = _serialize_image_meta_for_response(raw_meta)
+
+            # Normalização inteligente quando signed URLs foram solicitadas
+            if include_signed_url:
+                # Possíveis locais onde o serviço pode ter colocado signed urls:
+                # - meta["signed_urls"] -> list[str]
+                # - meta["signed_url"] -> str
+                # - meta["signed"] -> dict or str
+                # - meta["thumb_url"] / meta["image_url"] já presentes
+                signed_source = (
+                    meta.get("signed_urls")
+                    or meta.get("signed_url")
+                    or meta.get("signed")
+                    or meta.get("signed_urls_map")
+                    or {}
+                )
+
+                # inicializa campos canônicos
+                meta.setdefault("thumb_url", None)
+                meta.setdefault("image_url", None)
+
+                # 1) se o serviço já devolveu thumb_url/image_url explícitos, usa-os
+                if meta.get("thumb_url"):
+                    # mantem thumb_url
+                    pass
+                if meta.get("image_url"):
+                    # mantem image_url
+                    pass
+
+                # 2) se signed_source for dict, mapeia chaves conhecidas
+                if isinstance(signed_source, dict):
+                    # ex.: {"thumb": "...", "full": "..."} ou {"thumb_url": "...", "signed_url": "..."}
+                    meta["thumb_url"] = meta["thumb_url"] or signed_source.get("thumb") or signed_source.get("thumb_url") or signed_source.get("signed_thumb")
+                    meta["image_url"] = meta["image_url"] or signed_source.get("full") or signed_source.get("image") or signed_source.get("signed_url") or signed_source.get("url")
+                    # se o serviço devolveu 'signed_urls' como lista dentro do dict
+                    if not meta["image_url"] and isinstance(signed_source.get("signed_urls"), (list, tuple)):
+                        meta["image_url"] = signed_source.get("signed_urls")[0] if signed_source.get("signed_urls") else None
+
+                # 3) se signed_source for list -> first element é a full image
+                elif isinstance(signed_source, (list, tuple)):
+                    if signed_source:
+                        meta["image_url"] = meta["image_url"] or signed_source[0]
+                # 4) se signed_source for string -> treat as full image url
+                elif isinstance(signed_source, str):
+                    meta["image_url"] = meta["image_url"] or signed_source
+
+                # 5) heurística final: se thumb=True mas não veio thumb_url, tente inferir campo 'thumbnail'/'thumb'
+                if thumb and not meta.get("thumb_url"):
+                    meta["thumb_url"] = meta.get("thumbnail") or meta.get("thumb") or None
+
+            # garantia de tipos coerentes já aplicada em _serialize_image_meta_for_response
+            imagens_serial.append(meta)
+
         return {"quantidade": len(imagens_serial), "dados": imagens_serial}
     except HTTPException:
         raise
+    except TypeError as te:
+        # caso listar_imagens_publicas não aceite parâmetro 'thumb' (retrocompat)
+        logger.warning("listar_imagens_publicas raised TypeError (maybe 'thumb' param unsupported). Retrying without thumb: %s", te)
+        try:
+            imagens = await listar_imagens_publicas(include_signed_url=include_signed_url)
+            imagens_serial = [_serialize_image_meta_for_response(i) for i in imagens]
+            return {"quantidade": len(imagens_serial), "dados": imagens_serial}
+        except Exception:
+            logger.exception("Erro ao listar imagens públicas (fallback também falhou).")
+            raise HTTPException(status_code=500, detail="Erro ao listar imagens públicas.")
     except Exception as e:
         logger.exception("Erro ao listar imagens públicas.")
         raise HTTPException(status_code=500, detail="Erro ao listar imagens públicas.")
+
 
 
 # ============================================================

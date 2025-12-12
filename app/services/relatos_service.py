@@ -322,3 +322,57 @@ async def process_and_save_relato(relato: RelatoCompletoInput, current_user: Use
         "relato_id": doc_id,
         "imagens_processadas_ids": imagens_ids,
     }
+    
+async def listar_relatos_publicos_preview(limit: int = 50, status_filter: str = None) -> list:
+    """
+    Retorna uma lista de relatos formatada para exibição pública (galeria).
+    Normaliza documentos legados que usam 'imagens' com URLs e também aceita
+    documentos que não tenham 'owner_user_id'.
+    """
+    db = get_firestore_client()
+    if not db:
+        logger.error("Erro ao obter o cliente Firestore")
+        raise HTTPException(status_code=500, detail="Erro interno no servidor.")
+
+    try:
+        # Query simples: pega todos e filtramos em python (por compatibilidade com esquemas legados)
+        docs = db.collection("relatos").limit(limit).stream()
+        resultados = []
+        for doc in docs:
+            data = doc.to_dict()
+            doc_id = doc.id
+
+            # Heurística para decidir se mostramos o relato:
+            # Mostrar se:
+            #  - tem 'imagens' (legacy) ou 'imagens_ids'
+            #  - tem 'microdepoimento' ou 'descricao'
+            #  - se status_filter foi passado, respeitar
+            if status_filter:
+                if str(data.get("status") or "").lower() != str(status_filter).lower():
+                    continue
+
+            has_images = bool(data.get("imagens") or data.get("imagens_ids"))
+            has_text = bool((data.get("microdepoimento") or data.get("descricao") or "").strip())
+
+            if not (has_images or has_text):
+                continue
+
+            # Normalizar saída pública mínima
+            safe = {
+                "id": data.get("id", doc_id),
+                "criado_em": data.get("criado_em") or data.get("timestamp") or None,
+                "classificacao": data.get("classificacao") or data.get("classificacao_etaria"),
+                "microdepoimento": data.get("microdepoimento") or (data.get("descricao")[:300] if data.get("descricao") else None),
+                "tags": data.get("tags_extraidas") or data.get("tags") or [],
+                # imagens: se for legacy 'imagens' (URLs) retornamos diretamente; se for imagens_ids,
+                # deixamos vazio (frontend vai buscar detalhes via outro endpoint autenticado se necessário)
+                "imagens": data.get("imagens") or None,
+                "status": data.get("status") or None,
+            }
+            resultados.append(safe)
+
+        return resultados
+
+    except Exception as e:
+        logger.exception("Erro ao listar relatos públicos para galeria.")
+        raise HTTPException(status_code=500, detail=f"Erro ao acessar o Firestore: {str(e)}")

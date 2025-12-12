@@ -169,3 +169,15 @@ async def get_relatos_similares(
         status_code=501,
         detail="Busca de relatos similares ainda não implementada."
     )
+    
+# Rota pública para a galeria — devolve apenas campos seguros
+@router.get("/public/listar")
+async def listar_relatos_publicos_preview(limit: int = 50, status_filter: str = None):
+    """
+    Endpoint público usado pela galeria do frontend.
+    Retorna uma lista de relatos com campos mínimos e imagens (quando presentes).
+    O endpoint aceita um 'status_filter' opcional para debug (ex: 'processed' ou 'approved_public').
+    """
+    from app.services.relatos_service import listar_relatos_publicos_preview as svc_list_public
+    relatos = await svc_list_public(limit=limit, status_filter=status_filter)
+    return {"quantidade": len(relatos), "dados": relatos}

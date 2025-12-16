@@ -3,14 +3,20 @@ import uuid
 from datetime import datetime, timezone
 from typing import Union, List
 
+import asyncio
 from fastapi import HTTPException
+from google.cloud import firestore
+from google.api_core.exceptions import FailedPrecondition
+from google.cloud.firestore import FieldFilter
 from app.auth.schemas import User
 from app.archlog_sync.logger import registrar_log
 from app.firestore.client import get_firestore_client
 from app.logger_config import configurar_logger_json
-from app.schema.relato import RelatoFullOutput, RelatoPublicoOutput, RelatoCompletoInput
+from app.schema.relato import RelatoFullOutput, RelatoPublicoOutput, RelatoCompletoInput, RelatoPublicPreviewDTO, ImagePreviewsDTO
 from app.services.imagens_service import get_imagem_by_id, salvar_imagem_from_base64, mark_image_as_orphaned
 from app.firestore.persistencia import salvar_relato_firestore
+
+
 
 # Para produção (chame uma vez no início do seu main ou serviço)
 configurar_logger_json()
@@ -68,7 +74,7 @@ async def get_relatos_by_owner_id(owner_user_id: str) -> list:
         raise HTTPException(status_code=500, detail="Erro interno no servidor.")
 
     try:
-        relatos_ref = db.collection("relatos").where("owner_user_id", "==", owner_user_id).stream()
+        relatos_ref = db.collection("relatos").where(filter=FieldFilter("owner_user_id", "==", owner_user_id)).stream()
         resultados = []
         for doc in relatos_ref:
             data = doc.to_dict()
@@ -188,7 +194,7 @@ async def list_pending_moderation_relatos(requesting_user: User) -> list:
         raise HTTPException(status_code=500, detail="Erro interno no servidor.")
 
     try:
-        relatos_ref = db.collection("relatos").where("status", "==", "processed").stream()
+        relatos_ref = db.collection("relatos").where(filter=FieldFilter("status", "==", "processed")).stream()
         resultados = []
         for doc in relatos_ref:
             data = doc.to_dict()
@@ -376,3 +382,100 @@ async def listar_relatos_publicos_preview(limit: int = 50, status_filter: str = 
     except Exception as e:
         logger.exception("Erro ao listar relatos públicos para galeria.")
         raise HTTPException(status_code=500, detail=f"Erro ao acessar o Firestore: {str(e)}")
+    
+
+
+
+async def listar_relatos_publicos_galeria_publica_preview(
+    *,
+    limit: int,
+    page: int,
+    only_public: bool = True
+) -> List[RelatoPublicPreviewDTO]:
+    """
+    Lista relatos públicos anonimizados para a galeria pública.
+
+    Retorna apenas relatos com public_visibility.status == "PUBLIC"
+    e projeta para RelatoPublicPreviewDTO.
+    """
+    def sync_get_docs():
+        db = get_firestore_client()
+        # Use collection_group to query across all 'relatos' subcollections
+        query = db.collection_group("relatos")
+
+        # Segurança: só público
+        if only_public:
+            query = query.where(filter=FieldFilter("public_visibility.status", "==", "PUBLIC"))
+
+        # Ordenação por criação (mais recentes primeiro)
+        query = query.order_by("created_at", direction=firestore.Query.DESCENDING)
+
+        # Paginação
+        offset = (page - 1) * limit
+        query = query.limit(limit).offset(offset)
+        
+        docs = query.stream()
+        #import pdb
+        #pdb.set_trace()
+        resultados: List[RelatoPublicPreviewDTO] = []
+
+        for doc in docs:
+            data = doc.to_dict()
+
+            # Defesa extrema: nunca confiar no dado
+            if not data:
+                continue
+
+            public_visibility = data.get("public_visibility", {})
+            if public_visibility.get("status") != "PUBLIC":
+                continue
+            
+            public_excerpt = data.get("public_excerpt") or {}
+
+            # Montar previews de imagem
+            previews = None
+            images = public_excerpt.get("image_previews")
+
+            if isinstance(images, dict):
+                before = images.get("before")
+                after = images.get("after")
+
+                if before or after:
+                    previews = ImagePreviewsDTO(before=before, after=after)
+
+            # created_at defensivo
+            created_at_raw = data.get("created_at")
+            if isinstance(created_at_raw, str):
+                created_at = datetime.fromisoformat(created_at_raw.replace("Z", "+00:00"))
+            elif isinstance(created_at_raw, datetime):
+                created_at = created_at_raw
+            else:
+                created_at = datetime.now(timezone.utc)
+            
+            try:
+                dto = RelatoPublicPreviewDTO(
+                    id=data.get("id") or doc.id,
+                    excerpt=public_excerpt.get("text", "")[:120],
+                    age_range=public_excerpt.get("age_range"),
+                    duration=public_excerpt.get("duration"),
+                    tags=public_excerpt.get("tags", []),
+                    image_previews=previews,
+                    created_at=created_at
+                )
+                resultados.append(dto)
+            except Exception:
+                # Ignora relatos com dados inválidos
+                pass
+        return resultados
+
+    try:
+        return await asyncio.to_thread(sync_get_docs)
+    except FailedPrecondition as e:
+        logger.error(f"Firestore query requires an index: {e.message}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Query requires a Firestore index. See logs for the creation URL. Error: {e.message}",
+        )
+    except Exception as e:
+        logger.error(f"Erro ao buscar relatos para galeria pública: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error while fetching gallery.")

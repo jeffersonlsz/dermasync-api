@@ -5,7 +5,8 @@ Este módulo implementa os endpoints para gerenciamento de relatos,
 incluindo o novo suporte a multipart/form-data para envio de imagens.
 """
 
-from fastapi import APIRouter, UploadFile, File, Form, BackgroundTasks, HTTPException, status, Depends
+import logging
+from fastapi import APIRouter, UploadFile, File, Form, BackgroundTasks, HTTPException, status, Depends, Query
 from typing import Optional, List, Dict
 from uuid import uuid4
 import json
@@ -20,6 +21,7 @@ from app.services.imagens_service import salvar_imagem_from_base64
 
 # Rota principal
 router = APIRouter(prefix="/relatos", tags=["Relatos"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("/enviar-relato-completo", status_code=status.HTTP_201_CREATED)
@@ -35,6 +37,10 @@ async def enviar_relato_completo_multipart(
     Nova versão: aceita multipart/form-data (payload JSON + arquivos).
     Cria documento inicial e delega upload de arquivos + processamento a background tasks.
     """
+    # DEBUG: Log imediato para confirmar recebimento da requisição
+    print(f"DEBUG: Request recebido em /enviar-relato-completo por {current_user.id}")
+    logger.info(f"Iniciando processamento de relato multipart. User: {current_user.id}")
+
     # 1) Parse e validação do payload
     try:
         data = json.loads(payload)
@@ -170,14 +176,89 @@ async def get_relatos_similares(
         detail="Busca de relatos similares ainda não implementada."
     )
     
-# Rota pública para a galeria — devolve apenas campos seguros
-@router.get("/public/listar")
-async def listar_relatos_publicos_preview(limit: int = 50, status_filter: str = None):
-    """
-    Endpoint público usado pela galeria do frontend.
-    Retorna uma lista de relatos com campos mínimos e imagens (quando presentes).
-    O endpoint aceita um 'status_filter' opcional para debug (ex: 'processed' ou 'approved_public').
-    """
-    from app.services.relatos_service import listar_relatos_publicos_preview as svc_list_public
-    relatos = await svc_list_public(limit=limit, status_filter=status_filter)
-    return {"quantidade": len(relatos), "dados": relatos}
+# Rota pública para a galeria — devolve apenas campos seguros - será usado apenas por admin 
+@router.get(
+    "/admin/galeria/preview",
+    summary="Preview administrativo de relatos",
+    tags=["Admin"]
+)
+async def listar_relatos_preview_admin(
+    limit: int = 50,
+    status_filter: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    # Proteção por papel
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso restrito a administradores"
+        )
+
+    from app.services.relatos_service import listar_relatos_publicos_preview
+
+    relatos = await listar_relatos_publicos_preview(
+        limit=limit,
+        status_filter=status_filter
+    )
+
+    return {
+        "quantidade": len(relatos),
+        "dados": relatos
+    }
+
+
+@router.get(
+    "/galeria/public",
+    response_model=dict,
+    summary="Galeria pública anonimizadas",
+    tags=["Galeria Pública"]
+)
+async def listar_galeria_publica(
+    limit: int = Query(12, ge=1, le=24),
+    page: int = Query(1, ge=1)
+):
+    from app.services.relatos_service import listar_relatos_publicos_galeria_publica_preview
+
+    relatos = await listar_relatos_publicos_galeria_publica_preview(
+        limit=limit,
+        page=page,
+        only_public=True
+    )
+
+    return {
+        "meta": {
+            "page": page,
+            "limit": limit,
+            "count": len(relatos)
+        },
+        "dados": relatos
+    }
+@router.get(
+    "/galeria/public/v2",
+    response_model=dict,
+    summary="Galeria pública anonimizadas (v2)",
+    tags=["Galeria Pública"]
+)
+async def listar_galeria_publica_v2(
+    limit: int = Query(12, ge=1, le=24),
+    page: int = Query(1, ge=1)
+):
+    logger.info(f"Iniciando listagem galeria v2. Limit={limit}, Page={page}")
+    from app.services.relatos_service import listar_relatos_publicos_galeria_publica_preview
+
+    relatos = await listar_relatos_publicos_galeria_publica_preview(
+        limit=limit,
+        page=page,
+        only_public=True
+    )
+
+    logger.info(f"Retornando {len(relatos)} relatos na galeria v2.")
+
+    return {
+        "meta": {
+            "page": page,
+            "limit": limit,
+            "count": len(relatos)
+        },
+        "dados": relatos
+    }

@@ -131,7 +131,7 @@ def login(payload: LoginIn):
      - Garante que o subject do token seja string (UUID -> str).
      - Agora retorna também refresh_token + refresh_token_expires_in_days.
     """
-    logger.debug("Tentativa de login recebida para o e-mail: %s", payload.email)
+    logger.info("Tentativa de login recebida para o e-mail: %s", payload.email)
     email = payload.email.lower().strip()
     try:
         users_table = get_users_table()

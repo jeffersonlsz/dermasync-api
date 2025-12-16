@@ -31,7 +31,7 @@ def initialize_firestore():
 
 def read_relato(doc_id):
     """
-    Reads a document from the 'relator' collection by ID.
+    Reads a document from the 'relatos' collection by ID.
     """
     db = initialize_firestore()
     

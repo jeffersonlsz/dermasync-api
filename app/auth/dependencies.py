@@ -25,6 +25,12 @@ from app.db.connection import SessionLocal
 from app.users.models import User as DBUser
 from app.core.errors import AUTH_ERROR_MESSAGES
 
+
+
+
+from app.auth.schemas import User
+
+
 logger = logging.getLogger(__name__)
 
 # Prefer env var; se não, fallback para app.config.APP_JWT_SECRET
@@ -84,6 +90,9 @@ def decode_token(token: str) -> dict:
     except Exception as e:
         logger.exception("Erro inesperado ao decodificar JWT: %s", e)
         raise _unauthorized("TOKEN_INVALID")
+
+
+
 
 
 # substitua a função get_current_user existente por esta
@@ -248,3 +257,11 @@ def require_authenticated():
             raise _forbidden("USER_INACTIVE")
 
     return auth_checker
+
+from app.auth.dependencies import get_current_user
+
+async def get_optional_user() -> User | None:
+    try:
+        return await get_current_user()
+    except Exception:
+        return None

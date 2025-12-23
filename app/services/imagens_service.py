@@ -12,7 +12,7 @@ import uuid
 import asyncio
 from datetime import datetime, timezone, timedelta
 from io import BytesIO
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any
 
 import magic
 from fastapi import HTTPException, UploadFile
@@ -20,6 +20,7 @@ from PIL import Image
 
 from app.auth.schemas import User
 from app.firestore.client import get_firestore_client, get_storage_bucket
+from google.cloud.firestore import FieldFilter
 
 logger = logging.getLogger(__name__)
 
@@ -587,3 +588,83 @@ async def mark_image_as_orphaned(image_id: str):
         doc_ref.update, {"status": "orphaned", "updated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")}
     )
     logger.info(f"Imagem {image_id} marcada como orphaned.")
+
+# =========================================================
+# 🧠 IMAGENS POR RELATO (CANÔNICO PARA FRONT)
+# =========================================================
+
+
+
+
+def _is_public_and_approved(img: dict) -> bool:
+    status = img.get("status") or {}
+    return (
+        status.get("visibilidade") == "public"
+        and status.get("moderacao") == "approved"
+    )
+
+
+def _image_to_front_dto(img: dict) -> dict:
+    storage = img.get("storage") or {}
+
+    thumb_path = storage.get("thumb_path")
+    original_path = storage.get("original_path")
+
+    thumb_url = _generate_signed_url_sync(thumb_path) if thumb_path else None
+    full_url = _generate_signed_url_sync(original_path) if original_path else None
+
+    return {
+        "thumb_url": thumb_url,
+        "full_url": full_url,
+        "ordem": img.get("ordem"),
+        "width": img.get("width"),
+        "height": img.get("height"),
+    }
+
+
+async def get_imagens_por_relato(
+    relato_id: str,
+    include_private: bool = False
+) -> Dict[str, Any]:
+    """
+    Resolve imagens associadas a um relato, já filtradas, ordenadas
+    e com signed URLs prontas para o front.
+    """
+
+    db = get_firestore_client()
+
+    query = db.collection("imagens").where(
+        filter=FieldFilter("relato_id", "==", relato_id)
+    )
+
+    raw_docs = await asyncio.to_thread(
+        lambda: [doc.to_dict() for doc in query.stream()]
+    )
+
+    antes = None
+    depois = None
+    durante = []
+
+    for img in raw_docs:
+        if not include_private and not _is_public_and_approved(img):
+            continue
+
+        papel = img.get("papel_clinico")
+
+        if papel == "ANTES":
+            antes = _image_to_front_dto(img)
+
+        elif papel == "DEPOIS":
+            depois = _image_to_front_dto(img)
+
+        elif papel == "DURANTE":
+            durante.append(_image_to_front_dto(img))
+
+    # ordenar DURANTE
+    durante.sort(key=lambda x: x.get("ordem") or 0)
+
+    return {
+        "antes": antes,
+        "durante": durante,
+        "depois": depois,
+    }

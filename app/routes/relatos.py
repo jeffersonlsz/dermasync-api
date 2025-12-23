@@ -262,3 +262,45 @@ async def listar_galeria_publica_v2(
         },
         "dados": relatos
     }
+from app.auth.dependencies import get_optional_user
+@router.get(
+    "/{relato_id}/imagens",
+    summary="Imagens associadas ao relato (contrato canônico)",
+    tags=["Relatos"]
+)
+async def get_imagens_relato(
+    relato_id: str,
+    current_user: Optional[User] = Depends(get_optional_user)
+):
+    """
+    Endpoint canônico para consumo de imagens pelo front-end.
+    """
+
+    from app.services.imagens_service import get_imagens_por_relato
+
+    # Por enquanto:
+    # público e autenticado veem a mesma coisa
+    include_private = False
+
+    imagens = await get_imagens_por_relato(
+        relato_id=relato_id,
+        include_private=include_private
+    )
+
+    return imagens
+
+@router.get(
+    "/galeria/public/v3",
+    summary="Galeria pública otimizada com thumbnails",
+    tags=["Galeria Pública"]
+)
+async def listar_galeria_publica_v3(
+    limit: int = Query(12, ge=1, le=24),
+    page: int = Query(1, ge=1),
+):
+    from app.services.galeria_service import listar_galeria_publica_v3
+
+    return await listar_galeria_publica_v3(
+        limit=limit,
+        page=page
+    )

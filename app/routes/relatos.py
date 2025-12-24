@@ -12,6 +12,7 @@ from uuid import uuid4
 import json
 from datetime import datetime, timezone
 
+from pydantic import ValidationError
 from app.auth.dependencies import get_current_user
 from app.auth.schemas import User
 from app.schema.relato import RelatoCompletoInput, FormularioMeta, RelatoStatusOutput
@@ -46,9 +47,20 @@ async def enviar_relato_completo_multipart(
         data = json.loads(payload)
         meta = FormularioMeta(**data)
         if not meta.consentimento:
-            raise ValueError("Consentimento obrigatório")
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Payload inválido: {str(e)}")
+            raise HTTPException(
+                status_code=400,
+                detail="Consentimento obrigatório"
+            )
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=400,
+            detail="Payload não é um JSON válido"
+        )
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=422,
+            detail=e.errors()
+        )
 
     # 2) Validar limites de arquivos
     if len(imagens_antes) > 6 or len(imagens_durante) > 6 or len(imagens_depois) > 6:
@@ -71,7 +83,7 @@ async def enviar_relato_completo_multipart(
     now = datetime.now(timezone.utc).isoformat()
     initial_doc = {
         "id": relato_id,
-        "owner_id": current_user.id,
+        "owner_id": str(current_user.id),
         "meta": meta.dict(),
         "status": "uploading",
         "created_at": now,
@@ -81,7 +93,7 @@ async def enviar_relato_completo_multipart(
 
     # 5) Salvar documento inicial usando a persistência existente
     from app.firestore.persistencia import salvar_relato_firestore
-    await salvar_relato_firestore(initial_doc, collection="relatos")
+    salvar_relato_firestore(initial_doc, collection="relatos")
 
     # 6) Delegar salvamento dos arquivos e enfileiramento (função real no background service)
     from app.services.relatos_background import _save_files_and_enqueue
@@ -119,9 +131,17 @@ async def relato_status(
     Endpoint para verificar o status de processamento de um relato.
     """
     relato = await get_relato_by_id(relato_id=relato_id, requesting_user=current_user)
-    status = relato.get("status", "unknown")
-    progress = relato.get("processing", {}).get("progress")
-    last_error = relato.get("last_error")
+    
+    # Acessa os campos usando notação de ponto, pois 'relato' é um objeto Pydantic
+    status = relato.status
+    
+    # Acesso seguro ao campo aninhado 'progress'
+    progress = None
+    if relato.processing and isinstance(relato.processing, dict):
+        progress = relato.processing.get("progress")
+
+    last_error = relato.last_error
+
     return {
         "relato_id": relato_id,
         "status": status,

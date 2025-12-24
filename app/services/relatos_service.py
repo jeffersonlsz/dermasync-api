@@ -98,23 +98,68 @@ async def get_relato_by_id(relato_id: str, requesting_user: User) -> Union[Relat
         raise HTTPException(status_code=500, detail="Erro interno no servidor.")
 
     doc_ref = db.collection("relatos").document(relato_id)
-    doc = doc_ref.get() # MODIFIED: Removed await
+    doc = await asyncio.to_thread(doc_ref.get)
 
     if not doc.exists:
         raise HTTPException(status_code=404, detail="Relato não encontrado.")
 
     relato_data = doc.to_dict()
+    relato_data['id'] = doc.id # Garante que o id do documento está presente
 
-    is_owner = relato_data.get("owner_user_id") == requesting_user.id
-    is_admin_or_colab = requesting_user.role in ["admin", "colaborador"]
-    is_public = relato_data.get("status") == "approved_public"
-
-    if is_owner or is_admin_or_colab:
-        return RelatoFullOutput(**relato_data)
-    elif is_public:
-        return RelatoPublicoOutput(**relato_data) # This will automatically filter fields
+    # --- Camada de Mapeamento e Normalização ---
+    # Transforma o 'relato_data' do Firestore para o formato esperado pelos modelos Pydantic
+    
+    # Converte 'created_at' (string ISO) para datetime, se necessário
+    timestamp_str = relato_data.get("created_at") or relato_data.get("timestamp")
+    timestamp_dt = None
+    if isinstance(timestamp_str, str):
+        try:
+            # Remove o 'Z' se presente, pois fromisoformat lida melhor com +00:00
+            if timestamp_str.endswith('Z'):
+                timestamp_str = timestamp_str[:-1] + '+00:00'
+            timestamp_dt = datetime.fromisoformat(timestamp_str)
+        except ValueError:
+            timestamp_dt = datetime.now(timezone.utc) # Fallback
+    elif isinstance(timestamp_str, datetime):
+        timestamp_dt = timestamp_str
     else:
-        raise HTTPException(status_code=403, detail="Acesso negado. Relato privado ou não publicado.")
+        timestamp_dt = datetime.now(timezone.utc) # Fallback
+
+    # Mapeia os campos para o formato do RelatoFullOutput
+    mapped_data = {
+        "id": relato_data.get("id", doc.id),
+        "id_relato_cliente": relato_data.get("id_relato_cliente", relato_data.get("id", doc.id)),
+        "owner_user_id": str(relato_data.get("owner_id", relato_data.get("owner_user_id", ""))),
+        "timestamp": timestamp_dt,
+        "conteudo_original": relato_data.get("meta", {}).get("descricao", relato_data.get("conteudo_original", "")),
+        "classificacao_etaria": relato_data.get("classificacao_etaria"),
+        "idade": relato_data.get("idade") or relato_data.get("meta", {}).get("idade"),
+        "genero": relato_data.get("genero") or relato_data.get("meta", {}).get("sexo"),
+        "sintomas": relato_data.get("sintomas", []),
+        "imagens_ids": relato_data.get("images", relato_data.get("imagens_ids", {})),
+        "regioes_afetadas": relato_data.get("regioes_afetadas", []),
+        "status": relato_data.get("status", "unknown"),
+        "micro_depoimento": relato_data.get("micro_depoimento"),
+        "solucao_encontrada": relato_data.get("solucao_encontrada"),
+    }
+
+    # --- Fim da Camada de Mapeamento ---
+
+    is_owner = mapped_data["owner_user_id"] == requesting_user.id
+    is_admin_or_colab = requesting_user.role in ["admin", "colaborador"]
+    is_public = mapped_data["status"] == "approved_public"
+
+    try:
+        if is_owner or is_admin_or_colab:
+            return RelatoFullOutput(**mapped_data)
+        elif is_public:
+            return RelatoPublicoOutput(**mapped_data) # Pydantic irá filtrar os campos
+        else:
+            raise HTTPException(status_code=403, detail="Acesso negado. Relato privado ou não publicado.")
+    except Exception as e:
+        logger.error(f"Pydantic validation error for relato {relato_id}: {e}")
+        logger.error(f"Data passed to Pydantic: {mapped_data}")
+        raise HTTPException(status_code=500, detail="Erro de validação de dados internos.")
 
 async def attach_image_to_relato(
     relato_id: str, image_id: str, current_user: User

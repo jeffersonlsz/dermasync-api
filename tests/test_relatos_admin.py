@@ -8,7 +8,7 @@ async def test_get_relatos_com_admin(client: AsyncClient, mock_current_user_admi
     Testa se a rota de listar relatos funciona para um usuário com permissão de admin.
     """
     # Mock para a função que busca os relatos no banco de dados
-    mocker.patch("app.routes.relatos.listar_relatos", return_value=[{"id": "1", "conteudo": "Relato de teste"}])
+    mocker.patch("app.services.relatos_service.listar_relatos", return_value=[{"id": "1", "conteudo": "Relato de teste"}])
 
     response = await client.get("/relatos/listar-todos")
 

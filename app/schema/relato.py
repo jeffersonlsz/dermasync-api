@@ -51,6 +51,8 @@ class RelatoFullOutput(BaseModel):
     status: str = Field(..., description="Status do ciclo de vida do relato.")
     micro_depoimento: Optional[str] = Field(None, description="Breve resumo do relato gerado por LLM.")
     solucao_encontrada: Optional[str] = Field(None, description="Solução encontrada ou recomendada (gerado por LLM).")
+    processing: Optional[Dict] = Field(None, description="Dados sobre o estado do processamento em background.")
+    last_error: Optional[str] = Field(None, description="Último erro registrado durante o processamento.")
 
 class ConsentimentoSchema(BaseModel):
     public_display: bool

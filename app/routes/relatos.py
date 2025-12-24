@@ -100,7 +100,7 @@ async def enviar_relato_completo_multipart(
     background_tasks.add_task(
         _save_files_and_enqueue,
         relato_id,
-        current_user.id,
+        str(current_user.id),
         imagens_antes,
         imagens_durante,
         imagens_depois

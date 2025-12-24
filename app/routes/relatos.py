@@ -95,17 +95,25 @@ async def enviar_relato_completo_multipart(
     from app.firestore.persistencia import salvar_relato_firestore
     salvar_relato_firestore(initial_doc, collection="relatos")
 
-    # 6) Delegar salvamento dos arquivos e enfileiramento (função real no background service)
+    # 6) Ler o conteúdo dos arquivos e passar para a background task
+    imagens_data = []
+    for file_list, kind in [(imagens_antes, "antes"), (imagens_durante, "durante"), (imagens_depois, "depois")]:
+        for upload_file in file_list:
+            imagens_data.append({
+                "content": await upload_file.read(),
+                "filename": upload_file.filename,
+                "content_type": upload_file.content_type,
+                "kind": kind
+            })
+
     from app.services.relatos_background import _save_files_and_enqueue
     background_tasks.add_task(
         _save_files_and_enqueue,
         relato_id,
         str(current_user.id),
-        imagens_antes,
-        imagens_durante,
-        imagens_depois
+        imagens_data,
     )
-
+    logger.info(f"Relato {relato_id} recebido e enfileirado para processamento.")
     return {"relato_id": relato_id, "status": "upload_received"}
 
 

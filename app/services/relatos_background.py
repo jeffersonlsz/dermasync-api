@@ -15,16 +15,17 @@ logger = logging.getLogger(__name__)
 def _save_files_and_enqueue(
     relato_id: str,
     owner_id: str,
-    imagens_antes,
-    imagens_durante,
-    imagens_depois
+    imagens_data: list
 ):
     """
     Processa o upload de arquivos em background e enfileira o processamento do relato.
     Estados canônicos:
     uploading → uploaded → processing → done | error
     """
-    logger.info('Iniciando background task para relato {relato_id}')
+    logger.info(f"Iniciando background task para relato {relato_id}")
+    logger.info(f"Owner ID: {owner_id}")
+    logger.debug(f"Total de imagens a processar: {len(imagens_data)}")
+    
     try:
         # Marca como uploaded assim que o background começa de fato
         update_relato_status_sync(
@@ -33,70 +34,68 @@ def _save_files_and_enqueue(
             actor=owner_id
         )
 
-        for kind, files in (
-            ("antes", imagens_antes),
-            ("durante", imagens_durante),
-            ("depois", imagens_depois),
-        ):
-            for uploadfile in files:
-                content = uploadfile.file.read()
+        for file_data in imagens_data:
+            content = file_data["content"]
+            filename = file_data["filename"]
+            content_type = file_data["content_type"]
+            kind = file_data["kind"]
 
-                # Validação de tamanho (12MB)
-                if len(content) > 12 * 1024 * 1024:
-                    raise ValueError(
-                        f"Arquivo {uploadfile.filename} excede 12MB"
-                    )
-
-                from app.services.imagens_service import ALLOWED_MIME_TYPES
-                if uploadfile.content_type not in ALLOWED_MIME_TYPES:
-                    raise ValueError(
-                        f"Tipo não suportado: {uploadfile.content_type}"
-                    )
-
-                filename = uploadfile.filename or f"{uuid.uuid4().hex}.jpg"
-
-                import re
-                safe_filename = re.sub(
-                    r"[^a-zA-Z0-9_.-]",
-                    "_",
-                    filename
+            # Validação de tamanho (12MB)
+            if len(content) > 12 * 1024 * 1024:
+                raise ValueError(
+                    f"Arquivo {filename} excede 12MB"
                 )
 
-                storage_path = (
-                    f"relatos/{relato_id}/{kind}/"
-                    f"{uuid.uuid4().hex}_{safe_filename}"
+            from app.services.imagens_service import ALLOWED_MIME_TYPES
+            if content_type not in ALLOWED_MIME_TYPES:
+                raise ValueError(
+                    f"Tipo não suportado: {content_type}"
                 )
 
-                url = salvar_imagem_bytes_to_storage(
-                    storage_path,
-                    content,
-                    content_type=uploadfile.content_type
-                )
+            filename = filename or f"{uuid.uuid4().hex}.jpg"
 
-                image_id = uuid.uuid4().hex
+            import re
+            safe_filename = re.sub(
+                r"[^a-zA-Z0-9_.-]",
+                "_",
+                filename
+            )
 
-                image_meta = {
-                    "image_id": image_id,
-                    "path": storage_path,
-                    "url": url,
-                    "content_type": uploadfile.content_type,
-                    "size_bytes": len(content),
-                    "uploaded_at": datetime.now(timezone.utc).isoformat(),
-                    "owner_id": owner_id,
-                    "kind": kind,
-                }
+            storage_path = (
+                f"relatos/{relato_id}/{kind}/"
+                f"{uuid.uuid4().hex}_{safe_filename}"
+            )
 
-                _save_image_metadata_to_firestore(
-                    image_id,
-                    image_meta,
-                    owner_id
-                )
+            url = salvar_imagem_bytes_to_storage(
+                storage_path,
+                content,
+                content_type=content_type
+            )
 
-                attach_image_to_relato_sync(
-                    relato_id=relato_id,
-                    image_meta=image_meta,
-                    current_user_id=owner_id
-                )
+            image_id = uuid.uuid4().hex
+
+            image_meta = {
+                "image_id": image_id,
+                "path": storage_path,
+                "url": url,
+                "content_type": content_type,
+                "size_bytes": len(content),
+                "uploaded_at": datetime.now(timezone.utc).isoformat(),
+                "owner_id": owner_id,
+                "kind": kind,
+            }
+
+            _save_image_metadata_to_firestore(
+                image_id,
+                image_meta,
+                owner_id
+            )
+
+            attach_image_to_relato_sync(
+                relato_id=relato_id,
+                image_meta=image_meta,
+                current_user_id=owner_id
+            )
 
         # Agora sim: processamento semântico (LLM, RAG, etc.)
         update_relato_status_sync(

@@ -325,6 +325,29 @@ async def salvar_imagem_from_base64(base64_str: str, owner_user_id: str, filenam
     )
 
 
+def salvar_imagem_bytes_to_storage(storage_path: str, content: bytes, content_type: str) -> Optional[str]:
+    """
+    Salva bytes de uma imagem em um caminho específico no Firebase Storage.
+    Retorna uma signed URL para o objeto.
+    Esta é uma função síncrona, projetada para ser usada em background tasks.
+    """
+    try:
+        bucket = get_storage_bucket()
+        blob = bucket.blob(storage_path)
+        blob.upload_from_string(content, content_type=content_type)
+        
+        # Gera e retorna uma signed URL para acesso
+        signed_url = _generate_signed_url_sync(storage_path)
+        logger.info(f"Imagem salva em {storage_path}. URL assinada gerada.")
+        return signed_url
+    except Exception as e:
+        logger.exception(f"Falha ao enviar imagem para Storage em {storage_path}.")
+        # Lançar exceção para que a background task possa capturar e logar o erro.
+        raise
+
+
+
+
 # =========================================================
 # 🔍 LISTAGEM PÚBLICA
 # =========================================================

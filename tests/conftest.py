@@ -5,6 +5,7 @@ os.environ["FIREBASE_STORAGE_BUCKET"] = "fake-bucket.appspot.com"
 import time
 import secrets
 from datetime import datetime, timezone, timedelta
+from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
@@ -234,3 +235,22 @@ def sample_events():
             "duration_ms": 88,
         },
     ]
+
+@pytest.fixture
+def mock_firestore():
+    db = MagicMock()
+    collection = MagicMock()
+    document = MagicMock()
+    snapshot = MagicMock()
+
+    snapshot.exists = True
+    snapshot.to_dict.return_value = {
+        "status": "uploading",
+        "owner_id": "user_123"
+    }
+
+    document.get.return_value = snapshot
+    collection.document.return_value = document
+    db.collection.return_value = collection
+
+    return db

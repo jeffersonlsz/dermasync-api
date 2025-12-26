@@ -1,5 +1,6 @@
 #tests/test_relato_update_status_sync.py
 from unittest.mock import MagicMock, call
+import pytest
 
 def test_update_status_success(monkeypatch, mock_firestore):
     from app.services.relatos_background import update_relato_status_sync
@@ -105,3 +106,47 @@ def test_relato_state_progression(monkeypatch, mock_firestore):
     ]
 
     assert statuses == ["uploaded", "processing"]
+    
+    import pytest
+
+
+def test_invalid_status_transition_raises(monkeypatch, mock_firestore):
+    from app.services.relatos_background import update_relato_status_sync
+
+    # Estado inicial mockado: uploading
+    mock_firestore.collection().document().get().to_dict.return_value = {
+        "status": "uploading",
+        "owner_id": "user_123",
+    }
+
+    monkeypatch.setattr(
+        "app.firestore.client.get_firestore_client",
+        lambda: mock_firestore
+    )
+
+    with pytest.raises(ValueError):
+        update_relato_status_sync(
+            relato_id="relato_1",
+            new_status="done",
+            actor="system"
+        )
+
+def test_error_is_terminal(monkeypatch, mock_firestore):
+    from app.services.relatos_background import update_relato_status_sync
+
+    mock_firestore.collection().document().get().to_dict.return_value = {
+        "status": "error",
+        "owner_id": "user_123",
+    }
+
+    monkeypatch.setattr(
+        "app.firestore.client.get_firestore_client",
+        lambda: mock_firestore
+    )
+
+    with pytest.raises(ValueError):
+        update_relato_status_sync(
+            relato_id="relato_1",
+            new_status="processing",
+            actor="system"
+        )

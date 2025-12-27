@@ -4,14 +4,20 @@ from typing import Set
 
 
 class RelatoStatus(str, Enum):
-    UPLOADING = "uploading"
-    UPLOADED = "uploaded"
-    PROCESSING = "processing"
+    DRAFT = "draft"              # payload recebido, ainda não enviado
+    UPLOADING = "uploading"      # upload em andamento
+    UPLOADED = "uploaded"        # upload finalizado
+    PROCESSING = "processing"    # processamento assíncrono
     DONE = "done"
     ERROR = "error"
 
 
+
 ALLOWED_TRANSITIONS: dict[RelatoStatus, Set[RelatoStatus]] = {
+    RelatoStatus.DRAFT: {
+        RelatoStatus.UPLOADING,
+        RelatoStatus.ERROR,
+    },
     RelatoStatus.UPLOADING: {
         RelatoStatus.UPLOADED,
         RelatoStatus.ERROR,

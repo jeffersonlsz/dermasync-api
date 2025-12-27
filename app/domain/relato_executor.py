@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from app.domain.orchestrator import Intent, IntentContext
+from app.domain.orchestrator import Intent, IntentContext, IntentResult
 from app.services.relatos_background import _save_files_and_enqueue
 from app.services.relatos_background import update_relato_status_sync
 
@@ -21,13 +21,25 @@ class RelatoIntentExecutor:
     """
 
     def execute(
-        self,
         *,
         intent: Intent,
         context: IntentContext,
         actor_id: str,
+        decision: IntentResult,
         payload: dict | None = None,
     ) -> ExecutionResult:
+         
+        # Defesa obrigatória no início
+        if not decision.allowed:
+            raise RuntimeError(
+                f"Executor chamado com intent não autorizada: {intent}"
+            )
+
+        if decision.new_status is None and intent != Intent.CREATE_RELATO:
+            raise RuntimeError(
+                f"Intent {intent} autorizada sem novo estado definido"
+            )
+
 
         payload = payload or {}
 
@@ -39,7 +51,7 @@ class RelatoIntentExecutor:
             # Se isso já ocorre em outro lugar, este executor pode ser no-op.
             return ExecutionResult(
                 executed=True,
-                message="Relato criado",
+                message="Relato já persistido extermamente",
             )
 
         # =========================
@@ -65,9 +77,10 @@ class RelatoIntentExecutor:
         if intent == Intent.START_PROCESSING:
             update_relato_status_sync(
                 relato_id=context.relato_id,
-                new_status="processing",
+                new_status=decision.new_status.value,
                 actor=actor_id,
             )
+
 
             return ExecutionResult(
                 executed=True,

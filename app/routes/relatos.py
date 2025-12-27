@@ -25,96 +25,200 @@ router = APIRouter(prefix="/relatos", tags=["Relatos"])
 logger = logging.getLogger(__name__)
 
 
-@router.post("/enviar-relato-completo", status_code=status.HTTP_201_CREATED)
-async def enviar_relato_completo_multipart(
-    background_tasks: BackgroundTasks,
-    payload: str = Form(...),
-    imagens_antes: list[UploadFile] = File([]),
-    imagens_durante: list[UploadFile] = File([]),
-    imagens_depois: list[UploadFile] = File([]),
-    current_user: User = Depends(get_current_user),
-):
-    """
-    Nova versão: aceita multipart/form-data (payload JSON + arquivos).
-    Cria documento inicial e delega upload de arquivos + processamento a background tasks.
-    """
-    # DEBUG: Log imediato para confirmar recebimento da requisição
-    print(f"DEBUG: Request recebido em /enviar-relato-completo por {current_user.id}")
-    logger.info(f"Iniciando processamento de relato multipart. User: {current_user.id}")
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+import json
+import uuid
+import logging
+from typing import List, Optional
 
-    # 1) Parse e validação do payload
+from app.auth.dependencies import get_current_user
+from app.auth.schemas import User
+
+from app.domain.orchestrator import (
+    RelatoIntentOrchestrator,
+    Actor,
+    ActorType,
+    Intent,
+    IntentContext,
+)
+
+from app.domain.relato_executor import RelatoIntentExecutor
+from app.domain.relato_status import RelatoStatus
+
+from app.firestore.persistencia import salvar_relato_firestore
+from app.schema.relato_draft import RelatoDraftInput  # 👈 schema NOVO (draft)
+
+router = APIRouter()
+logger = logging.getLogger(__name__)
+
+
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status
+import json
+import uuid
+import logging
+from typing import List, Optional
+
+from app.auth.dependencies import get_current_user
+from app.auth.schemas import User
+
+
+
+from app.domain.relato_executor import RelatoIntentExecutor
+from app.domain.relato_status import RelatoStatus
+from app.schema.relato_draft import RelatoDraftInput
+from app.firestore.persistencia import salvar_relato_firestore
+
+router = APIRouter()
+logger = logging.getLogger(__name__)
+
+
+def parse_payload_json(payload: str) -> RelatoDraftInput:
     try:
         data = json.loads(payload)
-        meta = FormularioMeta(**data)
-        if not meta.consentimento:
-            raise HTTPException(
-                status_code=400,
-                detail="Consentimento obrigatório"
-            )
     except json.JSONDecodeError:
         raise HTTPException(
-            status_code=400,
-            detail="Payload não é um JSON válido"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Payload não é um JSON válido",
         )
-    except ValidationError as e:
+
+    try:
+        return RelatoDraftInput(**data)
+    except Exception as exc:
         raise HTTPException(
-            status_code=422,
-            detail=e.errors()
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
         )
 
-    # 2) Validar limites de arquivos
-    if len(imagens_antes) > 6 or len(imagens_durante) > 6 or len(imagens_depois) > 6:
-        raise HTTPException(status_code=400, detail="Número máximo de imagens por categoria excedido (máximo: 6)")
 
-    # 3) Validar tipo e tamanho dos arquivos
-    from app.services.imagens_service import ALLOWED_MIME_TYPES, MAX_FILE_SIZE_MB
-    for file_list in [imagens_antes, imagens_durante, imagens_depois]:
-        for upload_file in file_list:
-            if upload_file.content_type not in ALLOWED_MIME_TYPES:
-                raise HTTPException(
-                    status_code=415,
-                    detail=f"Tipo de arquivo não suportado: {upload_file.content_type}. Permitidos: {', '.join(ALLOWED_MIME_TYPES)}"
-                )
-            # Check file size (for this we need to get the content, but avoid reading it multiple times)
-            # We'll validate in the background processing as well
+@router.post(
+    "/relatos/enviar-relato-completo",
+    status_code=status.HTTP_201_CREATED,
+)
+async def enviar_relato_completo(
+    *,
+    payload: str = Form(...),
+    imagens_antes: Optional[List[UploadFile]] = File(default=None),
+    imagens_durante: Optional[List[UploadFile]] = File(default=None),
+    imagens_depois: Optional[List[UploadFile]] = File(default=None),
+    current_user: User = Depends(get_current_user),
+):
+    logger.info(
+        "[HTTP] /enviar-relato-completo | user=%s",
+        current_user.id,
+    )
 
-    # 4) Gerar ID do relato e documento inicial
-    relato_id = uuid4().hex
-    now = datetime.now(timezone.utc).isoformat()
-    initial_doc = {
-        "id": relato_id,
-        "owner_id": str(current_user.id),
-        "meta": meta.dict(),
-        "status": "uploading",
-        "created_at": now,
-        "images": {"antes": [], "durante": [], "depois": []},
-        "processing": {"progress": 0}
+    # =========================
+    # 1️⃣ Parse do payload (draft)
+    # =========================
+    draft = parse_payload_json(payload)
+
+    if not draft.consentimento:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Consentimento é obrigatório",
+        )
+
+    # =========================
+    # 2️⃣ Contexto inicial
+    # =========================
+    relato_id = uuid.uuid4().hex
+
+    actor = Actor(
+        type=ActorType.USER,
+        id=current_user.id,
+    )
+
+    orchestrator = RelatoIntentOrchestrator()
+    executor = RelatoIntentExecutor()
+
+    # =========================
+    # 3️⃣ CREATE_RELATO
+    # =========================
+    create_context = IntentContext(
+        relato_id=relato_id,
+        relato_exists=False,
+        current_status=None,
+        owner_id=None,
+        payload=draft.model_dump(),
+    )
+
+    create_result = orchestrator.attempt_intent(
+        actor=actor,
+        intent=Intent.CREATE_RELATO,
+        context=create_context,
+    )
+
+    if not create_result.allowed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=create_result.reason or "Criação não permitida",
+        )
+
+    # Persistência inicial (único ponto fora do executor, por enquanto)
+    salvar_relato_firestore(
+        relato_id=relato_id,
+        owner_id=current_user.id,
+        payload=draft.model_dump(),
+        status=RelatoStatus.DRAFT.value,
+    )
+
+    # =========================
+    # 4️⃣ ENVIAR_RELATO
+    # =========================
+    enviar_context = IntentContext(
+        relato_id=relato_id,
+        relato_exists=True,
+        current_status=RelatoStatus.DRAFT,
+        owner_id=current_user.id,
+        payload=draft.model_dump(),
+    )
+
+    enviar_result = orchestrator.attempt_intent(
+        actor=actor,
+        intent=Intent.ENVIAR_RELATO,
+        context=enviar_context,
+    )
+
+    if not enviar_result.allowed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=enviar_result.reason or "Envio não permitido",
+        )
+
+    # =========================
+    # 5️⃣ UPLOAD_IMAGES (efeito colateral)
+    # =========================
+    upload_context = IntentContext(
+        relato_id=relato_id,
+        relato_exists=True,
+        current_status=RelatoStatus.UPLOADING,
+        owner_id=current_user.id,
+        payload=None,
+    )
+
+    executor.execute(
+        intent=Intent.UPLOAD_IMAGES,
+        context=upload_context,
+        actor_id=current_user.id,
+        payload={
+            "imagens_antes": imagens_antes or [],
+            "imagens_durante": imagens_durante or [],
+            "imagens_depois": imagens_depois or [],
+        },
+    )
+
+    # =========================
+    # 6️⃣ Resposta
+    # =========================
+    return {
+        "relato_id": relato_id,
+        "status": enviar_result.new_status.value,
     }
 
-    # 5) Salvar documento inicial usando a persistência existente
-    from app.firestore.persistencia import salvar_relato_firestore
-    salvar_relato_firestore(initial_doc, collection="relatos")
 
-    # 6) Ler o conteúdo dos arquivos e passar para a background task
-    imagens_data = []
-    for file_list, kind in [(imagens_antes, "antes"), (imagens_durante, "durante"), (imagens_depois, "depois")]:
-        for upload_file in file_list:
-            imagens_data.append({
-                "content": await upload_file.read(),
-                "filename": upload_file.filename,
-                "content_type": upload_file.content_type,
-                "kind": kind
-            })
 
-    from app.services.relatos_background import _save_files_and_enqueue
-    background_tasks.add_task(
-        _save_files_and_enqueue,
-        relato_id,
-        str(current_user.id),
-        imagens_data,
-    )
-    logger.info(f"Relato {relato_id} recebido e enfileirado para processamento.")
-    return {"relato_id": relato_id, "status": "upload_received"}
+
+
 
 
 # Rota antiga mantida para compatibilidade

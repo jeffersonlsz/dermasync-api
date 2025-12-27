@@ -2,7 +2,9 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Dict, Tuple
+from typing import List, Optional, Dict, Tuple
+
+
 
 from app.domain.relato_status import (
     RelatoStatus,
@@ -32,6 +34,7 @@ class Actor:
 
 class Intent(str, Enum):
     CREATE_RELATO = "create_relato"
+    ENVIAR_RELATO = "enviar_relato"
     UPLOAD_IMAGES = "upload_images"
     START_PROCESSING = "start_processing"
     FINALIZE_PROCESSING = "finalize_processing"
@@ -63,6 +66,9 @@ class IntentResult:
     new_status: Optional[RelatoStatus]
     reason: Optional[str]
     side_effects: list[str]
+    #next_states: List[RelatoStatus] TODO: verificar a necessidade disso 
+
+
 
 
 # =========================
@@ -71,6 +77,7 @@ class IntentResult:
 
 INTENT_TO_TRANSITION: Dict[Intent, Tuple[Optional[RelatoStatus], RelatoStatus]] = {
     Intent.CREATE_RELATO: (None, RelatoStatus.UPLOADING),
+    Intent.ENVIAR_RELATO: (RelatoStatus.DRAFT,RelatoStatus.UPLOADED),
     Intent.UPLOAD_IMAGES: (RelatoStatus.UPLOADING, RelatoStatus.UPLOADED),
     Intent.START_PROCESSING: (RelatoStatus.UPLOADED, RelatoStatus.PROCESSING),
     Intent.FINALIZE_PROCESSING: (RelatoStatus.PROCESSING, RelatoStatus.DONE),
@@ -105,19 +112,31 @@ class RelatoIntentOrchestrator:
         - APENAS decide se a intenção é válida
         """
 
+        # 0️⃣ Validação de contrato — estado inválido
+        if context.current_status is not None and not isinstance(context.current_status, RelatoStatus):
+            raise ValueError(f"Estado inválido: {context.current_status}")
+
         # 1️⃣ Intent conhecida
         if intent not in INTENT_TO_TRANSITION:
-            return IntentResult(
-                allowed=False,
-                previous_status=context.current_status,
-                new_status=None,
-                reason=f"Intent desconhecida: {intent}",
-                side_effects=[],
-            )
+            raise ValueError(f"Intent desconhecida: {intent}")
 
         expected_from, expected_to = INTENT_TO_TRANSITION[intent]
 
-        # 2️⃣ Existência do relato
+        # 2️⃣ Coerência de estado (intencional, não FSM rígida)
+        if expected_from not in (None, "*"):
+            if context.current_status != expected_from:
+                return IntentResult(
+                    allowed=False,
+                    previous_status=context.current_status,
+                    new_status=None,
+                    reason=(
+                        f"Intent {intent.value} não permitida a partir de "
+                        f"{context.current_status}"
+                    ),
+                    side_effects=[],
+                )
+
+        # 3️⃣ Existência do relato
         if intent == Intent.CREATE_RELATO:
             if context.relato_exists:
                 return IntentResult(
@@ -137,9 +156,9 @@ class RelatoIntentOrchestrator:
                     side_effects=[],
                 )
 
-        # 3️⃣ Guards explícitos (ownership e papel)
+        # 4️⃣ Guards explícitos (ownership e papel)
         if actor.type == ActorType.USER:
-            if context.owner_id and actor.id != context.owner_id:
+            if context.owner_id is not None and actor.id != context.owner_id:
                 return IntentResult(
                     allowed=False,
                     previous_status=context.current_status,
@@ -157,26 +176,15 @@ class RelatoIntentOrchestrator:
                 side_effects=[],
             )
 
-        # 4️⃣ Bloqueio de intents em estados terminais
+        # 5️⃣ Bloqueio de intents em estados terminais
         if intent == Intent.FAIL_PROCESSING:
-            if context.current_status in [RelatoStatus.DONE, RelatoStatus.ERROR]:
-                return IntentResult(
-                    allowed=False,
-                    previous_status=context.current_status,
-                    new_status=None,
-                    reason=f"Não pode falhar um relato em estado terminal {context.current_status}",
-                    side_effects=[],
-                )
-
-        # 5️⃣ Coerência de estado (intencional, não FSM rígida)
-        if expected_from not in (None, "*"):
-            if context.current_status != expected_from:
+            if context.current_status in (RelatoStatus.DONE, RelatoStatus.ERROR):
                 return IntentResult(
                     allowed=False,
                     previous_status=context.current_status,
                     new_status=None,
                     reason=(
-                        f"Intent {intent.value} não permitida a partir de "
+                        f"Não pode falhar um relato em estado terminal "
                         f"{context.current_status}"
                     ),
                     side_effects=[],
@@ -190,3 +198,5 @@ class RelatoIntentOrchestrator:
             reason=None,
             side_effects=[],
         )
+
+

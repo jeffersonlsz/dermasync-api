@@ -5,68 +5,31 @@ Este módulo implementa os endpoints para gerenciamento de relatos,
 incluindo o novo suporte a multipart/form-data para envio de imagens.
 """
 
-import logging
-from fastapi import APIRouter, UploadFile, File, Form, BackgroundTasks, HTTPException, status, Depends, Query
-from typing import Optional, List, Dict
-from uuid import uuid4
-import json
-from datetime import datetime, timezone
-
-from pydantic import ValidationError
-from app.auth.dependencies import get_current_user
-from app.auth.schemas import User
-from app.schema.relato import RelatoCompletoInput, FormularioMeta, RelatoStatusOutput
-from app.services.relatos_service import process_and_save_relato, get_relato_by_id
-from app.services.imagens_service import salvar_imagem_from_base64
-
-
-# Rota principal
-router = APIRouter(prefix="/relatos", tags=["Relatos"])
-logger = logging.getLogger(__name__)
-
-
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
-import json
+from fastapi import APIRouter, Depends, Form, File, Query, UploadFile, HTTPException, status
+from typing import Optional, List
 import uuid
 import logging
-from typing import List, Optional
+import json
 
 from app.auth.dependencies import get_current_user
 from app.auth.schemas import User
 
-from app.domain.orchestrator import (
-    RelatoIntentOrchestrator,
-    Actor,
-    ActorType,
-    Intent,
-    IntentContext,
-)
+from app.domain.orchestrator import ActorType, Intent, IntentContext
+from app.domain.relato.orchestrator import RelatoIntentOrchestrator
+from app.domain.relato.contracts import Actor, RelatoContext
+from app.domain.relato.intents import RelatoIntent
+from app.domain.relato.states import RelatoStatus
 
 from app.domain.relato_executor import RelatoIntentExecutor
-from app.domain.relato_status import RelatoStatus
-
 from app.firestore.persistencia import salvar_relato_firestore
-from app.schema.relato_draft import RelatoDraftInput  # 👈 schema NOVO (draft)
-
-router = APIRouter()
-logger = logging.getLogger(__name__)
-
-
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status
-import json
-import uuid
-import logging
-from typing import List, Optional
-
-from app.auth.dependencies import get_current_user
-from app.auth.schemas import User
-
-
-
-from app.domain.relato_executor import RelatoIntentExecutor
-from app.domain.relato_status import RelatoStatus
+from app.schema.relato import RelatoCompletoInput, RelatoStatusOutput
+from app.services.relato_effect_executor import RelatoEffectExecutor
 from app.schema.relato_draft import RelatoDraftInput
-from app.firestore.persistencia import salvar_relato_firestore
+from app.services.mock_relato_adapters import (
+    mock_persist_relato,
+    mock_enqueue_processing,
+    mock_emit_event,
+)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -75,19 +38,119 @@ logger = logging.getLogger(__name__)
 def parse_payload_json(payload: str) -> RelatoDraftInput:
     try:
         data = json.loads(payload)
-    except json.JSONDecodeError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Payload não é um JSON válido",
-        )
-
-    try:
         return RelatoDraftInput(**data)
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         )
+
+
+@router.post(
+    "/relatos",
+    status_code=status.HTTP_201_CREATED,
+    summary="Enviar relato (rota canônica baseada em domínio)",
+)
+async def criar_e_enviar_relato(
+    *,
+    payload: str = Form(...),
+    imagens_antes: Optional[List[UploadFile]] = File(default=None),
+    imagens_durante: Optional[List[UploadFile]] = File(default=None),
+    imagens_depois: Optional[List[UploadFile]] = File(default=None),
+    current_user: User = Depends(get_current_user),
+):
+    logger.info("[HTTP] POST /relatos | user=%s", current_user.id)
+
+    # ============================================================
+    # 1️⃣ Parse e validação mínima do payload (fora do domínio)
+    # ============================================================
+    draft = parse_payload_json(payload)
+
+    if not draft.consentimento:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Consentimento é obrigatório",
+        )
+
+    relato_id = uuid.uuid4().hex
+
+    # ============================================================
+    # 2️⃣ Preparação do domínio
+    # ============================================================
+    actor = Actor(
+        id=current_user.id,
+        role="user",
+    )
+
+    orchestrator = RelatoIntentOrchestrator()
+
+    executor = RelatoEffectExecutor(
+        persist_relato=mock_persist_relato,          # MOCK
+        enqueue_processing=mock_enqueue_processing,  # MOCK
+        emit_event=mock_emit_event,                  # MOCK
+    )
+
+    # ============================================================
+    # 3️⃣ Intent 1 — CREATE_RELATO
+    # ============================================================
+    create_context = RelatoContext(
+        relato_id=relato_id,
+        relato_exists=False,
+        current_state=None,
+        owner_id=current_user.id,
+        payload=draft.model_dump(),
+    )
+
+    create_decision = orchestrator.attempt(
+        actor=actor,
+        intent=RelatoIntent.CREATE_RELATO,
+        context=create_context,
+    )
+
+    if not create_decision.allowed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=create_decision.reason or "Criação do relato não permitida",
+        )
+
+    # Executa efeitos da criação (ex: persistir DRAFT)
+    executor.execute(create_decision.effects)
+
+    # ============================================================
+    # 4️⃣ Intent 2 — ENVIAR_RELATO
+    # ============================================================
+    enviar_context = RelatoContext(
+        relato_id=relato_id,
+        relato_exists=True,
+        current_state=RelatoStatus.DRAFT,
+        owner_id=current_user.id,
+        payload=draft.model_dump(),
+    )
+
+    enviar_decision = orchestrator.attempt(
+        actor=actor,
+        intent=RelatoIntent.ENVIAR_RELATO,
+        context=enviar_context,
+    )
+
+    if not enviar_decision.allowed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=enviar_decision.reason or "Envio do relato não permitido",
+        )
+
+    # Executa efeitos do envio (ex: enfileirar processamento)
+    executor.execute(enviar_decision.effects)
+
+    # ============================================================
+    # 5️⃣ Resposta HTTP (nenhuma lógica aqui)
+    # ============================================================
+    return {
+        "relato_id": relato_id,
+        "status": enviar_decision.next_state.value,
+    }
+
+
 
 
 @router.post(

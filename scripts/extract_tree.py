@@ -17,6 +17,7 @@ import os
 import json
 import argparse
 import fnmatch
+import sys
 from typing import List, Dict, Any, Optional, Tuple
 
 DEFAULT_EXCLUDES = ["node_modules", ".git", ".venv", "venv", "__pycache__", ".pytest_cache", ".idea", ".eggs", "postgres"]
@@ -84,6 +85,11 @@ def build_tree(root: str, max_depth: int, exclude_patterns: List[str], follow_sy
         if os.path.isdir(path):
             node["type"] = "dir"
             node["children"] = []
+            
+            if name == "dermasync_db":
+                node["truncated"] = True
+                return node
+
             if depth >= max_depth:
                 node["truncated"] = True
                 return node
@@ -128,10 +134,19 @@ def tree_to_ascii(node: Dict[str, Any], prefix: str = "", is_last: bool = True) 
         new_prefix = prefix + ("    " if is_last else "│   ")
         for i, c in enumerate(children):
             lines.extend(tree_to_ascii(c, new_prefix, i == (len(children) - 1)))
+    elif node.get("truncated"):
+        new_prefix = prefix + ("    " if is_last else "│   ")
+        lines.append(new_prefix + "└── ...")
     return lines
 
 def main():
     args = parse_args()
+    if not args.text:
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+        except (TypeError, AttributeError):
+            # Fallback for environments where reconfigure is not available
+            pass
     exclude_patterns = build_exclude_patterns(args.exclude)
     tree = build_tree(args.root, args.depth, exclude_patterns, args.follow_symlinks, args.hidden, args.show_sizes)
 

@@ -190,6 +190,15 @@ Cada mudança de estado:
 
 ---
 
+## 7. Intents do projeto
+<!-- AUTO:RELATO_INTENTS:START -->
+| Intent | Estados de Origem | Estado(s) de Destino |
+|-------|------------------|---------------------|
+| `criar_relato` | Nenhum (criação) | draft |
+| `enviar_relato` | draft | uploaded |
+<!-- AUTO:RELATO_INTENTS:END -->
+
+
 ## 7. API — Rotas de Relatos
 Esta seção é gerada automaticamente a partir da aplicação FastAPI.
 
@@ -267,6 +276,7 @@ Este README suporta geração automática das seguintes seções:
 - `<!-- AUTO:TREE:START -->`
 - `<!-- AUTO:RELATOS_ROUTES:START -->`
 - `<!-- AUTO:MERMAID:START -->`
+- `<!-- AUTO:RELATO_INTENTS:START -->` 
 
 ⚠️ Nunca editar manualmente dentro desses blocos.
 

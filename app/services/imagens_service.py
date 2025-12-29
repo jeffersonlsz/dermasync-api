@@ -24,6 +24,13 @@ from google.cloud.firestore import FieldFilter
 
 logger = logging.getLogger(__name__)
 
+
+from google.cloud import storage
+
+
+
+BUCKET_NAME = "dermasync-3d14a.firebasestorage.app"  # ⚠️ ajuste se necessário
+
 # ---------------------------------------------------------
 # CONSTANTES DE VALIDAÇÃO
 # ---------------------------------------------------------
@@ -345,6 +352,146 @@ def salvar_imagem_bytes_to_storage(storage_path: str, content: bytes, content_ty
         # Lançar exceção para que a background task possa capturar e logar o erro.
         raise
 
+
+
+
+
+
+def salvar_imagem_bytes(
+    *,
+    relato_id: str,
+    filename: str,
+    content: bytes,
+    content_type: str | None,
+    papel_clinico: str,
+) -> dict:
+    """
+    Persiste imagem no Firebase Storage / GCS a partir de bytes.
+    Retorna metadados básicos do upload.
+    """
+    logger.debug("[IMAGEM][UPLOAD] Salvando imagem bytes | relato=%s papel=%s filename=%s size=%d",
+                 relato_id, papel_clinico, filename, len(content))
+    if not content:
+        raise ValueError("Conteúdo da imagem vazio")
+
+    client = storage.Client()
+    bucket = client.bucket(BUCKET_NAME)
+
+    ext = filename.split(".")[-1] if "." in filename else "bin"
+    image_id = uuid.uuid4().hex
+
+    object_path = (
+        f"relatos/{relato_id}/"
+        f"{papel_clinico.lower()}/"
+        f"{image_id}.{ext}"
+    )
+
+    blob = bucket.blob(object_path)
+
+    logger.debug(
+        "[IMAGEM][UPLOAD] Iniciando upload | relato=%s papel=%s path=%s size=%d",
+        relato_id,
+        papel_clinico,
+        object_path,
+        len(content),
+    )
+
+    blob.upload_from_string(
+        content,
+        content_type=content_type or "application/octet-stream",
+    )
+
+    blob.metadata = {
+        "relato_id": relato_id,
+        "papel_clinico": papel_clinico,
+        "original_filename": filename,
+        "uploaded_at": datetime.now(timezone.utc).isoformat(),
+    }
+    blob.patch()
+
+    logger.info(
+        "[IMAGEM][UPLOAD] Upload concluído | relato=%s papel=%s path=%s",
+        relato_id,
+        papel_clinico,
+        object_path,
+    )
+
+    return {
+        "storage_path": object_path,
+        "content_type": content_type,
+        "size": len(content),
+    }
+
+
+
+def salvar_imagem_uploadfile(
+    *,
+    relato_id: str,
+    file: UploadFile,
+    papel_clinico: str,
+) -> dict:
+    """
+    Salva uma imagem enviada via UploadFile no Storage.
+
+    Responsabilidade:
+    - Persistência técnica
+    - Organização por relato e papel clínico
+    - NÃO altera estado de domínio
+    """
+
+    if not file.filename:
+        raise ValueError("Arquivo sem nome")
+
+    storage = get_storage_bucket() # TODO talvez seja get_firestore_client() dependendo da implementação 
+    bucket = storage.bucket()
+
+    extensao = file.filename.split(".")[-1].lower()
+    imagem_id = uuid.uuid4().hex
+
+    # =========================
+    # Path canônico
+    # =========================
+    storage_path = (
+        f"relatos/{relato_id}/imagens/"
+        f"{papel_clinico.lower()}/{imagem_id}.{extensao}"
+    )
+
+    blob = bucket.blob(storage_path)
+
+    try:
+        blob.upload_from_file(
+            file.file,
+            content_type=file.content_type,
+        )
+
+        blob.metadata = {
+            "relato_id": relato_id,
+            "papel_clinico": papel_clinico,
+            "uploaded_at": datetime.now(timezone.utc).isoformat(),
+            "original_filename": file.filename,
+        }
+        blob.patch()
+
+        logger.info(
+            "[STORAGE] Imagem salva | relato=%s papel=%s path=%s",
+            relato_id,
+            papel_clinico,
+            storage_path,
+        )
+
+        return {
+            "storage_path": storage_path,
+            "papel_clinico": papel_clinico,
+            "filename": file.filename,
+        }
+
+    except Exception as exc:
+        logger.exception(
+            "[STORAGE] Erro ao salvar imagem | relato=%s papel=%s",
+            relato_id,
+            papel_clinico,
+        )
+        raise exc
 
 
 

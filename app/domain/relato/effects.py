@@ -42,3 +42,8 @@ class EmitDomainEventEffect(Effect):
     """
     event_name: str
     payload: Optional[dict] = None
+
+@dataclass(frozen=True)
+class UploadImagesEffect(Effect):
+    relato_id: str
+    imagens: dict  # {"antes": [...], "durante": [...], "depois": [...]}

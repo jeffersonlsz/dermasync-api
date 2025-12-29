@@ -15,6 +15,7 @@ from app.auth.dependencies import get_current_user
 from app.auth.schemas import User
 
 from app.domain.orchestrator import ActorType, Intent, IntentContext
+from app.domain.relato.effects import UploadImagesEffect
 from app.domain.relato.orchestrator import RelatoIntentOrchestrator
 from app.domain.relato.contracts import Actor, RelatoContext
 from app.domain.relato.intents import RelatoIntent
@@ -30,6 +31,9 @@ from app.services.mock_relato_adapters import (
     mock_enqueue_processing,
     mock_emit_event,
 )
+from app.services.relato_image_adapter import noop_upload_images, upload_relato_images, _filter_valid_uploads
+from app.services.relato_persist_factory import make_persist_relato_adapter
+from app.services.relato_processing_adapter import enqueue_relato_processing
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -44,6 +48,30 @@ def parse_payload_json(payload: str) -> RelatoDraftInput:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         )
+
+async def materialize_uploads(
+    files: List[UploadFile],
+) -> list[dict]:
+    result = []
+
+    for f in files:
+        if not f or not f.filename:
+            continue
+
+        content = await f.read()
+
+        if not content:
+            continue
+
+        result.append(
+            {
+                "filename": f.filename,
+                "content": content,
+                "content_type": f.content_type,
+            }
+        )
+
+    return result
 
 
 @router.post(
@@ -62,7 +90,7 @@ async def criar_e_enviar_relato(
     logger.info("[HTTP] POST /relatos | user=%s", current_user.id)
 
     # ============================================================
-    # 1️⃣ Parse e validação mínima do payload (fora do domínio)
+    # 1️⃣ Parse e validação mínima (FORA do domínio)
     # ============================================================
     draft = parse_payload_json(payload)
 
@@ -75,7 +103,7 @@ async def criar_e_enviar_relato(
     relato_id = uuid.uuid4().hex
 
     # ============================================================
-    # 2️⃣ Preparação do domínio
+    # 2️⃣ Domínio
     # ============================================================
     actor = Actor(
         id=current_user.id,
@@ -84,14 +112,8 @@ async def criar_e_enviar_relato(
 
     orchestrator = RelatoIntentOrchestrator()
 
-    executor = RelatoEffectExecutor(
-        persist_relato=mock_persist_relato,          # MOCK
-        enqueue_processing=mock_enqueue_processing,  # MOCK
-        emit_event=mock_emit_event,                  # MOCK
-    )
-
     # ============================================================
-    # 3️⃣ Intent 1 — CREATE_RELATO
+    # 3️⃣ CREATE_RELATO
     # ============================================================
     create_context = RelatoContext(
         relato_id=relato_id,
@@ -113,11 +135,23 @@ async def criar_e_enviar_relato(
             detail=create_decision.reason or "Criação do relato não permitida",
         )
 
-    # Executa efeitos da criação (ex: persistir DRAFT)
-    executor.execute(create_decision.effects)
+    persist_adapter_create = make_persist_relato_adapter(
+        owner_id=current_user.id,
+        payload=draft.model_dump(),
+        next_status=RelatoStatus.DRAFT,
+    )
+
+    executor_create = RelatoEffectExecutor(
+        persist_relato=persist_adapter_create,
+        enqueue_processing=lambda *_: None,
+        emit_event=mock_emit_event,
+        upload_images=noop_upload_images,  # ✅ IMPORTANTE
+    )
+
+    executor_create.execute(create_decision.effects)
 
     # ============================================================
-    # 4️⃣ Intent 2 — ENVIAR_RELATO
+    # 4️⃣ ENVIAR_RELATO
     # ============================================================
     enviar_context = RelatoContext(
         relato_id=relato_id,
@@ -139,16 +173,43 @@ async def criar_e_enviar_relato(
             detail=enviar_decision.reason or "Envio do relato não permitido",
         )
 
-    # Executa efeitos do envio (ex: enfileirar processamento)
-    executor.execute(enviar_decision.effects)
+    persist_adapter_send = make_persist_relato_adapter(
+        owner_id=current_user.id,
+        payload=draft.model_dump(),
+        next_status=RelatoStatus.UPLOADED,
+    )
+
+    executor_send = RelatoEffectExecutor(
+        persist_relato=persist_adapter_send,
+        enqueue_processing=enqueue_relato_processing,
+        emit_event=mock_emit_event,
+        upload_images=upload_relato_images,
+    )
+    
+    imagens_materializadas = {
+        "antes": await materialize_uploads(imagens_antes or []),
+        "durante": await materialize_uploads(imagens_durante or []),
+        "depois": await materialize_uploads(imagens_depois or []),
+    }
+
+    
+    upload_effect = UploadImagesEffect(
+        relato_id=relato_id,
+        imagens=imagens_materializadas,
+    )
+
+
+    executor_send.execute(enviar_decision.effects + [upload_effect])
 
     # ============================================================
-    # 5️⃣ Resposta HTTP (nenhuma lógica aqui)
+    # 5️⃣ Resposta
     # ============================================================
     return {
         "relato_id": relato_id,
         "status": enviar_decision.next_state.value,
     }
+
+
 
 
 

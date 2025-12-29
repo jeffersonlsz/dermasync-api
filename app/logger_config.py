@@ -20,7 +20,7 @@ class JsonFormatter(logging.Formatter):
 
 
 def configurar_logger_json(
-    nivel=logging.INFO, para_arquivo=False, nome_arquivo="app.log"
+    nivel=logging.DEBUG, para_arquivo=False, nome_arquivo="app.log"
 ):
     logger = logging.getLogger()
     logger.setLevel(nivel)

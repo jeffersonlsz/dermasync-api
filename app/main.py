@@ -24,6 +24,11 @@ from app.routes import imagens
 from app.routes import relatos
 from app.routes import me
 
+from app.services.effects.register_effects import register_all_effect_executors
+
+
+
+
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -96,6 +101,9 @@ app.include_router(relatos.router)
 app.include_router(health.router)
 app.include_router(me.router)
 
+@app.on_event("startup")
+async def startup():
+    register_all_effect_executors()
 
 # ============================================================
 # Endpoints básicos

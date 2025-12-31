@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
@@ -29,4 +29,4 @@ class EffectResult:
     metadata: Optional[dict] = None
     error: Optional[str] = None
 
-    executed_at: datetime = datetime.utcnow()
+    executed_at: datetime = field(default_factory=datetime.utcnow)

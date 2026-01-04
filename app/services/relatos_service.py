@@ -1,3 +1,4 @@
+# app/services/relatos_service.py
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -290,89 +291,72 @@ async def update_relato_status(
         raise HTTPException(status_code=500, detail=f"Erro ao atualizar status do relato: {str(e)}")
 
 
-async def process_and_save_relato(relato: RelatoCompletoInput, current_user: User) -> dict:
+from app.domain.relato.orchestrator import decide
+from app.domain.relato.contracts import Actor, CreateRelato
+from app.services.relato_effect_executor import RelatoEffectExecutor
+from app.services.relato_adapters import (
+    persist_relato_adapter,
+    enqueue_processing_adapter,
+    emit_event_adapter,
+    upload_images_adapter,
+)
+
+
+async def process_and_save_relato(
+    relato: RelatoCompletoInput,
+    current_user: User,
+) -> dict:
     """
-    Processa um relato completo, incluindo o salvamento de imagens em base64,
-    persiste o relato no Firestore e o enfileira para processamento.
+    Entrada HTTP para criação de relato.
+    NÃO decide regras de domínio.
     """
+
+    # 1️⃣ Validação mínima de contrato HTTP
     if not relato.conteudo_original.strip():
         raise HTTPException(status_code=400, detail="Relato não pode estar vazio.")
 
-    logger.info(f"Usuário {current_user.id} enviando relato {relato.id_relato}")
+    # 2️⃣ Construção do Comando de domínio
+    relato_id = uuid.uuid4().hex
+    command = CreateRelato(
+        relato_id=relato_id,
+        owner_id=current_user.id,
+        conteudo=relato.conteudo_original,
+        imagens={
+            "antes": relato.imagens.antes,
+            "durante": relato.imagens.durante,
+            "depois": relato.imagens.depois,
+        },
+    )
 
-    imagens_ids = {"antes": None, "durante": [], "depois": None}
-    uploaded_image_ids = []
+    actor = Actor(
+        id=current_user.id,
+        role=current_user.role,
+    )
 
-    try:
-        if relato.imagens.antes:
-            metadata = await salvar_imagem_from_base64(
-                base64_str=relato.imagens.antes,
-                owner_user_id=current_user.id,
-                filename=f"{relato.id_relato}_antes.jpg",
-            )
-            imagens_ids["antes"] = metadata["id"]
-            uploaded_image_ids.append(metadata["id"])
+    # 3️⃣ Decisão de domínio
+    decision = decide(command=command, actor=actor, current_state=None)
 
-        for i, imagem_base64 in enumerate(relato.imagens.durante):
-            metadata = await salvar_imagem_from_base64(
-                base64_str=imagem_base64,
-                owner_user_id=current_user.id,
-                filename=f"{relato.id_relato}_durante_{i}.jpg",
-            )
-            imagens_ids["durante"].append(metadata["id"])
-            uploaded_image_ids.append(metadata["id"])
+    if not decision.allowed:
+        raise HTTPException(status_code=400, detail=decision.reason)
 
-        if relato.imagens.depois:
-            metadata = await salvar_imagem_from_base64(
-                base64_str=relato.imagens.depois,
-                owner_user_id=current_user.id,
-                filename=f"{relato.id_relato}_depois.jpg",
-            )
-            imagens_ids["depois"] = metadata["id"]
-            uploaded_image_ids.append(metadata["id"])
+    # 4️⃣ Execução técnica dos efeitos
+    # Em um cenário real, as dependências seriam injetadas
+    executor = RelatoEffectExecutor(
+        persist_relato=persist_relato_adapter,
+        enqueue_processing=enqueue_processing_adapter,
+        emit_event=emit_event_adapter,
+        upload_images=upload_images_adapter,
+    )
 
-    except HTTPException as e:
-        logger.error(f"Erro ao processar imagens do relato. Limpando {len(uploaded_image_ids)} imagens parcialmente salvas.")
-        for img_id in uploaded_image_ids:
-            await mark_image_as_orphaned(img_id)
-        raise e
-    except Exception as e:
-        logger.exception("Erro inesperado ao processar imagens do relato. Limpando imagens parcialmente salvas.")
-        for img_id in uploaded_image_ids:
-            await mark_image_as_orphaned(img_id)
-        raise HTTPException(status_code=500, detail="Erro ao salvar imagens.")
+    executor.execute(effects=decision.effects)
 
-    doc_relato = {
-        "id": uuid.uuid4().hex,
-        "id_relato_cliente": relato.id_relato,
-        "owner_user_id": current_user.id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "conteudo_original": relato.conteudo_original,
-        "classificacao_etaria": relato.classificacao_etaria,
-        "idade": relato.idade,
-        "genero": relato.genero,
-        "sintomas": relato.sintomas,
-        "imagens_ids": imagens_ids,
-        "regioes_afetadas": relato.regioes_afetadas,
-        "status": "novo",
-    }
-
-    try:
-        doc_id = salvar_relato_firestore(doc_relato)
-        logger.info(f"Relato {doc_id} salvo com sucesso no Firestore.")
-        await enqueue_relato_processing(doc_id)
-    except Exception as e:
-        logger.exception("Erro ao salvar relato no Firestore. Executando rollback das imagens.")
-        for img_id in uploaded_image_ids:
-            await mark_image_as_orphaned(img_id)
-        raise HTTPException(status_code=500, detail="Erro ao persistir o relato.")
-
+    # 5️⃣ Resposta HTTP
     return {
         "status": "sucesso",
-        "message": "Relato recebido com sucesso!",
-        "relato_id": doc_id,
-        "imagens_processadas_ids": imagens_ids,
+        "message": "Relato recebido com sucesso.",
+        "relato_id": relato_id,
     }
+
     
 async def listar_relatos_publicos_preview(limit: int = 50, status_filter: str = None) -> list:
     """

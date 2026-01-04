@@ -1,80 +1,67 @@
-from dataclasses import dataclass
-from typing import Optional, List
-
-from app.domain.relato.states import RelatoStatus
-from app.domain.relato.intents import RelatoIntent
-from app.domain.relato.guards import check_guards
-from app.domain.relato.transitions import resolve_transition
-from app.domain.relato.effects import Effect
-
+# app/domain/relato/orchestrator.py
 from app.domain.relato.contracts import (
     Actor,
-    RelatoContext,
+    Command,
+    CreateRelato,
+    SubmitRelato,
     Decision,
 )
+from app.domain.relato.effects import (
+    PersistRelatoEffect,
+    UploadImagesEffect,
+    EnqueueProcessingEffect,
+)
+from app.domain.relato_status import RelatoStatus
 
-# =========================
-# Orchestrator
-# =========================
 
-class RelatoIntentOrchestrator:
+def decide(command: Command, actor: Actor, current_state: RelatoStatus = None) -> Decision:
     """
-    Cérebro canônico do domínio de Relatos.
-
-    - Decide se uma intenção é válida
-    - Decide a transição de estado
-    - Emite efeitos
-    - NÃO executa nada
+    O cérebro do domínio.
+    Recebe um Comando e o estado atual, e retorna uma Decisão.
+    Puro, sem efeitos colaterais.
     """
+    if isinstance(command, CreateRelato):
+        # Guard: User can create a relato
+        if current_state is not None:
+            return Decision(allowed=False, reason="Relato já existe.")
 
-    def attempt(
-        self,
-        *,
-        actor: Actor,
-        intent: RelatoIntent,
-        context: RelatoContext,
-    ) -> Decision:
-
-        # 1️⃣ Guards
-        guard_result = check_guards(
-            actor=actor,
-            intent=intent,
-            context=context,
-        )
-
-        if not guard_result.allowed:
-            return Decision(
-                allowed=False,
-                reason=guard_result.reason,
-                previous_state=context.current_state,
-                next_state=None,
-                effects=[],
-            )
-
-        # 2️⃣ Transição de estado
-        transition = resolve_transition(
-            intent=intent,
-            current_state=context.current_state,
-            relato_id=context.relato_id,
-        )
-
-
-        if not transition.allowed:
-            return Decision(
-                allowed=False,
-                reason=transition.reason,
-                previous_state=context.current_state,
-                next_state=None,
-                effects=[],
-            )
-
-        # 3️⃣ Efeitos (ordens, não execução)
-        effects = transition.effects
-
+        effects = [
+            PersistRelatoEffect(
+                relato_id=command.relato_id,
+                owner_id=command.owner_id,
+                status=RelatoStatus.NOVO,
+                conteudo=command.conteudo,
+                imagens=command.imagens,
+            ),
+            UploadImagesEffect(
+                relato_id=command.relato_id,
+                imagens=command.imagens,
+            ),
+        ]
         return Decision(
             allowed=True,
-            reason=None,
-            previous_state=context.current_state,
-            next_state=transition.next_state,
             effects=effects,
+            previous_state=None,
+            next_state=RelatoStatus.NOVO,
         )
+
+    if isinstance(command, SubmitRelato):
+        # Guard: Relato must be in 'novo' state to be submitted
+        if current_state != RelatoStatus.NOVO:
+            return Decision(
+                allowed=False,
+                reason=f"Relato precisa estar em estado '{RelatoStatus.NOVO}' para ser enviado.",
+                previous_state=current_state,
+            )
+
+        effects = [
+            EnqueueProcessingEffect(relato_id=command.relato_id),
+        ]
+        return Decision(
+            allowed=True,
+            effects=effects,
+            previous_state=current_state,
+            next_state=RelatoStatus.PROCESSING,
+        )
+
+    return Decision(allowed=False, reason="Comando desconhecido.")

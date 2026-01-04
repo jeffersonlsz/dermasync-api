@@ -44,3 +44,27 @@ def load_failed_effect_results(
         )
 
     return results
+
+
+def load_effect_result(effect_result_id: str) -> EffectResult:
+    """
+    Carrega um EffectResult específico pelo seu ID de documento.
+    """
+    db = get_firestore_client()
+    doc_ref = db.collection("effect_results").document(effect_result_id)
+    doc = doc_ref.get()
+
+    if not doc.exists:
+        raise FileNotFoundError(f"EffectResult com ID {effect_result_id} não encontrado.")
+
+    data = doc.to_dict()
+
+    return EffectResult(
+        relato_id=data["relato_id"],
+        effect_type=data["effect_type"],
+        effect_ref=data["effect_ref"],
+        success=data["success"],
+        metadata=data.get("metadata"),
+        error=data.get("error"),
+        executed_at=data["executed_at"],
+    )

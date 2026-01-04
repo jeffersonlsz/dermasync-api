@@ -15,7 +15,7 @@ async def test_get_relatos_com_autenticacao_permitida(client: AsyncClient, mock_
     """
     Testa se a rota de listar relatos funciona para um usuário com permissão (colaborador).
     """
-    mocker.patch("app.routes.relatos.listar_relatos", return_value=[])
+    mocker.patch("app.services.relatos_service.listar_relatos", return_value=[])
     response = await client.get("/relatos/listar-todos")
     assert response.status_code == status.HTTP_200_OK
     data = response.json()

@@ -97,7 +97,7 @@ app.add_middleware(LoggingMiddleware)
 # ============================================================
 app.include_router(auth_routes.router)
 app.include_router(imagens.router)
-app.include_router(relatos.router)
+app.include_router(relatos.router, prefix="/relatos")
 app.include_router(health.router)
 app.include_router(me.router)
 

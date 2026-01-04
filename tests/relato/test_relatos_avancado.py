@@ -3,7 +3,7 @@ from fastapi import status
 from httpx import AsyncClient
 from datetime import datetime, timezone
 
-from .utils import gerar_imagem_fake_base64
+from tests.utils import gerar_imagem_fake_base64
 
 def criar_payload_valido():
     return {
@@ -51,7 +51,7 @@ async def test_enviar_relato_falha_firestore_rollback(
     mocker.patch("app.services.relatos_service.enqueue_relato_processing", return_value=None)
 
     payload = criar_payload_valido()
-    response = await client.post("/relatos/enviar-relato-completo", json=payload)
+    response = await client.post("/relatos/completo", json=payload)
     
     # A requisição deve falhar com um erro de servidor
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -70,16 +70,15 @@ async def test_get_my_relatos(
     """
     # Mock para a função do serviço
     mock_get_relatos = mocker.patch(
-        "app.routes.relatos.get_relatos_by_owner_id",
+        "app.services.relatos_service.get_relatos_by_owner_id",
         return_value=[{"id": "relato_meu_1"}, {"id": "relato_meu_2"}],
     )
-    
     response = await client.get("/relatos/me")
-    
+
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data["quantidade"] == 2
-    
+
     # Verifica se a função de serviço foi chamada com o ID do usuário mockado
     mock_get_relatos.assert_called_once_with(owner_user_id="user_123") # MODIFIED
 
@@ -93,7 +92,7 @@ async def test_get_single_relato_as_owner(
     """
     # Mock para a função do serviço com todos os campos necessários para RelatoFullOutput
     mock_get_relato = mocker.patch(
-        "app.routes.relatos.get_relato_by_id",
+        "app.services.relatos_service.get_relato_by_id",
         return_value={
             "id": "relato_123",
             "id_relato_cliente": "relato_cliente_123",
@@ -111,14 +110,14 @@ async def test_get_single_relato_as_owner(
             "solucao_encontrada": None,
         },
     )
-    
+
     response = await client.get("/relatos/relato_123")
-    
+
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data["id"] == "relato_123"
     assert "conteudo_original" in data
-    
+
     mock_get_relato.assert_called_once()
     args, kwargs = mock_get_relato.call_args
     assert kwargs["relato_id"] == "relato_123"
@@ -149,12 +148,12 @@ async def test_attach_image_to_relato(
         "micro_depoimento": None,
         "solucao_encontrada": None,
     }
-    
+
     # Mock for Relato Document
     mock_relato_doc_snapshot = mocker.Mock()
     mock_relato_doc_snapshot.exists = True
     mock_relato_doc_snapshot.to_dict.side_effect = lambda: mock_relato_data.copy()
-    
+
     mock_relato_doc_ref = mocker.Mock()
     mock_relato_doc_ref.get.return_value = mock_relato_doc_snapshot
     mock_relato_doc_ref.update = mocker.AsyncMock(return_value=None)
@@ -236,11 +235,11 @@ async def test_attach_image_to_relato(
         "/relatos/relato_123/attach-image",
         json={"image_id": "new_image_id"},
     )
-    
+
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert "new_image_id" in data["imagens_ids"]["durante"]
-    
+
     # Assert that Firestore update was called
     mock_relato_doc_ref.update.assert_called_once_with(
         {"imagens_ids": {"antes": None, "durante": ["new_image_id"], "depois": None}, "updated_at": mocker.ANY}
@@ -258,7 +257,7 @@ async def test_get_moderation_pending(
     Testa o acesso à lista de relatos pendentes de moderação por um admin.
     """
     mocker.patch(
-        "app.routes.relatos.list_pending_moderation_relatos", # MODIFIED PATCH TARGET
+        "app.services.relatos_service.list_pending_moderation_relatos", # MODIFIED PATCH TARGET
         return_value=[
             {
                 "id": "relato_proc_1",
@@ -278,9 +277,9 @@ async def test_get_moderation_pending(
             }
         ],
     )
-    
+
     response = await client.get("/relatos/moderation/pending")
-    
+
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert len(data) == 1

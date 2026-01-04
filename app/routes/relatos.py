@@ -1,39 +1,28 @@
 """
 Routes para relatos (depoimentos de tratamento de dermatite atópica).
-
-Este módulo implementa os endpoints para gerenciamento de relatos,
-incluindo o novo suporte a multipart/form-data para envio de imagens.
 """
+import logging
+import uuid
+import json
+from typing import Optional, List
 
 from fastapi import APIRouter, Depends, Form, File, Query, UploadFile, HTTPException, status
-from typing import Optional, List
-import uuid
-import logging
-import json
 
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, get_optional_user
 from app.auth.schemas import User
-
-from app.domain.orchestrator import ActorType, Intent, IntentContext
-from app.domain.relato.effects import UploadImagesEffect
-from app.domain.relato.orchestrator import RelatoIntentOrchestrator
-from app.domain.relato.contracts import Actor, RelatoContext
-from app.domain.relato.intents import RelatoIntent
-from app.domain.relato.states import RelatoStatus
-
-from app.domain.relato_executor import RelatoIntentExecutor
-from app.firestore.persistencia import salvar_relato_firestore
+from app.domain.relato.contracts import Actor, CreateRelato
+from app.domain.relato.orchestrator import decide
 from app.schema.relato import RelatoCompletoInput, RelatoStatusOutput
-from app.services.relato_effect_executor import RelatoEffectExecutor
 from app.schema.relato_draft import RelatoDraftInput
-from app.services.mock_relato_adapters import (
-    mock_persist_relato,
-    mock_enqueue_processing,
-    mock_emit_event,
+from app.services.relato_adapters import (
+    persist_relato_adapter,
+    enqueue_processing_adapter,
+    emit_event_adapter,
+    upload_images_adapter,
 )
-from app.services.relato_image_adapter import noop_upload_images, upload_relato_images, _filter_valid_uploads
-from app.services.relato_persist_factory import make_persist_relato_adapter
-from app.services.relato_processing_adapter import enqueue_relato_processing
+from app.services.relato_effect_executor import RelatoEffectExecutor
+from app.services.relatos_service import get_relato_by_id, process_and_save_relato
+
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -53,16 +42,12 @@ async def materialize_uploads(
     files: List[UploadFile],
 ) -> list[dict]:
     result = []
-
     for f in files:
         if not f or not f.filename:
             continue
-
         content = await f.read()
-
         if not content:
             continue
-
         result.append(
             {
                 "filename": f.filename,
@@ -70,7 +55,6 @@ async def materialize_uploads(
                 "content_type": f.content_type,
             }
         )
-
     return result
 
 
@@ -89,11 +73,7 @@ async def criar_e_enviar_relato(
 ):
     logger.info("[HTTP] POST /relatos | user=%s", current_user.id)
 
-    # ============================================================
-    # 1️⃣ Parse e validação mínima (FORA do domínio)
-    # ============================================================
     draft = parse_payload_json(payload)
-
     if not draft.consentimento:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -101,248 +81,42 @@ async def criar_e_enviar_relato(
         )
 
     relato_id = uuid.uuid4().hex
+    actor = Actor(id=current_user.id, role="user")
 
-    # ============================================================
-    # 2️⃣ Domínio
-    # ============================================================
-    actor = Actor(
-        id=current_user.id,
-        role="user",
-    )
-
-    orchestrator = RelatoIntentOrchestrator()
-
-    # ============================================================
-    # 3️⃣ CREATE_RELATO
-    # ============================================================
-    create_context = RelatoContext(
-        relato_id=relato_id,
-        relato_exists=False,
-        current_state=None,
-        owner_id=current_user.id,
-        payload=draft.model_dump(),
-    )
-
-    create_decision = orchestrator.attempt(
-        actor=actor,
-        intent=RelatoIntent.CREATE_RELATO,
-        context=create_context,
-    )
-
-    if not create_decision.allowed:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=create_decision.reason or "Criação do relato não permitida",
-        )
-
-    persist_adapter_create = make_persist_relato_adapter(
-        owner_id=current_user.id,
-        payload=draft.model_dump(),
-        next_status=RelatoStatus.DRAFT,
-    )
-
-    executor_create = RelatoEffectExecutor(
-        persist_relato=persist_adapter_create,
-        enqueue_processing=lambda *_: None,
-        emit_event=mock_emit_event,
-        upload_images=noop_upload_images,  # ✅ IMPORTANTE
-    )
-
-    executor_create.execute(create_decision.effects)
-
-    # ============================================================
-    # 4️⃣ ENVIAR_RELATO
-    # ============================================================
-    enviar_context = RelatoContext(
-        relato_id=relato_id,
-        relato_exists=True,
-        current_state=RelatoStatus.DRAFT,
-        owner_id=current_user.id,
-        payload=draft.model_dump(),
-    )
-
-    enviar_decision = orchestrator.attempt(
-        actor=actor,
-        intent=RelatoIntent.ENVIAR_RELATO,
-        context=enviar_context,
-    )
-
-    if not enviar_decision.allowed:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=enviar_decision.reason or "Envio do relato não permitido",
-        )
-
-    persist_adapter_send = make_persist_relato_adapter(
-        owner_id=current_user.id,
-        payload=draft.model_dump(),
-        next_status=RelatoStatus.UPLOADED,
-    )
-
-    executor_send = RelatoEffectExecutor(
-        persist_relato=persist_adapter_send,
-        enqueue_processing=enqueue_relato_processing,
-        emit_event=mock_emit_event,
-        upload_images=upload_relato_images,
-    )
-    
     imagens_materializadas = {
         "antes": await materialize_uploads(imagens_antes or []),
         "durante": await materialize_uploads(imagens_durante or []),
         "depois": await materialize_uploads(imagens_depois or []),
     }
 
-    
-    upload_effect = UploadImagesEffect(
+    command = CreateRelato(
         relato_id=relato_id,
+        owner_id=current_user.id,
+        conteudo=draft.descricao,
         imagens=imagens_materializadas,
     )
 
+    decision = decide(command=command, actor=actor, current_state=None)
 
-    executor_send.execute(enviar_decision.effects + [upload_effect])
-
-    # ============================================================
-    # 5️⃣ Resposta
-    # ============================================================
-    return {
-        "relato_id": relato_id,
-        "status": enviar_decision.next_state.value,
-    }
-
-
-
-
-
-
-@router.post(
-    "/relatos/enviar-relato-completo",
-    status_code=status.HTTP_201_CREATED,
-)
-async def enviar_relato_completo(
-    *,
-    payload: str = Form(...),
-    imagens_antes: Optional[List[UploadFile]] = File(default=None),
-    imagens_durante: Optional[List[UploadFile]] = File(default=None),
-    imagens_depois: Optional[List[UploadFile]] = File(default=None),
-    current_user: User = Depends(get_current_user),
-):
-    logger.info(
-        "[HTTP] /enviar-relato-completo | user=%s",
-        current_user.id,
-    )
-
-    # =========================
-    # 1️⃣ Parse do payload (draft)
-    # =========================
-    draft = parse_payload_json(payload)
-
-    if not draft.consentimento:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Consentimento é obrigatório",
-        )
-
-    # =========================
-    # 2️⃣ Contexto inicial
-    # =========================
-    relato_id = uuid.uuid4().hex
-
-    actor = Actor(
-        type=ActorType.USER,
-        id=current_user.id,
-    )
-
-    orchestrator = RelatoIntentOrchestrator()
-    executor = RelatoIntentExecutor()
-
-    # =========================
-    # 3️⃣ CREATE_RELATO
-    # =========================
-    create_context = IntentContext(
-        relato_id=relato_id,
-        relato_exists=False,
-        current_status=None,
-        owner_id=None,
-        payload=draft.model_dump(),
-    )
-
-    create_result = orchestrator.attempt_intent(
-        actor=actor,
-        intent=Intent.CREATE_RELATO,
-        context=create_context,
-    )
-
-    if not create_result.allowed:
+    if not decision.allowed:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=create_result.reason or "Criação não permitida",
+            detail=decision.reason or "Criação do relato não permitida",
         )
 
-    # Persistência inicial (único ponto fora do executor, por enquanto)
-    salvar_relato_firestore(
-        relato_id=relato_id,
-        owner_id=current_user.id,
-        payload=draft.model_dump(),
-        status=RelatoStatus.DRAFT.value,
+    executor = RelatoEffectExecutor(
+        persist_relato=persist_relato_adapter,
+        enqueue_processing=enqueue_processing_adapter,
+        emit_event=emit_event_adapter,
+        upload_images=upload_images_adapter,
     )
 
-    # =========================
-    # 4️⃣ ENVIAR_RELATO
-    # =========================
-    enviar_context = IntentContext(
-        relato_id=relato_id,
-        relato_exists=True,
-        current_status=RelatoStatus.DRAFT,
-        owner_id=current_user.id,
-        payload=draft.model_dump(),
-    )
+    executor.execute(decision.effects)
 
-    enviar_result = orchestrator.attempt_intent(
-        actor=actor,
-        intent=Intent.ENVIAR_RELATO,
-        context=enviar_context,
-    )
-
-    if not enviar_result.allowed:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=enviar_result.reason or "Envio não permitido",
-        )
-
-    # =========================
-    # 5️⃣ UPLOAD_IMAGES (efeito colateral)
-    # =========================
-    upload_context = IntentContext(
-        relato_id=relato_id,
-        relato_exists=True,
-        current_status=RelatoStatus.UPLOADING,
-        owner_id=current_user.id,
-        payload=None,
-    )
-
-    executor.execute(
-        intent=Intent.UPLOAD_IMAGES,
-        context=upload_context,
-        actor_id=current_user.id,
-        payload={
-            "imagens_antes": imagens_antes or [],
-            "imagens_durante": imagens_durante or [],
-            "imagens_depois": imagens_depois or [],
-        },
-    )
-
-    # =========================
-    # 6️⃣ Resposta
-    # =========================
     return {
         "relato_id": relato_id,
-        "status": enviar_result.new_status.value,
+        "status": decision.next_state.value if decision.next_state else "UNKNOWN",
     }
-
-
-
-
-
 
 
 # Rota antiga mantida para compatibilidade
@@ -368,10 +142,8 @@ async def relato_status(
     """
     relato = await get_relato_by_id(relato_id=relato_id, requesting_user=current_user)
     
-    # Acessa os campos usando notação de ponto, pois 'relato' é um objeto Pydantic
     status = relato.status
     
-    # Acesso seguro ao campo aninhado 'progress'
     progress = None
     if relato.processing and isinstance(relato.processing, dict):
         progress = relato.processing.get("progress")
@@ -405,7 +177,6 @@ async def listar_relatos_wrapper(current_user: User = Depends(get_current_user))
     """
     from app.services.relatos_service import listar_relatos
     
-    # Apenas administradores e colaboradores podem listar todos
     if current_user.role not in ["admin", "colaborador"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -425,14 +196,11 @@ async def get_relatos_similares(
     """
     Endpoint para buscar relatos similares semanticamente.
     """
-    # Este endpoint ainda precisa ser implementado completamente
-    # Deixando como placeholder para implementação futura
     raise HTTPException(
         status_code=501,
         detail="Busca de relatos similares ainda não implementada."
     )
     
-# Rota pública para a galeria — devolve apenas campos seguros - será usado apenas por admin 
 @router.get(
     "/admin/galeria/preview",
     summary="Preview administrativo de relatos",
@@ -443,7 +211,6 @@ async def listar_relatos_preview_admin(
     status_filter: Optional[str] = None,
     current_user: User = Depends(get_current_user)
 ):
-    # Proteção por papel
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -518,7 +285,7 @@ async def listar_galeria_publica_v2(
         },
         "dados": relatos
     }
-from app.auth.dependencies import get_optional_user
+
 @router.get(
     "/{relato_id}/imagens",
     summary="Imagens associadas ao relato (contrato canônico)",
@@ -534,8 +301,6 @@ async def get_imagens_relato(
 
     from app.services.imagens_service import get_imagens_por_relato
 
-    # Por enquanto:
-    # público e autenticado veem a mesma coisa
     include_private = False
 
     imagens = await get_imagens_por_relato(

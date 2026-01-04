@@ -17,6 +17,8 @@ from app.services.effects.persist_firestore import persist_effect_result_firesto
 
 logger = logging.getLogger(__name__)
 
+from app.services.effects.result import EffectResult
+
 
 class RelatoEffectExecutor:
     """
@@ -57,6 +59,7 @@ class RelatoEffectExecutor:
                         effect_ref=effect.relato_id,
                         success=True,
                         metadata={"status": "persisted"},
+                        error=None,
                     )
 
                 except Exception as exc:
@@ -68,6 +71,7 @@ class RelatoEffectExecutor:
                         effect_ref=effect.relato_id,
                         success=False,
                         error=str(exc),
+                        metadata=None,
                     )
 
                 persist_effect_result_firestore(result)
@@ -84,6 +88,8 @@ class RelatoEffectExecutor:
                         effect_type="ENQUEUE_PROCESSING",
                         effect_ref=effect.relato_id,
                         success=True,
+                        error=None,
+                        metadata=None,
                     )
 
                 except Exception as exc:
@@ -95,6 +101,7 @@ class RelatoEffectExecutor:
                         effect_ref=effect.relato_id,
                         success=False,
                         error=str(exc),
+                        metadata=None,
                     )
 
                 persist_effect_result_firestore(result)
@@ -112,6 +119,7 @@ class RelatoEffectExecutor:
                         effect_ref=effect.event_name,
                         success=True,
                         metadata={"payload": effect.payload},
+                        error=None,
                     )
 
                 except Exception as exc:
@@ -123,6 +131,7 @@ class RelatoEffectExecutor:
                         effect_ref=effect.event_name,
                         success=False,
                         error=str(exc),
+                        metadata=None,
                     )
 
                 persist_effect_result_firestore(result)
@@ -150,6 +159,7 @@ class RelatoEffectExecutor:
                         effect_ref=effect.relato_id,
                         success=True,
                         metadata={"total_images": total_imgs},
+                        error=None,
                     )
 
                 except Exception as exc:
@@ -161,6 +171,7 @@ class RelatoEffectExecutor:
                         effect_ref=effect.relato_id,
                         success=False,
                         error=str(exc),
+                        metadata=None,
                     )
 
                 persist_effect_result_firestore(result)
@@ -170,3 +181,63 @@ class RelatoEffectExecutor:
             # =====================================================
             else:
                 raise ValueError(f"Efeito desconhecido: {effect}")
+
+    def execute_by_result(
+        self,
+        *,
+        effect_result: EffectResult,
+        attempt: int,
+    ):
+        """
+        Reexecuta um efeito com base em um EffectResult anterior.
+        NÃO decide retry.
+        NÃO muda domínio.
+        """
+
+        effect_type = effect_result.effect_type
+        relato_id = effect_result.relato_id
+
+        logger.info(
+            "RetryExecutor | effect=%s | relato=%s | attempt=%d",
+            effect_type,
+            relato_id,
+            attempt,
+        )
+
+        # Reconstrução mínima do efeito
+        if effect_type == "PERSIST_RELATO":
+            effect = PersistRelatoEffect(relato_id=relato_id)
+
+        elif effect_type == "ENQUEUE_PROCESSING":
+            effect = EnqueueProcessingEffect(relato_id=relato_id)
+
+        elif effect_type == "EMIT_EVENT":
+            effect = EmitDomainEventEffect(
+                event_name=effect_result.effect_ref,
+                payload=effect_result.metadata.get("payload") if effect_result.metadata else None,
+            )
+
+        elif effect_type == "UPLOAD_IMAGES":
+            imagens = effect_result.metadata.get("imagens") if effect_result.metadata else None
+            if not imagens:
+                raise ValueError("Retry de UPLOAD_IMAGES sem metadata.imagens")
+
+            effect = UploadImagesEffect(
+                relato_id=relato_id,
+                imagens=imagens,
+            )
+
+        else:
+            raise ValueError(f"Retry não suportado para effect_type={effect_type}")
+
+        # Executa usando o mesmo pipeline normal
+        try:
+            self.execute([effect])
+
+        except Exception as exc:
+            logger.exception(
+                "RetryExecutor | falha ao reexecutar effect=%s | relato=%s",
+                effect_type,
+                relato_id,
+            )
+            raise exc

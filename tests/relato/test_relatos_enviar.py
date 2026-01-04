@@ -2,7 +2,7 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-from .utils import gerar_imagem_fake_base64
+from tests.utils import gerar_imagem_fake_base64
 
 def criar_payload_valido():
     return {
@@ -26,7 +26,7 @@ async def test_enviar_relato_sem_autenticacao(client: AsyncClient):
     Testa se a rota de enviar relato retorna 401/403 sem autenticação.
     """
     payload = criar_payload_valido()
-    response = await client.post("/relatos/enviar-relato-completo", json=payload)
+    response = await client.post("/relatos/completo", json=payload)
     assert response.status_code in [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN]
 
 @pytest.mark.asyncio
@@ -45,7 +45,7 @@ async def test_enviar_relato_com_autenticacao(client: AsyncClient, mock_current_
     mocker.patch("os.getenv", side_effect=lambda key, default=None: "test-bucket" if key == "FIREBASE_STORAGE_BUCKET" else default)
     
     payload = criar_payload_valido()
-    response = await client.post("/relatos/enviar-relato-completo", json=payload)
+    response = await client.post("/relatos/completo", json=payload)
     
     assert response.status_code == status.HTTP_200_OK
     data = response.json()

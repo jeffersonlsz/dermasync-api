@@ -1,4 +1,4 @@
-from app.services.effects.retry_failure_type import RetryFailureType
+from app.services.effects.retry_classifier import RetryFailureType
 
 
 def classify_failure(exc: Exception) -> RetryFailureType:

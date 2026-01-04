@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import Mock, patch
 from datetime import datetime
 
-from app.services.effects.retry_engine import retry_effect
+from app.services.effects.retry_executor import retry_effect
 from app.services.effects.registry import (
     register_effect_executor,
     clear_registry,
@@ -27,10 +27,10 @@ def test_retry_effect_success():
     )
 
     with patch(
-        "app.services.effects.retry_engine.load_effect_result",
+        "app.services.effects.retry_executor.load_effect_result",
         return_value=fake_result,
     ), patch(
-        "app.services.effects.retry_engine.persist_effect_result_firestore"
+        "app.services.effects.retry_executor.persist_effect_result_firestore"
     ):
         result = retry_effect("effect-id-1")
 

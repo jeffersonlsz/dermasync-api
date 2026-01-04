@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch
 
-from app.services.effects.retry_engine import retry_effect
+from app.services.effects.retry_executor import retry_effect
 from app.services.effects.registry import clear_registry
 from app.services.effects.result import EffectResult
 from datetime import datetime
@@ -21,7 +21,7 @@ def test_retry_effect_unsupported_type_raises():
     )
 
     with patch(
-        "app.services.effects.retry_engine.load_effect_result",
+        "app.services.effects.retry_executor.load_effect_result",
         return_value=fake_result,
     ):
         with pytest.raises(ValueError) as exc:

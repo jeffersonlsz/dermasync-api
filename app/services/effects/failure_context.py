@@ -1,3 +1,4 @@
+# app/services/effects/failure_context.py
 from dataclasses import dataclass
 from typing import Optional
 

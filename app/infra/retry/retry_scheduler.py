@@ -1,67 +1,77 @@
 # app/infra/retry/retry_scheduler.py
-
 import logging
-from typing import Iterable, List
+from typing import Iterable
 
 from app.services.effects.result import EffectResult
-from app.services.effects.retry_decision import RetryDecision
-from app.services.effects.retry_engine import RetryEngine  # engine de decisão
-from app.services.effects.loader import load_failed_effect_results
-
+from app.services.effects.retry_engine import RetryEngine
+from app.services.effects.persist_firestore import persist_effect_result_firestore
+from app.services.relato_effect_executor import RelatoEffectExecutor
 
 logger = logging.getLogger(__name__)
 
 
 class RetryScheduler:
     """
-    Scheduler técnico de retry (job periódico).
-
-    - NÃO executa efeitos
-    - NÃO decide política
-    - NÃO altera domínio
-    - Apenas observa falhas e agenda decisões
+    Orquestrador técnico de retries.
+    NÃO conhece domínio.
+    NÃO cria efeitos.
     """
 
-    def __init__(self, *, engine: RetryEngine):
-        self._engine = engine
+    def __init__(
+        self,
+        *,
+        load_failed_results,
+        effect_executor: RelatoEffectExecutor,
+        retry_engine: RetryEngine | None = None,
+    ):
+        self._load_failed_results = load_failed_results
+        self._executor = effect_executor
+        self._retry_engine = retry_engine or RetryEngine()
 
-    def run(self) -> List[RetryDecision]:
+    def run_once(self) -> None:
         """
-        Executa um ciclo de avaliação de retries.
+        Executa um ciclo de retry.
+        Pode ser chamado por cron, job ou manualmente.
+        """
 
-        Retorna decisões tomadas (para observabilidade/testes).
-        """
-        failed_results = self._load_candidates()
-        decisions: List[RetryDecision] = []
+        failed_results: Iterable[EffectResult] = self._load_failed_results()
+
+        logger.info("RetryScheduler | falhas encontradas=%d", len(failed_results))
 
         for result in failed_results:
-            decision = self._engine.decide(result)
-            decisions.append(decision)
 
-            self._log_decision(result, decision)
+            enriched = self._retry_engine.decide(result)
 
-            # ⚠️ Execução futura (NÃO IMPLEMENTAR AGORA)
-            # if decision.should_retry:
-            #     enqueue_retry(result, decision)
+            # Persistimos a decisão, SEMPRE
+            persist_effect_result_firestore(enriched)
 
-        return decisions
+            decision = enriched.retry_decision
 
-    def _load_candidates(self) -> Iterable[EffectResult]:
-        """
-        Carrega EffectResults elegíveis para retry.
-        """
-        return load_failed_effect_results()
+            if not decision or not decision.should_retry:
+                logger.info(
+                    "RetryScheduler | abortando retry | effect=%s | reason=%s",
+                    enriched.effect_type,
+                    decision.reason if decision else "no-decision",
+                )
+                continue
 
-    @staticmethod
-    def _log_decision(
-        result: EffectResult,
-        decision: RetryDecision,
-    ) -> None:
-        logger.info(
-            "[RETRY_SCHEDULER] effect=%s ref=%s retry=%s reason=%s delay=%s",
-            result.effect_type,
-            result.effect_ref,
-            decision.should_retry,
-            decision.reason,
-            decision.delay_seconds,
-        )
+            logger.info(
+                "RetryScheduler | reexecutando effect=%s | attempt=%s",
+                enriched.effect_type,
+                enriched.metadata.get("attempt", 0) if enriched.metadata else 0,
+            )
+
+            # Incrementa tentativa
+            attempt = (enriched.metadata or {}).get("attempt", 0) + 1
+
+            try:
+                self._executor.execute_by_result(
+                    effect_result=enriched,
+                    attempt=attempt,
+                )
+
+            except Exception:
+                logger.exception(
+                    "RetryScheduler | falha ao reexecutar efeito | effect=%s",
+                    enriched.effect_type,
+                )

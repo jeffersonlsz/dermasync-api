@@ -1,3 +1,4 @@
+# app/services/effects/result.py
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional

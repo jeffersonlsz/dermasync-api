@@ -1,4 +1,8 @@
-# Fachada temporária
-from app.domain.relato_status import RelatoStatus
+from enum import Enum
 
-__all__ = ["RelatoStatus"]
+
+class RelatoStatus(str, Enum):
+    CREATED = "created"        # relato existe, ainda não enviado
+    SENT = "sent"              # enviado/confirmado pelo usuário
+    PROCESSING = "processing"  # processamento assíncrono em andamento
+    FAILED = "failed"          # processamento falhou

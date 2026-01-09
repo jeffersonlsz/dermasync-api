@@ -21,12 +21,14 @@ def executor():
     enqueue_processing = Mock()
     emit_event = Mock()
     upload_images = Mock()
+    update_relato_status = Mock()
 
     return RelatoEffectExecutor(
         persist_relato=persist_relato,
         enqueue_processing=enqueue_processing,
         emit_event=emit_event,
         upload_images=upload_images,
+        update_relato_status=update_relato_status,
     )
 
 
@@ -38,16 +40,25 @@ def test_retry_persist_relato(executor):
     """
     Deve reexecutar PersistRelatoEffect a partir de EffectResult.
     """
+    effect_data = {
+        "owner_id": "user-123",
+        "status": "novo",
+        "conteudo": "conteudo",
+        "imagens": {},
+    }
     result = EffectResult(
         relato_id="relato-123",
         effect_type="PERSIST_RELATO",
         effect_ref="relato-123",
         success=False,
+        metadata={"effect_data": effect_data},
     )
 
     executor.execute_by_result(effect_result=result, attempt=1)
 
-    executor._persist_relato.assert_called_once_with("relato-123")
+    executor._persist_relato.assert_called_once_with(
+        relato_id="relato-123", **effect_data
+    )
 
 
 def test_retry_enqueue_processing(executor):

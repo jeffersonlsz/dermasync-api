@@ -21,7 +21,7 @@ from app.services.relato_adapters import (
     upload_images_adapter,
 )
 from app.services.relato_effect_executor import RelatoEffectExecutor
-from app.services.relatos_service import get_relato_by_id, process_and_save_relato
+from app.services.relatos_service import get_relato_by_id, process_and_save_relato, moderate_relato
 
 
 router = APIRouter()
@@ -109,6 +109,7 @@ async def criar_e_enviar_relato(
         enqueue_processing=enqueue_processing_adapter,
         emit_event=emit_event_adapter,
         upload_images=upload_images_adapter,
+        update_relato_status=update_relato_status_adapter,
     )
 
     executor.execute(decision.effects)
@@ -168,6 +169,43 @@ async def get_relato(
     """
     relato = await get_relato_by_id(relato_id=relato_id, requesting_user=current_user)
     return relato
+
+
+@router.post(
+    "/{relato_id}/moderate/{action}",
+    summary="Modera um relato (aprova, rejeita, arquiva)",
+    tags=["Admin", "Relatos"],
+    status_code=status.HTTP_200_OK,
+)
+async def moderate_relato_route(
+    relato_id: str,
+    action: str,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Executa uma ação de moderação em um relato, delegando a lógica para o domínio.
+
+    - **action**: A ação a ser executada (`approve`, `reject`, `archive`).
+    
+    Apenas usuários com as roles 'admin' ou 'colaborador' podem executar esta ação.
+    A lógica de negócio real (ex: um relato só pode ser aprovado se estiver no estado 'processed')
+    é garantida pela camada de domínio.
+    """
+    # A verificação de role na rota é uma primeira barreira (defense-in-depth),
+    # mas a verdadeira autorização acontece no domínio.
+    if current_user.role not in ["admin", "colaborador"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso negado. Apenas administradores e colaboradores podem moderar relatos."
+        )
+
+    result = await moderate_relato(
+        relato_id=relato_id,
+        action=action,
+        current_user=current_user
+    )
+    return result
+
 
 
 @router.get("/listar-todos")

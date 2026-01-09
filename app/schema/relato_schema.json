@@ -87,7 +87,12 @@
         "tags": { "type": "array", "items": { "type": "string" } },
         "image_preview_url": { "type": ["string", "null"] }
       }
-    }
+    },
+    "data_modificacao": { "type": "string", "format": "date-time" },
+    "medicamentos": { "type": "array", "items": { "type": "object" } },
+    "produtos_naturais": { "type": "array", "items": { "type": "string" } },
+    "status_llm": { "type": "string" },
+    "terapias_realizadas": { "type": "array", "items": { "type": "string" } }
   },
   "additionalProperties": false
 }

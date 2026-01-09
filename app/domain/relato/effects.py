@@ -59,3 +59,12 @@ class RollbackImagesEffect(Effect):
     Ordena o rollback (orphaning) de imagens previamente salvas.
     """
     image_ids: list[str]
+
+
+@dataclass(frozen=True)
+class UpdateRelatoStatusEffect(Effect):
+    """
+    Ordena a atualização de status do relato.
+    """
+    relato_id: str
+    new_status: str

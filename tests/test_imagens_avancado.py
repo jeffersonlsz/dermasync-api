@@ -18,7 +18,7 @@ async def test_upload_imagem_tipo_invalido(
     response = await client.post("/imagens/upload", files=files)
     
     assert response.status_code == status.HTTP_415_UNSUPPORTED_MEDIA_TYPE
-    assert "Tipo de arquivo não suportado" in response.json()["detail"]
+    assert "Tipo não suportado: text/plain" in response.json()["detail"]
 
 
 @pytest.mark.asyncio

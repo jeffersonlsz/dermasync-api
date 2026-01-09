@@ -10,6 +10,7 @@ from app.domain.relato.effects import (
     EnqueueProcessingEffect,
     EmitDomainEventEffect,
     UploadImagesEffect,
+    UpdateRelatoStatusEffect,
 )
 
 from app.services.effects.build_result import build_effect_result
@@ -35,11 +36,13 @@ class RelatoEffectExecutor:
         enqueue_processing,
         emit_event,
         upload_images,
+        update_relato_status,
     ):
         self._persist_relato = persist_relato
         self._enqueue_processing = enqueue_processing
         self._emit_event = emit_event
         self._upload_images = upload_images
+        self._update_relato_status = update_relato_status
 
     def execute(self, effects: list):
         logger.info("Executando efeitos do relato | total=%d", len(effects))
@@ -51,7 +54,13 @@ class RelatoEffectExecutor:
             # =====================================================
             if isinstance(effect, PersistRelatoEffect):
                 try:
-                    self._persist_relato(effect.relato_id)
+                    self._persist_relato(
+                        relato_id=effect.relato_id,
+                        owner_id=effect.owner_id,
+                        status=effect.status,
+                        conteudo=effect.conteudo,
+                        imagens=effect.imagens
+                    )
 
                     result = build_effect_result(
                         relato_id=effect.relato_id,
@@ -151,7 +160,7 @@ class RelatoEffectExecutor:
                         effect.imagens,
                     )
 
-                    total_imgs = sum(len(v) for v in effect.imagens.values())
+                    total_imgs = sum(len(v) if v else 0 for v in effect.imagens.values())
 
                     result = build_effect_result(
                         relato_id=effect.relato_id,
@@ -174,6 +183,36 @@ class RelatoEffectExecutor:
                         metadata=None,
                     )
 
+                persist_effect_result_firestore(result)
+
+            # =====================================================
+            # UpdateRelatoStatusEffect
+            # =====================================================
+            elif isinstance(effect, UpdateRelatoStatusEffect):
+                try:
+                    self._update_relato_status(effect.relato_id, effect.new_status)
+
+                    result = build_effect_result(
+                        relato_id=effect.relato_id,
+                        effect_type="UPDATE_STATUS",
+                        effect_ref=effect.new_status.value,
+                        success=True,
+                        metadata={"new_status": effect.new_status.value},
+                        error=None,
+                    )
+
+                except Exception as exc:
+                    logger.exception("Erro ao atualizar status do relato")
+
+                    result = build_effect_result(
+                        relato_id=effect.relato_id,
+                        effect_type="UPDATE_STATUS",
+                        effect_ref=effect.new_status.value,
+                        success=False,
+                        error=str(exc),
+                        metadata={"new_status": effect.new_status.value},
+                    )
+                
                 persist_effect_result_firestore(result)
 
             # =====================================================
@@ -206,7 +245,8 @@ class RelatoEffectExecutor:
 
         # Reconstrução mínima do efeito
         if effect_type == "PERSIST_RELATO":
-            effect = PersistRelatoEffect(relato_id=relato_id)
+            effect_data = effect_result.metadata.get("effect_data", {})
+            effect = PersistRelatoEffect(relato_id=relato_id, **effect_data)
 
         elif effect_type == "ENQUEUE_PROCESSING":
             effect = EnqueueProcessingEffect(relato_id=relato_id)

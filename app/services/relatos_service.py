@@ -9,6 +9,9 @@ from fastapi import HTTPException
 from google.cloud import firestore
 from google.api_core.exceptions import FailedPrecondition
 from google.cloud.firestore import FieldFilter
+from app.domain.relato.contracts import ApproveRelatoPublic, RejectRelato, ArchiveRelato
+from app.domain.relato.states import RelatoStatus
+from app.services.relato_adapters import update_relato_status_adapter
 from app.auth.schemas import User
 from app.archlog_sync.logger import registrar_log
 from app.firestore.client import get_firestore_client
@@ -23,9 +26,6 @@ from app.firestore.persistencia import salvar_relato_firestore
 configurar_logger_json()
 
 logger = logging.getLogger(__name__)
-
-# Define as constantes de status permitidos para relatos
-ALLOWED_RELATO_STATUSES = ["novo", "processing", "processed", "approved_public", "rejected", "archived"] # NEW CONSTANT
 
 
 async def listar_relatos():
@@ -253,42 +253,57 @@ async def list_pending_moderation_relatos(requesting_user: User) -> list:
         raise HTTPException(status_code=500, detail=f"Erro ao acessar o Firestore: {str(e)}")
 
 
-async def update_relato_status(
-    relato_id: str, new_status: str, current_user: User
-) -> RelatoFullOutput:
+async def moderate_relato(relato_id: str, action: str, current_user: User) -> dict:
     """
-    Atualiza o status de um relato.
-    Apenas para usuários com roles 'admin' ou 'colaborador'.
+    Modera um relato (aprova, rejeita, arquiva), delegando a decisão ao domínio.
     """
-    if current_user.role not in ["admin", "colaborador"]:
-        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores e colaboradores podem alterar o status do relato.")
-
     db = get_firestore_client()
-    if not db:
-        logger.error("Erro ao obter o cliente Firestore")
-        raise HTTPException(status_code=500, detail="Erro interno no servidor.")
-
     doc_ref = db.collection("relatos").document(relato_id)
-    doc = doc_ref.get() # MODIFIED: Removed await
+    doc = await asyncio.to_thread(doc_ref.get)
 
     if not doc.exists:
         raise HTTPException(status_code=404, detail="Relato não encontrado.")
 
     relato_data = doc.to_dict()
+    current_status_str = relato_data.get("status")
+    if not current_status_str:
+        raise HTTPException(status_code=400, detail="Relato sem status definido.")
+    
+    current_status = RelatoStatus(current_status_str)
 
-    # Validate new_status against allowed literals
-    if new_status not in ALLOWED_RELATO_STATUSES: # MODIFIED
-        raise HTTPException(status_code=400, detail=f"Status inválido: '{new_status}'. Status permitidos: {', '.join(ALLOWED_RELATO_STATUSES)}")
+    command_map = {
+        "approve": ApproveRelatoPublic(relato_id=relato_id),
+        "reject": RejectRelato(relato_id=relato_id),
+        "archive": ArchiveRelato(relato_id=relato_id),
+    }
 
-    try:
-        await doc_ref.update({"status": new_status, "updated_at": datetime.now(timezone.utc)})
-        logger.info(f"Status do relato {relato_id} atualizado para '{new_status}' por {current_user.id}.")
-        relato_data["status"] = new_status
-        relato_data["updated_at"] = datetime.now(timezone.utc)
-        return RelatoFullOutput(**relato_data)
-    except Exception as e:
-        logger.exception(f"Falha ao atualizar status do relato {relato_id} para '{new_status}'.")
-        raise HTTPException(status_code=500, detail=f"Erro ao atualizar status do relato: {str(e)}")
+    command = command_map.get(action.lower())
+    if not command:
+        raise HTTPException(status_code=400, detail=f"Ação de moderação inválida: '{action}'. Válidas: approve, reject, archive.")
+
+    actor = Actor(id=current_user.id, role=current_user.role)
+
+    decision = decide(command=command, actor=actor, current_state=current_status)
+
+    if not decision.allowed:
+        raise HTTPException(status_code=403, detail=decision.reason)
+
+    # O executor é instanciado aqui com os adaptadores necessários para este fluxo
+    executor = RelatoEffectExecutor(
+        persist_relato=lambda *args, **kwargs: None,
+        enqueue_processing=lambda *args, **kwargs: None,
+        emit_event=lambda *args, **kwargs: None,
+        upload_images=lambda *args, **kwargs: None,
+        update_relato_status=update_relato_status_adapter,
+    )
+    executor.execute(effects=decision.effects)
+
+    return {
+        "id": relato_id,
+        "previous_status": current_status.value,
+        "new_status": decision.next_state.value,
+        "message": f"Relato {relato_id} teve seu status alterado para {decision.next_state.value}."
+    }
 
 
 from app.domain.relato.orchestrator import decide
@@ -346,6 +361,7 @@ async def process_and_save_relato(
         enqueue_processing=enqueue_processing_adapter,
         emit_event=emit_event_adapter,
         upload_images=upload_images_adapter,
+        update_relato_status=update_relato_status_adapter,
     )
 
     executor.execute(effects=decision.effects)

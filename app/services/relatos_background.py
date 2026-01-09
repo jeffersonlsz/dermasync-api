@@ -1,35 +1,67 @@
 # app/services/relatos_background.py
 """
-Background tasks para processamento de relatos com upload de imagens multipart.
+Background tasks para processamento de relatos.
+Esta camada NÃO deve conter lógica de negócio.
 """
-
-from app.services.imagens_service import salvar_imagem_bytes_to_storage
-from app.services.relatos_service import attach_image_to_relato, update_relato_status, enqueue_relato_processing
-from datetime import datetime, timezone
+import logging
 import uuid
-import logging
-import re
-from typing import Any, List
+from typing import Optional
 
-from app.domain.relato_status import (
-    RelatoStatus,
-    validate_transition,
-)
-
-logger = logging.getLogger(__name__)
-
-from app.services.imagens_service import (
-    salvar_imagem_bytes_to_storage,
-    ALLOWED_MIME_TYPES,
-)
-
-
-import logging
+from app.domain.relato.contracts import Actor, ActorRole, MarkRelatoAsError, MarkRelatoAsUploaded
+from app.domain.relato.orchestrator import decide
+from app.domain.relato.states import RelatoStatus
+from app.services.relato_adapters import update_relato_status_adapter
+from app.services.relato_effect_executor import RelatoEffectExecutor
 
 logger = logging.getLogger(__name__)
 
 
+def _update_status_domain(relato_id: str, action: str, error_message: Optional[str] = None):
+    """
+    Função interna para mudar o status de um relato via camada de domínio.
+    """
+    from app.firestore.client import get_firestore_client
+    db = get_firestore_client()
+    doc_ref = db.collection("relatos").document(relato_id)
+    doc = doc_ref.get()
 
+    if not doc.exists:
+        logger.error(f"[BG_DOMAIN] Relato {relato_id} não encontrado para atualização de status.")
+        return
+
+    current_status_str = doc.to_dict().get("status")
+    if not current_status_str:
+        logger.error(f"[BG_DOMAIN] Relato {relato_id} não possui status.")
+        return
+    
+    current_status = RelatoStatus(current_status_str)
+
+    command_map = {
+        "uploaded": MarkRelatoAsUploaded(relato_id=relato_id),
+        "error": MarkRelatoAsError(relato_id=relato_id, error_message=error_message),
+    }
+
+    command = command_map.get(action.lower())
+    if not command:
+        logger.error(f"[BG_DOMAIN] Ação de background desconhecida: {action}")
+        return
+
+    actor = Actor(id="system", role=ActorRole.SYSTEM)
+    decision = decide(command=command, actor=actor, current_state=current_status)
+
+    if not decision.allowed:
+        logger.error(f"[BG_DOMAIN] Transição de estado não permitida para o relato {relato_id}: {decision.reason}")
+        return
+
+    executor = RelatoEffectExecutor(
+        persist_relato=lambda *a, **k: None,
+        enqueue_processing=lambda *a, **k: None,
+        emit_event=lambda *a, **k: None,
+        upload_images=lambda *a, **k: None,
+        update_relato_status=update_relato_status_adapter,
+    )
+    executor.execute(effects=decision.effects)
+    logger.info(f"[BG_DOMAIN] Status do relato {relato_id} alterado para {decision.next_state.value if decision.next_state else 'UNKNOWN'}.")
 
 
 def _save_files_and_enqueue(
@@ -40,203 +72,37 @@ def _save_files_and_enqueue(
     imagens_durante: list,
     imagens_depois: list,
 ):
+    """
+    Processa o upload de imagens em background e atualiza o status do relato via domínio.
+    """
+    from app.services.imagens_service import salvar_imagem_bytes_to_storage
+    from app.services.relatos_service import enqueue_relato_processing
+
     logger.info(f"[RELATO_BG] Iniciando processamento do relato {relato_id}")
     logger.info(f"[RELATO_BG] Owner ID: {owner_id}")
 
     try:
         def processar_imagens(imagens: list, papel_clinico: str):
             for file_data in imagens:
-                content = file_data  # blob opaco
-
+                content = file_data
                 storage_path = (
                     f"relatos/{relato_id}/{papel_clinico}/"
                     f"{uuid.uuid4().hex}.bin"
                 )
-
-                salvar_imagem_bytes_to_storage(
-                    storage_path,
-                    content,
-                )
+                salvar_imagem_bytes_to_storage(storage_path, content)
 
         processar_imagens(imagens_antes, "ANTES")
         processar_imagens(imagens_durante, "DURANTE")
         processar_imagens(imagens_depois, "DEPOIS")
 
-        update_relato_status_sync(
-            relato_id=relato_id,
-            new_status="uploaded",
-            actor="system",
-        )
+        # Notifica o domínio que o upload foi concluído
+        _update_status_domain(relato_id=relato_id, action="uploaded")
 
-        enqueue_relato_processing(
-            relato_id=relato_id,
-            owner_id=owner_id,
-        )
-
-        # intenção de processing (sem FSM rígida)
-        from app.firestore.client import get_firestore_client
-        db = get_firestore_client()
-        db.collection("relatos").document(relato_id).update({
-            "status": "processing",
-            "updated_at": datetime.now(timezone.utc).isoformat(),
-            "updated_by": "system",
-        })
+        # Enfileira o próximo passo do processamento
+        # Idealmente, isso também seria um comando de domínio que retorna um EnqueueEffect
+        enqueue_relato_processing(relato_id=relato_id)
 
     except Exception as e:
-        logger.exception(
-            f"[RELATO_BG] Erro no processamento do relato {relato_id}: {e}"
-        )
-
-        update_relato_status_sync(
-            relato_id=relato_id,
-            new_status="error",
-            actor="system",
-        )
-
-        # ❗ NÃO propaga exceção (contrato do teste)
-        return
-
-
-
-
-
-
-
-def _save_image_metadata_to_firestore(image_id: str, image_meta: dict, owner_id: str):
-    """
-    Salva os metadados da imagem no Firestore.
-    """
-    from app.firestore.client import get_firestore_client
-    from datetime import datetime, timezone
-
-    db = get_firestore_client()
-    if not db:
-        logger.error("Erro ao obter o cliente Firestore")
-        raise Exception("Erro ao obter o cliente Firestore")
-
-    doc_ref = db.collection("imagens").document(image_id)
-
-    metadata = {
-        "id": image_id,
-        "owner_user_id": owner_id,
-        "status": "raw",  # Começa como 'raw' e pode ser atualizado depois
-        "original_filename": image_meta["path"].split("/")[-1],
-        "content_type": image_meta["content_type"],
-        "size_bytes": image_meta["size_bytes"],
-        "sha256": "",  # Poderia ser calculado aqui se necessário
-        "storage_path": image_meta["path"],
-        "created_at": datetime.now(timezone.utc),
-        "updated_at": datetime.now(timezone.utc),
-    }
-
-    doc_ref.set(metadata)
-    logger.info(f"Metadados da imagem {image_id} salvos no Firestore.")
-
-
-# Funções síncronas para uso em background tasks
-def attach_image_to_relato_sync(
-    relato_id: str,
-    image_meta: dict,
-    current_user_id: str
-):
-    """
-    Anexa imagem ao campo canônico 'imagens' do relato.
-    """
-    from app.firestore.client import get_firestore_client
-
-    db = get_firestore_client()
-    if not db:
-        logger.error("Firestore indisponível")
-        return
-
-    doc_ref = db.collection("relatos").document(relato_id)
-    doc = doc_ref.get()
-
-    if not doc.exists:
-        logger.error(
-            f"Relato {relato_id} não encontrado para anexar imagem"
-        )
-        return
-
-    relato_data = doc.to_dict()
-    imagens = relato_data.get(
-        "imagens",
-        {"antes": None, "durante": [], "depois": None}
-    )
-
-    image_id = image_meta["image_id"]
-    kind = image_meta["kind"]
-
-    if kind == "antes":
-        imagens["antes"] = image_id
-    elif kind == "durante":
-        if image_id not in imagens["durante"]:
-            imagens["durante"].append(image_id)
-    elif kind == "depois":
-        imagens["depois"] = image_id
-
-    doc_ref.update({
-        "imagens": imagens,
-        "updated_at": datetime.now(timezone.utc)
-    })
-
-    image_doc_ref = db.collection("imagens").document(image_id)
-    image_doc_ref.update({
-        "status": "associated",
-        "updated_at": datetime.now(timezone.utc),
-        "relato_id": relato_id
-    })
-
-    logger.info(
-        f"Imagem {image_id} anexada ao relato {relato_id} ({kind})"
-    )
-
-
-
-
-
-
-def update_relato_status_sync(
-    relato_id: str,
-    new_status: str,
-    last_error: str | None = None,
-    actor: str = "system",
-):
-    from app.firestore.client import get_firestore_client
-
-    db = get_firestore_client()
-    if not db:
-        logger.error("Firestore indisponível")
-        return
-
-    doc_ref = db.collection("relatos").document(relato_id)
-    doc = doc_ref.get()
-
-    if not doc.exists:
-        logger.error(f"Relato {relato_id} não encontrado")
-        return
-
-    data = doc.to_dict()
-    current_status = RelatoStatus(data["status"])
-    next_status = RelatoStatus(new_status)
-
-    # 🔒 CONTRATO FORMAL
-    validate_transition(current_status, next_status)
-
-    updates = {
-        "status": next_status.value,
-        "updated_at": datetime.now(timezone.utc),
-        "updated_by": actor,
-    }
-
-    if last_error:
-        updates["last_error"] = last_error
-
-    doc_ref.update(updates)
-
-    logger.info(
-        f"[RELATO_STATUS] {relato_id}: "
-        f"{current_status.value} → {next_status.value} "
-        f"(actor={actor})"
-    )
+        logger.exception(f"[RELATO_BG] Erro no processamento do relato {relato_id}: {e}")
+        _update_status_domain(relato_id=relato_id, action="error", error_message=str(e))
 

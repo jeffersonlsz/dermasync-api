@@ -112,6 +112,7 @@ def processar_relato(dado: dict) -> dict:
     inicio = datetime.utcnow()
     erro = None
     tentativas = 1
+    conteudo_anonimizado = None
 
     try:
         info_basica = extrair_idade_e_genero(conteudo)
@@ -130,7 +131,7 @@ def processar_relato(dado: dict) -> dict:
     return {
         **dado,
         **info_basica,
-        **tags,
+        "tags_extraidas": tags,
         "conteudo_anonimizado": conteudo_anonimizado,
         "llm_processamento": {
             "inicio": inicio.isoformat(),
@@ -142,8 +143,6 @@ def processar_relato(dado: dict) -> dict:
         },
         "status_llm": "concluido" if not erro else "erro",
     }
-
-
 def main():
     """Função principal que orquestra o processamento dos relatos."""
     input_path = DIRETORIO_JSONS_BRUTOS / ENTRADA_JSONL_BRUTO

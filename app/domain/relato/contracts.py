@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import List, Any, Optional
 from enum import Enum
 
-from app.domain.relato_status import RelatoStatus
+from app.domain.relato.states import RelatoStatus
 
 # =========================
 # Actor
@@ -36,6 +36,40 @@ class CreateRelato(Command):
 @dataclass(frozen=True)
 class SubmitRelato(Command):
     relato_id: str
+
+
+@dataclass(frozen=True)
+class ApproveRelatoPublic(Command):
+    relato_id: str
+
+
+@dataclass(frozen=True)
+class RejectRelato(Command):
+    relato_id: str
+
+
+@dataclass(frozen=True)
+class ArchiveRelato(Command):
+    relato_id: str
+
+
+@dataclass(frozen=True)
+class MarkRelatoAsProcessed(Command):
+    relato_id: str
+
+
+@dataclass(frozen=True)
+class MarkRelatoAsError(Command):
+    relato_id: str
+    error_message: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class MarkRelatoAsUploaded(Command):
+    relato_id: str
+
+
+
 
 # =========================
 # Decision

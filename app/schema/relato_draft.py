@@ -18,3 +18,8 @@ class RelatoDraftInput(BaseModel):
         le=120,
         description="Idade aproximada do usuário"
     )
+    
+    descricao: str = Field(
+        ...,    
+        description="Descrição inicial do relato"
+    )

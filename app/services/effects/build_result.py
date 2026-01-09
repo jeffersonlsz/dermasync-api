@@ -24,6 +24,7 @@ def build_effect_result(
     if not success:
         failure = FailureContext(
             effect_type=effect_type,
+            effect_ref=effect_ref,
             error=error,
         )
 

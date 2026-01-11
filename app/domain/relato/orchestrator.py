@@ -1,17 +1,18 @@
 # app/domain/relato/orchestrator.py
+
 from app.domain.relato.contracts import (
     Actor,
     Command,
+    Decision,
+    ActorRole,
     CreateRelato,
     SubmitRelato,
-    Decision,
     ApproveRelatoPublic,
     RejectRelato,
     ArchiveRelato,
     MarkRelatoAsProcessed,
     MarkRelatoAsError,
     MarkRelatoAsUploaded,
-    ActorRole,
 )
 from app.domain.relato.effects import (
     PersistRelatoEffect,
@@ -20,23 +21,93 @@ from app.domain.relato.effects import (
     UpdateRelatoStatusEffect,
 )
 from app.domain.relato.states import RelatoStatus
+from app.domain.relato.intents import RelatoIntent
+from app.domain.relato.transitions import resolve_transition
 
 
-def decide(command: Command, actor: Actor, current_state: RelatoStatus = None) -> Decision:
-    """
-    O cérebro do domínio.
-    Recebe um Comando e o estado atual, e retorna uma Decisão.
-    Puro, sem efeitos colaterais.
-    """
+# =========================
+# Command → Intent mapping
+# =========================
+
+def command_to_intent(command: Command) -> RelatoIntent | None:
     if isinstance(command, CreateRelato):
-        if current_state is not None:
-            return Decision(allowed=False, reason="Relato já existe.")
+        return RelatoIntent.CREATE
+    if isinstance(command, SubmitRelato):
+        return RelatoIntent.SUBMIT
+    if isinstance(command, MarkRelatoAsUploaded):
+        return RelatoIntent.MARK_UPLOADED
+    if isinstance(command, MarkRelatoAsProcessed):
+        return RelatoIntent.MARK_PROCESSED
+    if isinstance(command, MarkRelatoAsError):
+        return RelatoIntent.MARK_ERROR
+    if isinstance(command, ApproveRelatoPublic):
+        return RelatoIntent.APPROVE_PUBLIC
+    if isinstance(command, RejectRelato):
+        return RelatoIntent.REJECT
+    if isinstance(command, ArchiveRelato):
+        return RelatoIntent.ARCHIVE
 
-        effects = [
+    return None
+
+
+# =========================
+# Orchestrator
+# =========================
+
+def decide(
+    command: Command,
+    actor: Actor,
+    current_state: RelatoStatus | None = None,
+) -> Decision:
+    """
+    Cérebro do domínio.
+    Puro, determinístico e governado por dados semânticos.
+    """
+
+    intent = command_to_intent(command)
+
+    if intent is None:
+        return Decision(allowed=False, reason="Comando desconhecido.")
+
+    # -------------------------
+    # Guards (autoridade)
+    # -------------------------
+
+    if intent in {RelatoIntent.APPROVE_PUBLIC, RelatoIntent.REJECT, RelatoIntent.ARCHIVE}:
+        if actor.role not in {ActorRole.ADMIN, ActorRole.COLLABORATOR}:
+            return Decision(
+                allowed=False,
+                reason="Ação permitida apenas para administradores ou colaboradores.",
+                previous_state=current_state,
+            )
+
+    # -------------------------
+    # Resolver transição
+    # -------------------------
+
+    next_state = resolve_transition(current_state, intent)
+
+    if next_state is None:
+        return Decision(
+            allowed=False,
+            reason=f"Transição inválida: {intent} a partir de {current_state}.",
+            previous_state=current_state,
+        )
+
+    # -------------------------
+    # Emitir effects
+    # -------------------------
+
+    effects = []
+
+    if intent == RelatoIntent.CREATE:
+        assert isinstance(command, CreateRelato)
+
+        effects.extend([
             PersistRelatoEffect(
                 relato_id=command.relato_id,
                 owner_id=command.owner_id,
-                status=RelatoStatus.DRAFT,
+                status=next_state,
                 conteudo=command.conteudo,
                 imagens=command.imagens,
             ),
@@ -44,98 +115,24 @@ def decide(command: Command, actor: Actor, current_state: RelatoStatus = None) -
                 relato_id=command.relato_id,
                 imagens=command.imagens,
             ),
-        ]
-        return Decision(
-            allowed=True,
-            effects=effects,
-            previous_state=None,
-            next_state=RelatoStatus.DRAFT,
+        ])
+
+    else:
+        effects.append(
+            UpdateRelatoStatusEffect(
+                relato_id=command.relato_id,
+                new_status=next_state,
+            )
         )
 
-    if isinstance(command, SubmitRelato):
-        if current_state != RelatoStatus.DRAFT:
-            return Decision(
-                allowed=False,
-                reason=f"Relato precisa estar em estado '{RelatoStatus.DRAFT}' para ser enviado.",
-                previous_state=current_state,
+        if intent == RelatoIntent.SUBMIT:
+            effects.append(
+                EnqueueProcessingEffect(relato_id=command.relato_id)
             )
 
-        effects = [
-            UpdateRelatoStatusEffect(relato_id=command.relato_id, new_status=RelatoStatus.PROCESSING),
-            EnqueueProcessingEffect(relato_id=command.relato_id),
-        ]
-        return Decision(
-            allowed=True,
-            effects=effects,
-            previous_state=current_state,
-            next_state=RelatoStatus.PROCESSING,
-        )
-
-    if isinstance(command, MarkRelatoAsUploaded):
-        if current_state != RelatoStatus.DRAFT:
-            return Decision(allowed=False, reason="Relato só pode ser marcado como 'uploaded' a partir do estado 'draft'.")
-
-        effects = [UpdateRelatoStatusEffect(relato_id=command.relato_id, new_status=RelatoStatus.UPLOADED)]
-        return Decision(allowed=True, effects=effects, previous_state=current_state, next_state=RelatoStatus.UPLOADED)
-
-    if isinstance(command, MarkRelatoAsProcessed):
-        if current_state != RelatoStatus.PROCESSING:
-            return Decision(allowed=False, reason="Relato só pode ser marcado como processado a partir do estado 'processing'.")
-        
-        effects = [UpdateRelatoStatusEffect(relato_id=command.relato_id, new_status=RelatoStatus.PROCESSED)]
-        return Decision(allowed=True, effects=effects, previous_state=current_state, next_state=RelatoStatus.PROCESSED)
-
-    if isinstance(command, MarkRelatoAsError):
-        # Em um sistema real, poderíamos querer limitar de quais estados podemos ir para ERROR
-        effects = [UpdateRelatoStatusEffect(relato_id=command.relato_id, new_status=RelatoStatus.ERROR)]
-        return Decision(allowed=True, effects=effects, previous_state=current_state, next_state=RelatoStatus.ERROR)
-
-    if isinstance(command, ApproveRelatoPublic):
-        if actor.role not in [ActorRole.ADMIN, ActorRole.COLLABORATOR]:
-            return Decision(allowed=False, reason="Apenas administradores ou colaboradores podem aprovar relatos.")
-        if current_state != RelatoStatus.PROCESSED:
-            return Decision(
-                allowed=False,
-                reason=f"Relato precisa estar em estado '{RelatoStatus.PROCESSED}' para ser aprovado.",
-                previous_state=current_state
-            )
-
-        effects = [UpdateRelatoStatusEffect(relato_id=command.relato_id, new_status=RelatoStatus.APPROVED_PUBLIC)]
-        return Decision(
-            allowed=True,
-            effects=effects,
-            previous_state=current_state,
-            next_state=RelatoStatus.APPROVED_PUBLIC
-        )
-
-    if isinstance(command, RejectRelato):
-        if actor.role not in [ActorRole.ADMIN, ActorRole.COLLABORATOR]:
-            return Decision(allowed=False, reason="Apenas administradores ou colaboradores podem rejeitar relatos.")
-        if current_state != RelatoStatus.PROCESSED:
-            return Decision(
-                allowed=False,
-                reason=f"Relato precisa estar em estado '{RelatoStatus.PROCESSED}' para ser rejeitado.",
-                previous_state=current_state
-            )
-
-        effects = [UpdateRelatoStatusEffect(relato_id=command.relato_id, new_status=RelatoStatus.REJECTED)]
-        return Decision(
-            allowed=True,
-            effects=effects,
-            previous_state=current_state,
-            next_state=RelatoStatus.REJECTED
-        )
-
-    if isinstance(command, ArchiveRelato):
-        if actor.role not in [ActorRole.ADMIN, ActorRole.COLLABORATOR]:
-            return Decision(allowed=False, reason="Apenas administradores ou colaboradores podem arquivar relatos.")
-
-        effects = [UpdateRelatoStatusEffect(relato_id=command.relato_id, new_status=RelatoStatus.ARCHIVED)]
-        return Decision(
-            allowed=True,
-            effects=effects,
-            previous_state=current_state,
-            next_state=RelatoStatus.ARCHIVED
-        )
-
-    return Decision(allowed=False, reason="Comando desconhecido.")
+    return Decision(
+        allowed=True,
+        effects=effects,
+        previous_state=current_state,
+        next_state=next_state,
+    )

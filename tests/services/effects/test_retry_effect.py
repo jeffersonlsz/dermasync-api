@@ -27,10 +27,10 @@ def test_retry_effect_success():
     )
 
     with patch(
-        "app.services.effects.retry_executor.load_effect_result",
+        "app.services.effects.retry_engine.load_effect_result",
         return_value=fake_result,
     ), patch(
-        "app.services.effects.retry_executor.persist_effect_result_firestore"
+        "app.services.effects.retry_engine.persist_effect_result_firestore"
     ):
         result = retry_effect("effect-id-1")
 

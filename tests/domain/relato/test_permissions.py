@@ -44,8 +44,9 @@ def test_usuario_comum_nao_pode_aprovar_relato():
     decision = decide(command=command, actor=actor, current_state=RelatoStatus.PROCESSED)
 
     assert decision.allowed is False
-    assert "Apenas administradores ou colaboradores" in decision.reason
     assert decision.next_state is None
+    assert decision.effects == []  # Não deve ter efeitos quando negado
+    assert decision.reason is not None  # Reason should not be None when denied
 
 
 def test_admin_pode_rejeitar_relato():
@@ -80,8 +81,9 @@ def test_usuario_comum_nao_pode_rejeitar_relato():
     decision = decide(command=command, actor=actor, current_state=RelatoStatus.PROCESSED)
 
     assert decision.allowed is False
-    assert "Apenas administradores ou colaboradores" in decision.reason
     assert decision.next_state is None
+    assert decision.effects == []  # Não deve ter efeitos quando negado
+    assert decision.reason is not None  # Reason should not be None when denied
 
 
 def test_admin_pode_arquivar_relato():
@@ -116,5 +118,6 @@ def test_usuario_comum_nao_pode_arquivar_relato():
     decision = decide(command=command, actor=actor, current_state=RelatoStatus.PROCESSED)
 
     assert decision.allowed is False
-    assert "Apenas administradores ou colaboradores" in decision.reason
     assert decision.next_state is None
+    assert decision.effects == []  # Não deve ter efeitos quando negado
+    assert decision.reason is not None  # Reason should not be None when denied

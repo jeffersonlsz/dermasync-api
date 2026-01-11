@@ -1,7 +1,7 @@
 # app/domain/relato/transitions.py
+
 from app.domain.relato.states import RelatoStatus
 from app.domain.relato.intents import RelatoIntent
-
 
 # Sentinela para representar "qualquer estado"
 ANY = "*"
@@ -15,29 +15,53 @@ Valor: próximo_estado
 
 Esta tabela é a FONTE ÚNICA DE VERDADE
 sobre quais transições são permitidas no domínio.
+
+Estados representam fatos consumados,
+não intenções ou etapas técnicas internas.
 """
-RELATO_STATE_TRANSITIONS: dict[tuple[str | RelatoStatus, RelatoIntent], RelatoStatus] = {
+RELATO_STATE_TRANSITIONS: dict[
+    tuple[RelatoStatus | None | str, RelatoIntent],
+    RelatoStatus
+] = {
 
-    # Criação
-    (None, RelatoIntent.CREATE): RelatoStatus.DRAFT,
+    # =====================================================
+    # Criação (ato ontológico)
+    # =====================================================
 
-    # Submissão
-    (RelatoStatus.DRAFT, RelatoIntent.SUBMIT): RelatoStatus.PROCESSING,
+    # Um relato passa a existir
+    (None, RelatoIntent.CREATE): RelatoStatus.CREATED,
 
-    # Upload
-    (RelatoStatus.DRAFT, RelatoIntent.MARK_UPLOADED): RelatoStatus.UPLOADED,
+    # =====================================================
+    # Submissão para processamento
+    # =====================================================
 
+    # O relato criado é submetido para pipeline
+    (RelatoStatus.CREATED, RelatoIntent.SUBMIT): RelatoStatus.PROCESSING,
+
+    # =====================================================
     # Processamento
+    # =====================================================
+
+    # Pipeline finalizado com sucesso
     (RelatoStatus.PROCESSING, RelatoIntent.MARK_PROCESSED): RelatoStatus.PROCESSED,
 
-    # Curadoria
+    # =====================================================
+    # Curadoria humana
+    # =====================================================
+
     (RelatoStatus.PROCESSED, RelatoIntent.APPROVE_PUBLIC): RelatoStatus.APPROVED_PUBLIC,
     (RelatoStatus.PROCESSED, RelatoIntent.REJECT): RelatoStatus.REJECTED,
 
-    # Arquivamento (decisão administrativa)
+    # =====================================================
+    # Arquivamento administrativo (global)
+    # =====================================================
+
     (ANY, RelatoIntent.ARCHIVE): RelatoStatus.ARCHIVED,
 
-    # Erro (pode ocorrer em qualquer ponto)
+    # =====================================================
+    # Erro técnico (global)
+    # =====================================================
+
     (ANY, RelatoIntent.MARK_ERROR): RelatoStatus.ERROR,
 }
 
@@ -51,9 +75,11 @@ def resolve_transition(
 
     Retorna o próximo estado se a transição for válida,
     ou None se for inválida.
+
+    Esta função é PURA e DETERMINÍSTICA.
     """
 
-    # Transição específica
+    # Transição específica (estado explícito)
     key = (current_state, intent)
     if key in RELATO_STATE_TRANSITIONS:
         return RELATO_STATE_TRANSITIONS[key]

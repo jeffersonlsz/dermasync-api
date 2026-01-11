@@ -21,3 +21,5 @@ def register_all_effect_executors() -> None:
     register_effect_executor("ENQUEUE_JOB", execute_enqueue_processing)
     register_effect_executor("EMIT_DOMAIN_EVENT", execute_emit_domain_event)
     register_effect_executor("PERSIST_RELATO", execute_persist_relato)
+
+# vou precisar de implementações para  app.services.effects.executors.enqueue_processing,  app.services.effects.executors.emit_domain_event, app.services.effects.executors.persist_relato pois eles nao existem

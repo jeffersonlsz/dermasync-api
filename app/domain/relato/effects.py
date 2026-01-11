@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from typing import Optional
 from abc import ABC
 
+from app.domain.relato.states import RelatoStatus
+
 
 # =========================
 # Base Effect
@@ -27,7 +29,7 @@ class PersistRelatoEffect(Effect):
     """
     relato_id: str
     owner_id: str
-    status: str
+    status: RelatoStatus
     conteudo: str
     imagens: dict
 
@@ -67,4 +69,4 @@ class UpdateRelatoStatusEffect(Effect):
     Ordena a atualização de status do relato.
     """
     relato_id: str
-    new_status: str
+    new_status: RelatoStatus

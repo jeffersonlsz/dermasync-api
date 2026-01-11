@@ -19,6 +19,7 @@ from app.services.relato_adapters import (
     enqueue_processing_adapter,
     emit_event_adapter,
     upload_images_adapter,
+    update_relato_status_adapter
 )
 from app.services.relato_effect_executor import RelatoEffectExecutor
 from app.services.relatos_service import get_relato_by_id, process_and_save_relato, moderate_relato
@@ -59,7 +60,7 @@ async def materialize_uploads(
 
 
 @router.post(
-    "/relatos",
+    "/",
     status_code=status.HTTP_201_CREATED,
     summary="Enviar relato (rota canônica baseada em domínio)",
 )

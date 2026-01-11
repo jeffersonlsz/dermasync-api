@@ -29,5 +29,5 @@ class EffectResult:
     # ---- técnicos
     metadata: Optional[dict] = None
     error: Optional[str] = None
-
+    created_at: Optional[datetime] = None
     executed_at: datetime = field(default_factory=datetime.utcnow)

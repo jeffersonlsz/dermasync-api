@@ -24,10 +24,16 @@ from app.routes import imagens
 from app.routes import relatos
 from app.routes import me
 
+from contextlib import asynccontextmanager
 from app.services.effects.register_effects import register_all_effect_executors
 
-
-
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # on startup
+    register_all_effect_executors()
+    yield
+    # on shutdown
+    # (nenhuma ação necessária por enquanto)
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
@@ -59,7 +65,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 app = FastAPI(
     title="DermaSync API - Backend",
     version="1.0.0",
-    description="Backend moderno do DermaSync com Postgres, SQLAlchemy e autenticação JWT."
+    description="Backend moderno do DermaSync com Postgres, SQLAlchemy e autenticação JWT.",
+    lifespan=lifespan
 )
 
 # ============================================================
@@ -100,10 +107,6 @@ app.include_router(imagens.router)
 app.include_router(relatos.router, prefix="/relatos")
 app.include_router(health.router)
 app.include_router(me.router)
-
-@app.on_event("startup")
-async def startup():
-    register_all_effect_executors()
 
 # ============================================================
 # Endpoints básicos

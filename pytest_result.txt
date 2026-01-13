@@ -1,0 +1,36 @@
+Return code: 4
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.11.4, pytest-8.4.1, pluggy-1.6.0 -- D:\workspace_projects_001\dermasync-api\venv\Scripts\python.exe
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.4', 'Platform': 'Windows-10-10.0.22631-SP0', 'Packages': {'pytest': '8.4.1', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.9.0', 'langsmith': '0.4.5', 'asyncio': '1.0.0', 'cov': '6.2.1', 'html': '4.1.1', 'json-report': '1.5.0', 'logger': '1.1.1', 'metadata': '3.1.1', 'mock': '3.15.1'}, 'JAVA_HOME': 'D:\\Java\\jdk-20.0.2'}
+rootdir: D:\workspace_projects_001\dermasync-api
+configfile: pytest.ini
+plugins: anyio-4.9.0, langsmith-0.4.5, asyncio-1.0.0, cov-6.2.1, html-4.1.1, json-report-1.5.0, logger-1.1.1, metadata-3.1.1, mock-3.15.1
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 0 items / 1 error
+
+=================================== ERRORS ====================================
+_______ ERROR collecting tests/domain/effects/test_retry_ux_effects.py ________
+ImportError while importing test module 'D:\workspace_projects_001\dermasync-api\tests\domain\effects\test_retry_ux_effects.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\domain\effects\test_retry_ux_effects.py:5: in <module>
+    from app.services.retry_relato import retry_failed_effects
+app\services\retry_relato.py:1: in <module>
+    from app.services.effects.fetch_firestore import fetch_failed_effects
+E   ImportError: cannot import name 'fetch_failed_effects' from 'app.services.effects.fetch_firestore' (D:\workspace_projects_001\dermasync-api\app\services\effects\fetch_firestore.py)
+------------------------------- Captured stderr -------------------------------
+2026-01-11 21:38:57,992 - app.firestore.client - INFO - Inicializando Firebase com credenciais do arquivo: D:\workspace_projects_001\dermasync-key.json
+=========================== short test summary info ===========================
+ERROR tests/domain/effects/test_retry_ux_effects.py
+============================== 1 error in 2.35s ===============================
+
+STDERR:
+ERROR: found no collectors for D:\workspace_projects_001\dermasync-api\tests\domain\effects\test_retry_ux_effects.py::test_retry_ignores_successful_effects
+
+
+TEST FAILED!

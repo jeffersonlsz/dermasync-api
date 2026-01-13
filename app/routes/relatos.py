@@ -24,9 +24,13 @@ from app.services.relato_adapters import (
 from app.services.relato_effect_executor import RelatoEffectExecutor
 from app.services.relatos_service import get_relato_by_id, process_and_save_relato, moderate_relato
 
+from app.services.retry_relato import retry_failed_effects
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+
 
 
 def parse_payload_json(payload: str) -> RelatoDraftInput:
@@ -364,3 +368,60 @@ async def listar_galeria_publica_v3(
         limit=limit,
         page=page
     )
+    
+# app/routes/relatos.py
+
+@router.get(
+    "/relatos/{relato_id}/progress",
+    summary="Progresso técnico do relato (contrato UX)",
+    tags=["Relatos"]
+)
+async def get_relato_progress(
+    relato_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Endpoint de leitura para UX/UI.
+
+    Retorna um contrato UX estável,
+    derivado dos EffectResults técnicos.
+    """
+
+    from app.services.readmodels.relato_progress import fetch_relato_progress
+    from app.services.readmodels.relato_progress_ui import build_relato_progress_ui
+    from app.services.relatos_service import get_relato_by_id
+
+    # 🔒 Defense-in-depth: acesso ao relato
+    await get_relato_by_id(
+        relato_id=relato_id,
+        requesting_user=current_user,
+    )
+
+    # 📊 Read model técnico
+    progress = fetch_relato_progress(relato_id)
+
+    # 🎨 Adapter UX
+    ui = build_relato_progress_ui(
+        relato_id=relato_id,
+        progress=progress,
+    )
+
+    return ui
+
+
+
+from app.services.ux_serializer import serialize_ux_effects
+
+@router.post(
+    "/{relato_id}/retry",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def retry_relato_endpoint(relato_id: str):
+    result = retry_failed_effects(relato_id=relato_id)
+
+    return {
+        "data": None,
+        "ux_effects": serialize_ux_effects(result.ux_effects),
+    }
+
+

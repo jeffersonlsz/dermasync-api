@@ -1,0 +1,13 @@
+Testing that the circular import issue is resolved...
+✅ Successfully imported PersistRelatoEffect from effects module
+✅ Successfully imported UploadImagesEffect from effects module
+✅ Successfully imported EnqueueProcessingEffect from effects module
+✅ Successfully imported rebuild_effect_from_result from effects module
+✅ Orchestrator can import effects without circular import
+✅ rebuild_effect_from_result works correctly: PersistRelatoEffect
+
+🎉 SUCCESS: Circular import issue has been resolved!
+✅ All imports work correctly
+✅ Effects can be imported from the main effects module
+✅ Orchestrator can import effects without issues
+✅ Rebuild functionality works as expected

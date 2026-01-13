@@ -1,9 +1,10 @@
-# app/services/effects/retry_engine.py
+# app/services/effects/retry_executor.py
 
 from datetime import datetime
 
 from app.services.effects.result import EffectResult
 from app.services.effects.registry import get_effect_executor
+
 from app.services.effects.loader import load_effect_result
 from app.services.effects.persist_firestore import persist_effect_result_firestore
 

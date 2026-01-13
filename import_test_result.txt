@@ -1,0 +1,2 @@
+SUCCESS: Import worked
+PersistRelatoEffect: <class 'app.domain.relato.effects.persist.PersistRelatoEffect'>

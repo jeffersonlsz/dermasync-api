@@ -396,3 +396,5 @@ class RelatoEffectExecutor:
                 relato_id,
             )
             raise exc
+
+        

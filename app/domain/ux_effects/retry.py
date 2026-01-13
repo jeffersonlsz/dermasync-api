@@ -27,7 +27,7 @@ class RetryUXEffect(UXEffect):
     @classmethod
     def retrying(cls, *, relato_id: str, count: int) -> "RetryUXEffect":
         return cls(
-            type="RetryUXEffect",
+            type="retrying",
             relato_id=relato_id,
             failed_effects_count=count,
             severity=UXSeverity.info,

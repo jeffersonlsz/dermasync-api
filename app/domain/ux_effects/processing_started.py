@@ -12,12 +12,18 @@ from app.domain.ux_effects.base import (
 class ProcessingStartedUXEffect(UXEffect):
 
     @classmethod
-    def default(cls, *, relato_id: str) -> "ProcessingStartedUXEffect":
+    def default(
+        cls,
+        *,
+        relato_id: str,
+        message: str | None = None,
+    ) -> "ProcessingStartedUXEffect":
         return cls(
-            type="ProcessingStartedUXEffect",
+            type="processing_started",
             relato_id=relato_id,
             severity=UXSeverity.info,
             channel=UXChannel.banner,
             timing=UXTiming.after_processing,
-            message="Seu relato está sendo processado. Isso pode levar alguns instantes.",
+            message="Seu relato está sendo processado. Isso pode levar alguns instantes."
+            or "Seu relato está sendo processado. Isso pode levar alguns instantes.",
         )

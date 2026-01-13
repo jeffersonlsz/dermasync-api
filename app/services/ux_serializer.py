@@ -11,5 +11,17 @@ def serialize_ux_effect(effect: UXEffect) -> dict:
     }
 
 
-def serialize_ux_effects(effects: List[UXEffect]) -> list[dict]:
-    return [asdict(effect) for effect in effects]
+def serialize_ux_effects(effects: list[UXEffect]) -> dict:
+    return {
+        "ux_effects": [
+            {
+                "type": effect.type,
+                "severity": effect.severity.value,
+                "channel": effect.channel.value,
+                "timing": effect.timing.value,
+                "message": effect.message,
+            }
+            for effect in effects
+        ]
+    }
+

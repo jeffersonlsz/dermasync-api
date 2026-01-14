@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "description": "UX Effects Protocol — public semantic contract between domain and UI",
+  "ux_effect": {
+    "type": "string",
+    "severity": ["info", "warning", "error"],
+    "channel": ["banner", "system", "modal"],
+    "timing": ["immediate", "after_processing", "delayed"],
+    "message": "string"
+  }
+}

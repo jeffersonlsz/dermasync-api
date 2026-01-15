@@ -1,4 +1,5 @@
 # app/domain/ux_effects/retry.py
+
 from dataclasses import dataclass
 from app.domain.ux_effects.base import (
     UXEffect,
@@ -15,7 +16,7 @@ class RetryUXEffect(UXEffect):
     @classmethod
     def none_needed(cls, *, relato_id: str) -> "RetryUXEffect":
         return cls(
-            type="RetryUXEffect",
+            type="retry",
             relato_id=relato_id,
             failed_effects_count=0,
             severity=UXSeverity.info,
@@ -27,11 +28,23 @@ class RetryUXEffect(UXEffect):
     @classmethod
     def retrying(cls, *, relato_id: str, count: int) -> "RetryUXEffect":
         return cls(
-            type="retrying",
+            type="retry",
             relato_id=relato_id,
             failed_effects_count=count,
             severity=UXSeverity.info,
             channel=UXChannel.banner,
             timing=UXTiming.immediate,
-            message=f"{count} ações estão sendo repetidas.",
+            message="Tentando novamente...",
+        )
+
+    @classmethod
+    def failed_final(cls, *, relato_id: str) -> "RetryUXEffect":
+        return cls(
+            type="retry",
+            relato_id=relato_id,
+            failed_effects_count=0,
+            severity=UXSeverity.error,
+            channel=UXChannel.banner,
+            timing=UXTiming.immediate,
+            message="Não foi possível concluir agora",
         )

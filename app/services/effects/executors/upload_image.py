@@ -1,3 +1,4 @@
+# app/services/effects/executors/upload_image.py
 import logging
 from datetime import datetime
 
@@ -10,14 +11,19 @@ logger = logging.getLogger(__name__)
 def execute_upload_image(metadata: dict) -> EffectResult:
     """
     Executor técnico de UPLOAD_IMAGE.
+
+    🔥 Este é o ÚLTIMO ponto do sistema onde bytes existem.
+    A partir daqui, apenas referências são propagadas.
     """
 
-    relato_id = metadata["relato_id"]
-    image_bytes = metadata["bytes"]
-    path = metadata["path"]
-    papel = metadata["papel"]
+    # --- Extração explícita ---
+    relato_id: str = str(metadata["relato_id"])
+    image_bytes: bytes = metadata["bytes"]
+    path: str = metadata["path"]
+    papel: str = str(metadata["papel"])
 
     try:
+        # --- Bytes morrem aqui ---
         salvar_imagem_bytes(
             relato_id=relato_id,
             image_bytes=image_bytes,
@@ -25,12 +31,16 @@ def execute_upload_image(metadata: dict) -> EffectResult:
             papel_clinico=papel,
         )
 
+        # --- EffectResult LIMPO ---
         return EffectResult(
             relato_id=relato_id,
             effect_type="UPLOAD_IMAGE",
-            effect_ref=path,
+            effect_ref=path,  # referência técnica estável
             success=True,
-            metadata={"path": path},
+            metadata={
+                "path": path,
+                "papel": papel,
+            },
             error=None,
             executed_at=datetime.utcnow(),
         )
@@ -43,7 +53,10 @@ def execute_upload_image(metadata: dict) -> EffectResult:
             effect_type="UPLOAD_IMAGE",
             effect_ref=path,
             success=False,
-            metadata={"path": path},
+            metadata={
+                "path": path,
+                "papel": papel,
+            },
             error=str(exc),
             executed_at=datetime.utcnow(),
         )

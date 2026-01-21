@@ -3,7 +3,6 @@
 from typing import Dict, List
 from app.firestore.client import get_firestore_client
 
-
 def fetch_relato_progress(relato_id: str) -> Dict:
     """
     Projeção de leitura para UX/UI.
@@ -72,3 +71,34 @@ def fetch_relato_progress(relato_id: str) -> Dict:
                 })
 
     return progress
+
+def progress_has_any_signal(progress: dict) -> bool:
+    """
+    Indica se há qualquer evidência técnica
+    de que o relato existe ou já iniciou processamento.
+
+    Usado para decidir se /progress deve ser acessível.
+    """
+
+    if not progress:
+        return False
+
+    # Upload iniciado ou concluído
+    if progress.get("upload_images", {}).get("done"):
+        return True
+
+    if progress.get("upload_images", {}).get("error"):
+        return True
+
+    # Processamento enfileirado
+    if progress.get("processing", {}).get("enqueued"):
+        return True
+
+    if progress.get("processing", {}).get("error"):
+        return True
+
+    # Histórico explícito de erros
+    if progress.get("errors"):
+        return True
+
+    return False

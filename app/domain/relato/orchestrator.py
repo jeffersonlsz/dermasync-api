@@ -109,11 +109,11 @@ def decide(
                 owner_id=command.owner_id,
                 status=next_state,
                 conteudo=command.conteudo,
-                imagens=command.imagens,
+                image_refs=command.image_refs, # apenas refs agora
             ),
             UploadImagesEffect(
                 relato_id=command.relato_id,
-                imagens=command.imagens,
+                image_refs=command.image_refs, # apenas refs agora
             ),
         ])
 
@@ -127,6 +127,10 @@ def decide(
 
         if intent == RelatoIntent.SUBMIT:
             effects.append(
+                UpdateRelatoStatusEffect(relato_id=command.relato_id, new_status=next_state)
+            )
+            effects.append(
+                
                 EnqueueProcessingEffect(relato_id=command.relato_id)
             )
 

@@ -1,3 +1,4 @@
+# app/services/relato_persist_factory.py
 from typing import Callable
 from app.domain.relato.states import RelatoStatus
 from app.services.firestore_relato_adapter import persist_relato_firestore

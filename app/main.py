@@ -3,7 +3,7 @@
 """
 Main entry point for the DermaSync API backend.
 """
-
+import os
 import logging
 import time
 from fastapi import FastAPI, Request
@@ -23,9 +23,11 @@ from app.routes import health
 from app.routes import imagens
 from app.routes import relatos
 from app.routes import me
-
+from app.routes.relatos_progress import router as relatos_progress_router
 from contextlib import asynccontextmanager
 from app.services.effects.register_effects import register_all_effect_executors
+from app.routes.dev_effects import router as dev_effects_router
+from app.routes.dev_enrich import router as dev_enrich_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -105,9 +107,13 @@ app.add_middleware(LoggingMiddleware)
 app.include_router(auth_routes.router)
 app.include_router(imagens.router)
 app.include_router(relatos.router, prefix="/relatos")
-app.include_router(health.router)
 app.include_router(me.router)
-
+app.include_router(relatos_progress_router)
+# Rotas DEV (somente em ambiente de desenvolvimento)
+if os.getenv("ENVIRONMENT") == "development":
+    app.include_router(dev_effects_router)
+    app.include_router(dev_enrich_router)
+    app.include_router(health.router)
 # ============================================================
 # Endpoints básicos
 # ============================================================

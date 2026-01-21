@@ -58,19 +58,27 @@ class RelatoEffectExecutor:
                 # Idempotência — skip se já executado com sucesso
                 # =====================================================
                 effect_type = effect.__class__.__name__
-                effect_ref = getattr(effect, "relato_id", None)
+
+                if isinstance(effect, UpdateRelatoStatusEffect):
+                    effect_ref = effect.new_status.value
+                elif isinstance(effect, EmitDomainEventEffect):
+                    effect_ref = effect.event_name
+                else:
+                    effect_ref = effect.relato_id
 
                 if effect_ref and effect_already_succeeded(
-                relato_id=effect_ref,
-                effect_type=effect_type,
-                effect_ref=effect_ref,
+                    relato_id=effect.relato_id,
+                    effect_type=effect_type,
+                    effect_ref=effect_ref,
                 ):
                     logger.info(
-                        "Effect já executado com sucesso | skip | type=%s relato=%s",
+                        "Effect já executado com sucesso | skip | type=%s relato=%s ref=%s",
                         effect_type,
+                        effect.relato_id,
                         effect_ref,
                     )
                     continue
+
 
 
                 # =====================================================
@@ -81,9 +89,9 @@ class RelatoEffectExecutor:
                         self._persist_relato(
                             relato_id=effect.relato_id,
                             owner_id=effect.owner_id,
-                            status=effect.status,
+                            status=effect.status.value,
                             conteudo=effect.conteudo,
-                            imagens=effect.imagens
+                            images_refs=effect.image_refs, # apenas refs
                         )
 
                         result = build_effect_result(
@@ -94,16 +102,13 @@ class RelatoEffectExecutor:
                             metadata={
                                 "status": effect.status.value,
                                 "effect_data": {
-                                    "owner_id": effect.owner_id,
-                                    "status": effect.status,
+                                    "owner_id": str(effect.owner_id),
+                                    "status": effect.status.value,
                                     "conteudo": effect.conteudo,
-                                    "imagens": effect.imagens,
                                 },
                             },
                             error=None,
                         )
-
-                        executed_effects.append(effect)
 
                     except Exception as exc:
                         logger.exception("Erro ao persistir relato")
@@ -120,6 +125,7 @@ class RelatoEffectExecutor:
 
                     finally:
                         persist_effect_result_firestore(result)
+
 
                 # =====================================================
                 # EnqueueProcessingEffect
@@ -167,7 +173,10 @@ class RelatoEffectExecutor:
                             effect_type="EMIT_EVENT",
                             effect_ref=effect.event_name,
                             success=True,
-                            metadata={"payload": effect.payload},
+                            metadata={
+                                "event_name": effect.event_name,
+                                "payload_keys": list(effect.payload.keys()) if effect.payload else [],
+                            },
                             error=None,
                         )
 
@@ -202,10 +211,10 @@ class RelatoEffectExecutor:
 
                         uploaded_image_ids = self._upload_images(
                             effect.relato_id,
-                            effect.imagens,
+                            effect.image_refs,  # refs, não arquivos
                         )
 
-                        total_imgs = sum(len(v) if v else 0 for v in effect.imagens.values())
+                        total_imgs = sum(len(v) if v else 0 for v in effect.image_refs.values())
 
                         result = build_effect_result(
                             relato_id=effect.relato_id,
@@ -307,12 +316,9 @@ class RelatoEffectExecutor:
             for executed in reversed(executed_effects):
                 if isinstance(executed, UploadImagesEffect):
                     try:
-                        image_ids = []
-                        # tentativa de recuperar IDs do último EffectResult persistido
-                        # (a fonte real deve ser o adapter de upload)
-                        # aqui assumimos que o adapter retornou os IDs
-                        if hasattr(executed, "image_ids"):
-                            image_ids = executed.image_ids
+                        
+                        
+                        image_ids = []  # rollback defensivo; IDs pertencem ao adapter de storage
 
                         from app.domain.relato.effects import RollbackImagesEffect
 
@@ -373,17 +379,15 @@ class RelatoEffectExecutor:
             )
 
         elif effect_type == "UPLOAD_IMAGES":
-            imagens = effect_result.metadata.get("imagens") if effect_result.metadata else None
-            if not imagens:
-                raise ValueError("Retry de UPLOAD_IMAGES sem metadata.imagens")
-
-            effect = UploadImagesEffect(
-                relato_id=relato_id,
-                imagens=imagens,
+            # TODO: suportar retry quando upload for idempotente (hash + versionamento)
+            raise ValueError(
+                "Retry automático de UPLOAD_IMAGES não é suportado. "
+                "Uploads não são idempotentes sem controle de storage."
             )
-
         else:
             raise ValueError(f"Retry não suportado para effect_type={effect_type}")
+
+
 
         # Executa usando o mesmo pipeline normal
         try:
@@ -396,5 +400,3 @@ class RelatoEffectExecutor:
                 relato_id,
             )
             raise exc
-
-        

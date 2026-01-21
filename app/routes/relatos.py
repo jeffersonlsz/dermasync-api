@@ -25,6 +25,7 @@ from app.services.relato_effect_executor import RelatoEffectExecutor
 from app.services.relatos_service import get_relato_by_id, process_and_save_relato, moderate_relato
 
 from app.services.retry_relato import retry_failed_effects
+from app.services.uploads_service import salvar_uploads_e_retornar_refs
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -74,11 +75,14 @@ async def criar_e_enviar_relato(
     imagens_antes: Optional[List[UploadFile]] = File(default=None),
     imagens_durante: Optional[List[UploadFile]] = File(default=None),
     imagens_depois: Optional[List[UploadFile]] = File(default=None),
-    current_user: User = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
-    logger.info("[HTTP] POST /relatos | user=%s", current_user.id)
+    # =========================
+    # Pré-validação
+    # =========================
 
     draft = parse_payload_json(payload)
+
     if not draft.consentimento:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -86,28 +90,60 @@ async def criar_e_enviar_relato(
         )
 
     relato_id = uuid.uuid4().hex
-    actor = Actor(id=current_user.id, role="user")
 
-    imagens_materializadas = {
-        "antes": await materialize_uploads(imagens_antes or []),
-        "durante": await materialize_uploads(imagens_durante or []),
-        "depois": await materialize_uploads(imagens_depois or []),
+    actor = Actor(
+        id=str(current_user.id),
+        role="user",
+    )
+
+    # =========================
+    # Upload → image_refs
+    # =========================
+
+    image_refs = {
+        "antes": await salvar_uploads_e_retornar_refs(
+            imagens_antes or [],
+            relato_id=relato_id,
+            stage="antes",
+        ),
+        "durante": await salvar_uploads_e_retornar_refs(
+            imagens_durante or [],
+            relato_id=relato_id,
+            stage="durante",
+        ),
+        "depois": await salvar_uploads_e_retornar_refs(
+            imagens_depois or [],
+            relato_id=relato_id,
+            stage="depois",
+        ),
     }
+
+    # =========================
+    # Command (DOMÍNIO PURO)
+    # =========================
 
     command = CreateRelato(
         relato_id=relato_id,
-        owner_id=current_user.id,
+        owner_id=str(current_user.id),
         conteudo=draft.descricao,
-        imagens=imagens_materializadas,
+        image_refs=image_refs,
     )
 
-    decision = decide(command=command, actor=actor, current_state=None)
+    decision = decide(
+        command=command,
+        actor=actor,
+        current_state=None,
+    )
 
     if not decision.allowed:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=decision.reason or "Criação do relato não permitida",
         )
+
+    # =========================
+    # Executor
+    # =========================
 
     executor = RelatoEffectExecutor(
         persist_relato=persist_relato_adapter,
@@ -369,12 +405,18 @@ async def listar_galeria_publica_v3(
         page=page
     )
     
-# app/routes/relatos.py
+"""
+Endpoint de leitura para UX/UI.
 
+- Read-only
+- Não altera estado
+- Baseado exclusivamente em EffectResults
+- Seguro para polling
+"""
 @router.get(
-    "/relatos/{relato_id}/progress",
+    "/{relato_id}/progress_old",
     summary="Progresso técnico do relato (contrato UX)",
-    tags=["Relatos"]
+    tags=["Relatos"],
 )
 async def get_relato_progress(
     relato_id: str,
@@ -387,18 +429,24 @@ async def get_relato_progress(
     derivado dos EffectResults técnicos.
     """
 
-    from app.services.readmodels.relato_progress import fetch_relato_progress
+    from app.services.readmodels.relato_progress import (
+        fetch_relato_progress,
+        progress_has_any_signal,
+    )
     from app.services.readmodels.relato_progress_ui import build_relato_progress_ui
     from app.services.relatos_service import get_relato_by_id
+    from fastapi import HTTPException, status
 
-    # 🔒 Defense-in-depth: acesso ao relato
-    await get_relato_by_id(
-        relato_id=relato_id,
-        requesting_user=current_user,
-    )
-
-    # 📊 Read model técnico
+    # 📊 Read model técnico (PRIMEIRO)
     progress = fetch_relato_progress(relato_id)
+
+    # 🔒 Defesa condicional:
+    # Só exige acesso ao relato se NÃO houver sinais técnicos
+    if not progress_has_any_signal(progress):
+        await get_relato_by_id(
+            relato_id=relato_id,
+            requesting_user=current_user,
+        )
 
     # 🎨 Adapter UX
     ui = build_relato_progress_ui(
@@ -407,6 +455,7 @@ async def get_relato_progress(
     )
 
     return ui
+
 
 
 

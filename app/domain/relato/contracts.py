@@ -31,7 +31,8 @@ class CreateRelato(Command):
     relato_id: str
     owner_id: str
     conteudo: str
-    imagens: dict
+    #imagens: dict removido - apenas refs agora
+    image_refs: dict[str, list[str]]
 
 @dataclass(frozen=True)
 class SubmitRelato(Command):

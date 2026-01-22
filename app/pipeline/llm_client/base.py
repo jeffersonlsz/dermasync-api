@@ -1,3 +1,15 @@
+from abc import ABC, abstractmethod
+
+class LLMClient(ABC):
+
+    model_name: str
+
+    @abstractmethod
+    def generate(self, prompt: str) -> str:
+        pass
+
+
+
 def get_llm_client(provedor, nome_modelo):
     if provedor == "gemini":
         from .gemini_client import GeminiClient

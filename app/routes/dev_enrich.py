@@ -7,11 +7,15 @@ from app.services.enrich_metadata_service import EnrichMetadataService
 from app.repositories.enriched_metadata_repository import EnrichedMetadataRepository
 from app.repositories.effect_result_repository import EffectResultRepository
 
+import logging
+
+
 router = APIRouter(
     prefix="/dev",
     tags=["DEV - Enrichment"],
 )
 
+logger = logging.getLogger(__name__)
 
 @router.post(
     "/relatos/{relato_id}/run-enrich",
@@ -26,7 +30,7 @@ def run_enrich_metadata(
     """
     Executa o ENRICH_METADATA mockado.
     """
-
+    logger.debug(f"Usuário {user.id} solicitou ENRICH_METADATA para relato {relato_id}")
     service = EnrichMetadataService(
         enrichment_repository=EnrichedMetadataRepository(),
         effect_repository=EffectResultRepository(),

@@ -1,80 +1,118 @@
 # app/services/enrich_metadata_service.py
-from datetime import datetime
 
-from app.domain.enrichment.enriched_metadata import EnrichedMetadata
+import json
+
+from app.domain.enrichment.schemas.enriched_metadata_v2 import EnrichedMetadataV2
+from app.domain.enrichment.prompts.extract_computable_metadata_v1 import (
+    build_prompt,
+    PROMPT_VERSION,
+)
 from app.repositories.enriched_metadata_repository import EnrichedMetadataRepository
 from app.repositories.effect_result_repository import EffectResultRepository
+from app.pipeline.llm_client.ollama_client import OllamaClient
+
+from app.services.llm.normalization import strip_code_fences
+from app.domain.enrichment.validation_mode import ValidationMode
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class EnrichMetadataService:
     """
-    Serviço cognitivo ENRICH_METADATA (mock v1).
+    Serviço cognitivo EXTRACT_COMPUTABLE_METADATA (v2).
 
-    - Não usa LLM
-    - Produz dados estruturados realistas
-    - Fecha o ciclo do pipeline
+    - Usa LLM local via Ollama
+    - Prompt fechado e versionado
+    - Validação dura via Pydantic v2
+    - Integração preservada com dev_enrich
+    - Nenhum fallback silencioso
     """
 
-    VERSION = "v1"
-    MODEL_USED = "mock-enricher"
+    EFFECT_TYPE = "EXTRACT_COMPUTABLE_METADATA"
+    ENRICHMENT_VERSION = "v2"
+    MODEL_USED = "poc-gemma-gaia:latest"
 
     def __init__(
         self,
         enrichment_repository: EnrichedMetadataRepository,
         effect_repository: EffectResultRepository,
+        llm_client: OllamaClient | None = None,
     ):
         self.enrichment_repository = enrichment_repository
         self.effect_repository = effect_repository
+        self.llm_client = llm_client or OllamaClient()
 
     def run(self, relato_id: str, relato_text: str, has_images: bool) -> None:
-        """
-        Executa o enrichment mockado e registra EffectResult.
-        """
+        logger.debug(f"Iniciando enriquecimento para relato {relato_id} com has_images={has_images}")
+        try:
+            # 1. Prompt fechado
+            prompt = build_prompt(relato_text)
+            logger.debug(f"Prompt construído para relato {relato_id}: {prompt[:100]}...")
+            # 2. LLM (infra)
+            raw_output = self.llm_client.generate(prompt)
+            logger.debug(f"Output bruto do LLM para relato {relato_id}: {raw_output[:100]}...")
+            # 3. Normalização de transporte
+            clean_output = strip_code_fences(raw_output)
+            logger.debug(f"Output limpo do LLM para relato {relato_id}: {clean_output[:100]}...")
+            # 4. Parse JSON
+            parsed = json.loads(clean_output)
+            logger.debug(f"Output JSON parseado para relato {relato_id}: {parsed}")
+            # 5. Validação dura
+            enrichment = EnrichedMetadataV2.model_validate(
+                {
+                    **parsed,
+                    "validation_mode": ValidationMode.RELAXED,
+                }
+            )
 
-        enrichment = EnrichedMetadata(
-            relato_id=relato_id,
-            version=self.VERSION,
-            model_used=self.MODEL_USED,
-            tags=self._infer_tags(relato_text),
-            summary=self._generate_summary(relato_text),
-            signals={
-                "has_images": has_images,
-                "mentions_treatment": "creme" in relato_text.lower(),
-                "mentions_timecourse": "anos" in relato_text.lower(),
-            },
-            created_at=datetime.utcnow(),
-        )
+            logger.debug(f"Enriquecimento validado para relato {relato_id}: {enrichment.model_dump()}")
+            # 6. Persistência
+            self.enrichment_repository.save(
+                relato_id=relato_id,
+                version=self.ENRICHMENT_VERSION,
+                data=enrichment.model_dump(),
+                validation_mode=ValidationMode.RELAXED.value,
+                model_used=self.MODEL_USED,
+            )
+            logger.debug(f"Enriquecimento salvo para relato {relato_id}")
+            # 7. EffectResult de sucesso
+            self.effect_repository.register_success(
+                relato_id=relato_id,
+                effect_type=self.EFFECT_TYPE,
+                metadata={
+                    "version": self.ENRICHMENT_VERSION,
+                    "prompt_version": PROMPT_VERSION,
+                    "model": self.llm_client.model_name,
+                },
+            )
+            logger.debug(f"EffectResult de sucesso registrado para relato {relato_id}")
+        except Exception as exc:
+            # Falha explícita (nada silencioso)
+            self.effect_repository.register_failure(
+                relato_id=relato_id,
+                effect_type=self.EFFECT_TYPE,
+                error=str(exc),
+                retryable=self._is_retryable(exc),
+            )
+            logger.error(f"Falha no enriquecimento para relato {relato_id}: {exc}")
+            if self._is_retryable(exc):
+                raise
 
-        # 1. Persiste enrichment
-        self.enrichment_repository.save(enrichment)
+    # ------------------------------------------------------------------
+    # Classificação mínima de falhas (pode evoluir depois)
+    # ------------------------------------------------------------------
 
-        # 2. Registra EffectResult de sucesso
-        self.effect_repository.register_success(
-            relato_id=relato_id,
-            effect_type="ENRICH_METADATA",
-            metadata={
-                "version": self.VERSION,
-                "model": self.MODEL_USED,
-            },
-        )
+    def _is_retryable(self, exc: Exception) -> bool:
+        msg = str(exc).lower()
 
-    # -----------------------------
-    # Heurísticas mockadas
-    # -----------------------------
+        if "json" in msg:
+            return True
 
-    def _infer_tags(self, text: str):
-        tags = ["dermatite_atopica"]
+        if isinstance(exc, RuntimeError):
+            return True
 
-        if "mão" in text.lower() or "braço" in text.lower():
-            tags.append("lesao_em_membros")
+        # Violação de schema = falha cognitiva definitiva
+        return False
 
-        if "creme" in text.lower():
-            tags.append("uso_de_creme")
-
-        return tags
-
-    def _generate_summary(self, text: str) -> str:
-        return (
-            "Relato descreve quadro compatível com dermatite, "
-            "com menção a tratamento tópico e impacto recorrente."
-        )

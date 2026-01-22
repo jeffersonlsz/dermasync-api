@@ -1,24 +1,46 @@
-from google.cloud import firestore
 from datetime import datetime
-
-from app.domain.enrichment.enriched_metadata import EnrichedMetadata
+from google.cloud import firestore
 
 
 class EnrichedMetadataRepository:
+    """
+    Repositório de persistência de EnrichedMetadata (schema-agnóstico).
+
+    Responsabilidade única:
+    - Persistir enrichment validado
+    - NÃO conter lógica cognitiva
+    """
+
     COLLECTION = "relato_enrichments"
 
     def __init__(self, firestore_client: firestore.Client | None = None):
         self._db = firestore_client or firestore.Client()
 
-    def save(self, enrichment: EnrichedMetadata) -> None:
-        doc_ref = self._db.collection(self.COLLECTION).document(enrichment.relato_id)
+    def save(
+        self,
+        *,
+        relato_id: str,
+        version: str,
+        data: dict,
+        validation_mode: str,
+        model_used: str | None = None,
+    ) -> None:
+        """
+        Persiste enrichment cognitivo já validado.
 
-        doc_ref.set({
-            "relato_id": enrichment.relato_id,
-            "version": enrichment.version,
-            "model_used": enrichment.model_used,
-            "tags": enrichment.tags,
-            "summary": enrichment.summary,
-            "signals": enrichment.signals,
-            "created_at": enrichment.created_at,
-        })
+        - data: payload completo (schema v2)
+        - validation_mode: 'relaxed' | 'strict'
+        """
+
+        doc = {
+            "relato_id": relato_id,
+            "version": version,
+            "validation_mode": validation_mode,
+            "data": data,
+            "created_at": datetime.utcnow(),
+        }
+
+        if model_used:
+            doc["model_used"] = model_used
+
+        self._db.collection(self.COLLECTION).document(relato_id).set(doc)

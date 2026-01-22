@@ -1,0 +1,25 @@
+# app/domain/enrichment/vocabularies/tags_v1.py
+
+ALLOWED_TAGS: set[str] = {
+    "dermatite_atopica",
+    "eczema",
+    "pele_seca",
+    "coceira",
+    "lesao_cutanea",
+    "inflamacao",
+    "vermelhidao",
+    "descamacao",
+    "rachadura",
+    "ferida_aberta",
+    "escurecimento_pele",
+    "escarecimento_pele",
+    "escuramento_pele",
+    "espessamento_pele",
+    "infeccao_secundaria",
+    "recorrente",
+    "cronico",
+    "surto",
+    "melhora_temporaria",
+    "piora",
+    "impacto_qualidade_vida",
+}

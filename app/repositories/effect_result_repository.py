@@ -63,6 +63,37 @@ class EffectResultRepository:
         # Caso venha como Timestamp do Firestore
         return value.to_datetime()
     
+    
+    def register_failure(
+        self,
+        relato_id: str,
+        effect_type: str,
+        error: str,
+        retryable: bool = False,
+        metadata: dict | None = None,
+    ) -> None:
+        """
+        Registra um EffectResult com falha.
+
+        - NÃO lança exceção
+        - NÃO contém lógica de domínio
+        - Apenas persiste o fato ocorrido
+        """
+
+        doc = {
+            "relato_id": relato_id,
+            "effect_type": effect_type,
+            "success": False,
+            "executed_at": datetime.utcnow(),
+            "error": error,
+            "retryable": retryable,
+            "metadata": metadata or {},
+        }
+
+        self._db.collection(self.COLLECTION).add(doc)
+
+    
+    
     def register_success(
         self,
         relato_id: str,
@@ -84,3 +115,5 @@ class EffectResultRepository:
         }
 
         self._db.collection(self.COLLECTION).add(doc)
+        
+    

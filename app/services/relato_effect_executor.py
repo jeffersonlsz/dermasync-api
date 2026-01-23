@@ -132,6 +132,11 @@ class RelatoEffectExecutor:
                 # =====================================================
                 elif isinstance(effect, EnqueueProcessingEffect):
                     try:
+                        logger.info(
+                            "Executando EnqueueProcessingEffect | relato=%s",
+                            effect.relato_id,
+                        )
+
                         self._enqueue_processing(effect.relato_id)
 
                         result = build_effect_result(
@@ -139,8 +144,8 @@ class RelatoEffectExecutor:
                             effect_type="ENQUEUE_PROCESSING",
                             effect_ref=effect.relato_id,
                             success=True,
-                            error=None,
                             metadata=None,
+                            error=None,
                         )
 
                         executed_effects.append(effect)
@@ -160,6 +165,7 @@ class RelatoEffectExecutor:
 
                     finally:
                         persist_effect_result_firestore(result)
+
 
                 # =====================================================
                 # EmitDomainEventEffect

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 #from .progress_aggregator import UXProgress, UXStep
 
 
@@ -51,7 +51,8 @@ class EffectResult:
     type: str
     success: bool
     executed_at: datetime
-    error_message: Optional[str] = None
+    error_message: Optional[str] 
+    metadata: Optional[Dict]
 
 
 @dataclass

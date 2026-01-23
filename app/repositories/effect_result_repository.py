@@ -5,6 +5,15 @@ from datetime import datetime
 from google.cloud import firestore
 
 from app.domain.ux_progress.progress_aggregator import EffectResult
+"""
+⚠️ EffectResultRepository
+
+Este repositório persiste fatos de execução (LEGADO).
+Ele NÃO representa UX Effects canônicos.
+
+UX Effects são derivados via adapters
+e projeções semânticas.
+"""
 
 
 class EffectResultRepository:
@@ -43,8 +52,10 @@ class EffectResultRepository:
                     success=bool(data.get("success", False)),
                     executed_at=self._parse_datetime(data["executed_at"]),
                     error_message=data.get("error"),
+                    metadata=data.get("metadata"),  # 👈 agora explícito
                 )
             )
+
 
         return results
 
@@ -87,7 +98,7 @@ class EffectResultRepository:
             "executed_at": datetime.utcnow(),
             "error": error,
             "retryable": retryable,
-            "metadata": metadata or {},
+            "metadata": metadata,
         }
 
         self._db.collection(self.COLLECTION).add(doc)

@@ -1,3 +1,4 @@
+# app/services/effects/executors/enqueue_processing.py
 import logging
 from datetime import datetime
 
@@ -7,19 +8,22 @@ from app.services.relato_processing_adapter import enqueue_relato_processing
 logger = logging.getLogger(__name__)
 
 
-def execute_enqueue_processing(metadata: dict) -> EffectResult:
+def execute_enqueue_processing(relato_id: str) -> EffectResult:
     """
-    Executor técnico de ENQUEUE_JOB.
-    """
+    Executor técnico do EnqueueProcessingEffect.
 
-    relato_id = metadata["relato_id"]
+    Responsabilidade:
+    - Disparar processamento assíncrono
+    - NÃO executar jobs
+    - NÃO decidir quais jobs existem
+    """
 
     try:
         enqueue_relato_processing(relato_id)
 
         return EffectResult(
             relato_id=relato_id,
-            effect_type="ENQUEUE_JOB",
+            effect_type="ENQUEUE_PROCESSING",
             effect_ref=relato_id,
             success=True,
             metadata=None,
@@ -28,11 +32,11 @@ def execute_enqueue_processing(metadata: dict) -> EffectResult:
         )
 
     except Exception as exc:
-        logger.exception("[ENQUEUE_JOB] Falha ao enfileirar relato")
+        logger.exception("[ENQUEUE_PROCESSING] Falha ao enfileirar relato")
 
         return EffectResult(
             relato_id=relato_id,
-            effect_type="ENQUEUE_JOB",
+            effect_type="ENQUEUE_PROCESSING",
             effect_ref=relato_id,
             success=False,
             metadata=None,

@@ -6,6 +6,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from app.services.llm.normalization import strip_code_fences
 from ..llm_client.base import get_llm_client
 
 # === CONFIGURAÇÕES ===
@@ -70,10 +71,7 @@ def extrair_tags(conteudo: str) -> dict:
     logger.info("Resposta do LLM recebida")
 
     # Normalização da saída
-    if resposta.startswith("```json"):
-        resposta = resposta.removeprefix("```json").removesuffix("```").strip()
-    elif resposta.startswith("```"):
-        resposta = resposta.removeprefix("```").removesuffix("```").strip()
+    resposta = strip_code_fences(resposta)
     logger.info("Resposta sanitizada do LLM")
 
     try:

@@ -24,6 +24,7 @@ class EnrichedMetadataRepository:
         data: dict,
         validation_mode: str,
         model_used: str | None = None,
+        created_at: datetime | None = None,
     ) -> None:
         """
         Persiste enrichment cognitivo já validado.

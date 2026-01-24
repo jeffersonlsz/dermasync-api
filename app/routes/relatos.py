@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Form, File, Query, UploadFile, HTTPExcep
 
 from app.auth.dependencies import get_current_user, get_optional_user
 from app.auth.schemas import User
-from app.domain.relato.contracts import Actor, CreateRelato
+from app.domain.relato.contracts import Actor, CreateRelato, SubmitRelato
 from app.domain.relato.orchestrator import decide
 from app.schema.relato import RelatoCompletoInput, RelatoStatusOutput
 from app.schema.relato_draft import RelatoDraftInput
@@ -161,17 +161,60 @@ async def criar_e_enviar_relato(
     }
 
 
-# Rota antiga mantida para compatibilidade
-@router.post("/completo", status_code=status.HTTP_201_CREATED)
-async def enviar_relato_completo_json(
-    relato: RelatoCompletoInput,
-    current_user: User = Depends(get_current_user)
+
+@router.post(
+    "/{relato_id}/submit",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Submeter relato para processamento",
+)
+async def submit_relato(
+    relato_id: str,
+    current_user: User = Depends(get_current_user),
 ):
-    """
-    Endpoint antigo mantido para compatibilidade - aceita RelatoCompletoInput com base64.
-    """
-    result = await process_and_save_relato(relato, current_user)
-    return result
+    actor = Actor(
+        id=str(current_user.id),
+        role="user",
+    )
+
+    # 🔹 Buscar estado atual (fonte da verdade)
+    relato = await get_relato_by_id(
+        relato_id=relato_id,
+        requesting_user=current_user,
+    )
+
+    # 🔹 Command explícito
+    command = SubmitRelato(
+        relato_id=relato_id,
+    )
+
+    decision = decide(
+        command=command,
+        actor=actor,
+        current_state=relato.status,
+    )
+
+    if not decision.allowed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=decision.reason or "Submissão não permitida",
+        )
+
+    executor = RelatoEffectExecutor(
+        persist_relato=persist_relato_adapter,
+        enqueue_processing=enqueue_processing_adapter,
+        emit_event=emit_event_adapter,
+        upload_images=upload_images_adapter,
+        update_relato_status=update_relato_status_adapter,
+    )
+
+    executor.execute(decision.effects)
+
+    return {
+        "relato_id": relato_id,
+        "status": decision.next_state.value,
+        "message": "Relato submetido para processamento.",
+    }
+
 
 
 @router.get("/{relato_id}/status", response_model=RelatoStatusOutput)
@@ -247,38 +290,6 @@ async def moderate_relato_route(
     )
     return result
 
-
-
-@router.get("/listar-todos")
-async def listar_relatos_wrapper(current_user: User = Depends(get_current_user)):
-    """
-    Endpoint para listar relatos (acesso controlado).
-    """
-    from app.services.relatos_service import listar_relatos
-    
-    if current_user.role not in ["admin", "colaborador"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Acesso negado. Apenas administradores e colaboradores podem listar todos os relatos."
-        )
-    
-    relatos = await listar_relatos()
-    return {"quantidade": len(relatos), "dados": relatos}
-
-
-@router.get("/similares/{relato_id}")
-async def get_relatos_similares(
-    relato_id: str,
-    top_k: int = 6,
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Endpoint para buscar relatos similares semanticamente.
-    """
-    raise HTTPException(
-        status_code=501,
-        detail="Busca de relatos similares ainda não implementada."
-    )
     
 @router.get(
     "/admin/galeria/preview",
@@ -405,59 +416,6 @@ async def listar_galeria_publica_v3(
         page=page
     )
     
-"""
-Endpoint de leitura para UX/UI.
-
-- Read-only
-- Não altera estado
-- Baseado exclusivamente em EffectResults
-- Seguro para polling
-"""
-@router.get(
-    "/{relato_id}/progress_old",
-    summary="Progresso técnico do relato (contrato UX)",
-    tags=["Relatos"],
-)
-async def get_relato_progress(
-    relato_id: str,
-    current_user: User = Depends(get_current_user),
-):
-    """
-    Endpoint de leitura para UX/UI.
-
-    Retorna um contrato UX estável,
-    derivado dos EffectResults técnicos.
-    """
-
-    from app.services.readmodels.relato_progress import (
-        fetch_relato_progress,
-        progress_has_any_signal,
-    )
-    from app.services.readmodels.relato_progress_ui import build_relato_progress_ui
-    from app.services.relatos_service import get_relato_by_id
-    from fastapi import HTTPException, status
-
-    # 📊 Read model técnico (PRIMEIRO)
-    progress = fetch_relato_progress(relato_id)
-
-    # 🔒 Defesa condicional:
-    # Só exige acesso ao relato se NÃO houver sinais técnicos
-    if not progress_has_any_signal(progress):
-        await get_relato_by_id(
-            relato_id=relato_id,
-            requesting_user=current_user,
-        )
-
-    # 🎨 Adapter UX
-    ui = build_relato_progress_ui(
-        relato_id=relato_id,
-        progress=progress,
-    )
-
-    return ui
-
-
-
 
 from app.services.ux_serializer import serialize_ux_effects
 

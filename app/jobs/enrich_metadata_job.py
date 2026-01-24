@@ -72,6 +72,9 @@ class EnrichMetadataJob:
                 relato_id=relato_id,
                 data=enriched_data,
                 created_at=datetime.utcnow(),
+                version="v2",
+                validation_mode="relaxed",
+                model_used="poc-gemma-gaia:latest",
             )
 
             # -------------------------------------------------
@@ -92,8 +95,9 @@ class EnrichMetadataJob:
 
         except Exception as exc:
             logger.exception(
-                "[enrich_metadata_job] failed | relato_id=%s",
+                "[enrich_metadata_job] failed | relato_id=%s error=%s",
                 relato_id,
+                str(exc),
             )
 
             # -------------------------------------------------
@@ -103,5 +107,10 @@ class EnrichMetadataJob:
                 relato_id=relato_id,
                 effect_type="ENRICH_METADATA",
                 error=str(exc),
-                metadata=None,
+                metadata={
+                    "message": "Falha ao enriquecer metadados do relato.",
+                    "exception_type": type(exc).__name__,
+                    "exception_args": exc.args or None,
+                    "error_str": str(exc),
+                },
             )

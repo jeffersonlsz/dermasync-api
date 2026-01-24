@@ -30,4 +30,12 @@ ALLOWED_BODY_REGIONS: set[str] = {
     "joelho",
     "perna",
     "pe",
+    "nadegas",
+    "gluteos",
+    "ombro",
+    "peito",
+    "costas",
+    "palma_da_mao",
+    "planta_do_pe",
+    
 }

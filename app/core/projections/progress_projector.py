@@ -2,6 +2,9 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
+import logging
+logger = logging.getLogger(__name__)
+
 
 
 # =========================
@@ -154,6 +157,11 @@ def project_progress(
     Deterministic projection of UX Effects into progress state.
     This function is PURE and has NO side effects.
     """
+    logger.debug(
+        "Projecting progress for relato_id=%s with %d effects",
+        relato_id,
+        len(effects),
+    )
 
     steps_projection: List[StepProgress] = []
 

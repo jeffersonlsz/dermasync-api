@@ -2,7 +2,7 @@
 import logging
 from typing import Dict
 
-from app.pipeline.llm_client import ollama_client as get_llm_client
+from app.pipeline.llm_client.ollama_client import OllamaClient
 from app.llm.prompts.enrich_metadata_prompt import build_enrich_metadata_prompt
 
 
@@ -21,7 +21,7 @@ def run_enrich_metadata_llm(relato_text: str) -> Dict:
 
     prompt = build_enrich_metadata_prompt(relato_text)
 
-    llm = get_llm_client()
+    llm = OllamaClient()
 
     logger.debug("[enrich_metadata_llm] calling model")
 
@@ -46,9 +46,11 @@ def _parse_llm_response(response: str) -> Dict:
     Aqui é onde você pode endurecer validações depois.
     """
     import json
+    from app.services.llm.normalization import strip_code_fences
 
     try:
-        return json.loads(response)
+        cleaned_response = strip_code_fences(response)
+        return json.loads(cleaned_response)
     except Exception as exc:
         raise ValueError(
             f"Falha ao parsear resposta do LLM: {exc}"

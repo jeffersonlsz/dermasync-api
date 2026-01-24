@@ -4,6 +4,7 @@ from typing import Dict, List
 
 from app.firestore.client import get_firestore_client
 from app.domain.relato.states import RelatoStatus
+from app.services.relato_processing_adapter import enqueue_relato_processing
 
 logger = logging.getLogger(__name__)
 
@@ -136,11 +137,22 @@ def update_relato_status_adapter(relato_id: str, new_status: RelatoStatus):
 # =====================================================
 # Adapters ainda não implementados (intencionais)
 # =====================================================
-def enqueue_processing_adapter(relato_id: str):
+def enqueue_processing_adapter(relato_id: str) -> None:
+    """
+    Adapter que conecta o domínio ao processamento assíncrono real.
+
+    Responsabilidade:
+    - disparar o job
+    - NÃO atualizar status diretamente
+    - NÃO persistir EffectResult aqui
+    """
+
     logger.info(
-        "DUMMY ADAPTER: Enfileirando processamento para relato=%s",
+        "ADAPTER: Enfileirando processamento do relato %s",
         relato_id,
     )
+
+    enqueue_relato_processing(relato_id)
 
 
 def emit_event_adapter(event_name: str, payload: dict):

@@ -1,0 +1,10 @@
+OTHER ERROR: PersistRelatoEffect.__init__() got an unexpected keyword argument 'imagens'
+Traceback:
+Traceback (most recent call last):
+  File "D:\workspace_projects_001\dermasync-api\full_test.py", line 21, in <module>
+    effect = rebuild_effect_from_result(mock_result)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\workspace_projects_001\dermasync-api\app\domain\relato\effects\rebuild.py", line 15, in rebuild_effect_from_result
+    return PersistRelatoEffect(
+           ^^^^^^^^^^^^^^^^^^^^
+TypeError: PersistRelatoEffect.__init__() got an unexpected keyword argument 'imagens'

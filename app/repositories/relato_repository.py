@@ -28,6 +28,6 @@ class RelatoRepository:
 
         return Relato(
             id=doc.id,
-            text=data.get("texto") or data.get("relato_texto"),
+            text=data.get("conteudo") or data.get("relato_texto"),
             created_at=data.get("created_at"),
         )

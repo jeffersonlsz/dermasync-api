@@ -48,16 +48,20 @@ def _default_message_for(subtype: str) -> str:
 def effect_result_to_ux_effect(
     effect,
     relato_id: str,
-) -> UXEffectRecord:
+) -> UXEffectRecord | None:
+
     subtype = EFFECT_TYPE_TO_SUBTYPE.get(effect.type)
 
+    # 👇 Effects não UX são ignorados
     if not subtype:
-        raise ValueError(
-            f"Effect type desconhecido: {effect.type}"
+        logger.debug(
+            "Ignoring non-UX effect | type=%s relato=%s",
+            effect.type,
+            relato_id,
         )
+        return None
 
-    # 🔧 AJUSTE CRÍTICO:
-    # Tradução correta do "tipo semântico" do UX Effect
+    # Tradução correta do tipo UX
     if effect.type == "ENRICH_METADATA_STARTED":
         ux_type = "processing_started"
     elif effect.success:
@@ -65,7 +69,6 @@ def effect_result_to_ux_effect(
     else:
         ux_type = "processing_failed"
 
-    # leitura defensiva: metadata pode não existir
     metadata = getattr(effect, "metadata", None)
 
     return UXEffectRecord(
@@ -81,11 +84,12 @@ def effect_result_to_ux_effect(
             if ux_type == "processing_started" and isinstance(metadata, dict)
             else _default_message_for(subtype)
             if ux_type == "processing_completed"
-            else effect.error or "Erro no processamento."
+            else effect.error_message or "Erro no processamento."
         ),
         payload=metadata,
         created_at=effect.executed_at,
     )
+
 
 
 # =========================================================
@@ -134,13 +138,21 @@ def get_relato_progress(
 
         # 2️⃣ Converter para UXEffectRecord (modelo canônico)
         effects = [
-            effect_result_to_ux_effect(e, relato_id)
+            ux
             for e in effect_records
+            if (ux := effect_result_to_ux_effect(e, relato_id)) is not None
         ]
 
+        logger.debug(
+            "Converted effect records to UXEffectRecords for relato_id=%s",
+            relato_id,
+        )
         # ⚠️ Garantia de ordenação temporal
         effects.sort(key=lambda e: e.created_at)
-
+        logger.debug(
+            "Converted effect records to UXEffectRecords for relato_id=%s",
+            relato_id,
+        )
         # 3️⃣ Projetar progresso
         progress = project_progress(
             relato_id=relato_id,

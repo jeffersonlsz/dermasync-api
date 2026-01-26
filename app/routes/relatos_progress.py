@@ -1,17 +1,14 @@
 # app/routes/relatos_progress.py
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.auth.dependencies import get_current_user
 from app.auth.schemas import User
 
 from app.repositories.effect_result_repository import EffectResultRepository
-from app.core.projections.progress_projector import (
-    UXEffectRecord,
-    project_progress,
-)
+from app.core.projections.progress_projector import project_progress
+from app.services.ux_adapters import effect_result_to_ux_effect
 
-import logging
-from uuid import uuid4
 
 router = APIRouter(
     prefix="/relatos",
@@ -20,81 +17,6 @@ router = APIRouter(
 
 logger = logging.getLogger(__name__)
 
-
-# =========================================================
-# Mapeamento semântico: EffectResult -> Step (subtype)
-# =========================================================
-
-EFFECT_TYPE_TO_SUBTYPE = {
-    "PERSIST_RELATO": "persist_relato",
-    "UPLOAD_IMAGES": "upload_images",
-    "ENRICH_METADATA": "enrich_metadata",
-    "ENRICH_METADATA_STARTED": "enrich_metadata",
-}
-
-
-def _default_message_for(subtype: str) -> str:
-    return {
-        "persist_relato": "Relato recebido com sucesso.",
-        "upload_images": "Imagens processadas.",
-        "enrich_metadata": "Análise do relato concluída.",
-    }.get(subtype, "Processamento concluído.")
-
-
-# =========================================================
-# Adapter: EffectResult -> UXEffectRecord
-# =========================================================
-
-def effect_result_to_ux_effect(
-    effect,
-    relato_id: str,
-) -> UXEffectRecord | None:
-
-    subtype = EFFECT_TYPE_TO_SUBTYPE.get(effect.type)
-
-    # 👇 Effects não UX são ignorados
-    if not subtype:
-        logger.debug(
-            "Ignoring non-UX effect | type=%s relato=%s",
-            effect.type,
-            relato_id,
-        )
-        return None
-
-    # Tradução correta do tipo UX
-    if effect.type == "ENRICH_METADATA_STARTED":
-        ux_type = "processing_started"
-    elif effect.success:
-        ux_type = "processing_completed"
-    else:
-        ux_type = "processing_failed"
-
-    metadata = getattr(effect, "metadata", None)
-
-    return UXEffectRecord(
-        effect_id=str(uuid4()),
-        relato_id=relato_id,
-        type=ux_type,
-        subtype=subtype,
-        severity="info" if ux_type != "processing_failed" else "error",
-        channel="progress",
-        timing="immediate",
-        message=(
-            metadata.get("message")
-            if ux_type == "processing_started" and isinstance(metadata, dict)
-            else _default_message_for(subtype)
-            if ux_type == "processing_completed"
-            else effect.error_message or "Erro no processamento."
-        ),
-        payload=metadata,
-        created_at=effect.executed_at,
-    )
-
-
-
-# =========================================================
-# Endpoint público
-# =========================================================
 
 @router.get(
     "/{relato_id}/progress",
@@ -112,7 +34,7 @@ def get_relato_progress(
 
     Estratégia:
     - Carrega EffectResult
-    - Traduz para UX Effects
+    - Traduz para UX Effects (via adapter centralizado)
     - Projeta progresso
     """
 
@@ -136,7 +58,7 @@ def get_relato_progress(
             relato_id,
         )
 
-        # 2️⃣ Converter para UXEffectRecord (modelo canônico)
+        # 2️⃣ Converter para UXEffectRecord (modelo canônico via adapter)
         effects = [
             ux
             for e in effect_records
@@ -150,7 +72,7 @@ def get_relato_progress(
         # ⚠️ Garantia de ordenação temporal
         effects.sort(key=lambda e: e.created_at)
         logger.debug(
-            "Converted effect records to UXEffectRecords for relato_id=%s",
+            "Sorted UXEffectRecords for relato_id=%s",
             relato_id,
         )
         # 3️⃣ Projetar progresso

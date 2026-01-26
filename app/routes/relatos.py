@@ -1,3 +1,4 @@
+# app/routes/relatos.py
 """
 Routes para relatos (depoimentos de tratamento de dermatite atópica).
 """
@@ -26,6 +27,8 @@ from app.services.relatos_service import get_relato_by_id, process_and_save_rela
 
 from app.services.retry_relato import retry_failed_effects
 from app.services.uploads_service import salvar_uploads_e_retornar_refs
+from app.services.ux_serializer import serialize_ux_effects
+
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -156,8 +159,11 @@ async def criar_e_enviar_relato(
     executor.execute(decision.effects)
 
     return {
-        "relato_id": relato_id,
-        "status": decision.next_state.value if decision.next_state else "UNKNOWN",
+        "data": {
+            "relato_id": relato_id,
+            "status": decision.next_state.value if decision.next_state else "UNKNOWN",
+        },
+        "ux_effects": serialize_ux_effects(decision.effects),
     }
 
 
@@ -210,9 +216,11 @@ async def submit_relato(
     executor.execute(decision.effects)
 
     return {
-        "relato_id": relato_id,
-        "status": decision.next_state.value,
-        "message": "Relato submetido para processamento.",
+        "data": {
+            "relato_id": relato_id,
+            "status": decision.next_state.value,
+        },
+        "ux_effects": serialize_ux_effects(decision.effects),
     }
 
 
@@ -416,9 +424,6 @@ async def listar_galeria_publica_v3(
         page=page
     )
     
-
-from app.services.ux_serializer import serialize_ux_effects
-
 @router.post(
     "/{relato_id}/retry",
     status_code=status.HTTP_202_ACCEPTED,
@@ -430,5 +435,3 @@ async def retry_relato_endpoint(relato_id: str):
         "data": None,
         "ux_effects": serialize_ux_effects(result.ux_effects),
     }
-
-

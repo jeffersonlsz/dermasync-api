@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Any, Dict
 
 from app.firestore.client import get_firestore_client
-from app.services.effects.result import EffectResult
+from app.services.effects.result import EffectResult, EffectStatus
 
 logger = logging.getLogger(__name__)
 
@@ -40,30 +40,28 @@ def persist_effect_result_firestore(
     doc_id = uuid.uuid4().hex
     logger.debug(
         "[EFFECT_RESULT] Persistindo EffectResult | "
-        "relato_id=%s, effect_type=%s, effect_ref=%s, success=%s, "
-        "failure_type=%s, retry_decision=%s, metadata=%s, error=%s, "
-        "executed_at=%s, created_at=%s",
+        "relato_id=%s, effect_type=%s, status=%s, "
+        "metadata=%s, error_message=%s, created_at=%s, retry_after_seconds=%s",
         result.relato_id,
         result.effect_type,
-        result.effect_ref,
-        result.success,
-        result.failure_type,
-        result.retry_decision,
+        result.status.value,
         result.metadata,
-        result.error,
-        result.executed_at,
+        result.error_message,
         result.created_at,
+        result.retry_after.total_seconds() if result.retry_after else None,
     )
     data: Dict[str, Any] = {
         "relato_id": result.relato_id,
         "effect_type": result.effect_type,
-        "effect_ref": result.effect_ref,
-        "success": result.success,
+        "status": result.status.value,
         "metadata": result.metadata,
-        "error": result.error,
-        "executed_at": result.executed_at,
-        "created_at": datetime.utcnow(),
+        "created_at": result.created_at,
     }
+
+    if result.status == EffectStatus.ERROR and result.error_message:
+        data["error_message"] = result.error_message
+    if result.status == EffectStatus.RETRYING and result.retry_after is not None:
+        data["retry_after_seconds"] = result.retry_after.total_seconds()
 
     try:
         normalized_data = normalize_firestore_value(data)
@@ -73,7 +71,7 @@ def persist_effect_result_firestore(
             "[EFFECT_RESULT] app.services.effects.persist_firestore.persist_effect_result_firestore(...) Persistido | id=%s type=%s success=%s",
             doc_id,
             result.effect_type,
-            result.success,
+            result.status.value,
         )
 
     except Exception as exc:

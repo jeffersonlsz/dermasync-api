@@ -2,15 +2,12 @@
 
 from app.domain.ux_effects.processing_started import ProcessingStartedUXEffect
 from app.domain.ux_effects.retry import RetryUXEffect
+from app.services.ux_serializer import serialize_ux_effects
 
 from tests.ux.ui_interpreter import interpret_for_ui
 
 
-def serialize(effect):
-    """
-    Helper local para simular o serializer público.
-    """
-    return effect.serialize()
+
 
 
 def test_user_sees_coherent_story_from_ux_effects():
@@ -23,7 +20,7 @@ def test_user_sees_coherent_story_from_ux_effects():
         RetryUXEffect.failed_final(relato_id=relato_id),
     ]
 
-    serialized_effects = [e.serialize() for e in effects]
+    serialized_effects = serialize_ux_effects(effects)
 
     ui_story = interpret_for_ui(serialized_effects)
 

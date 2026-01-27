@@ -26,28 +26,27 @@ def execute_persist_relato(metadata: dict) -> EffectResult:
             status=status,
         )
 
-        return EffectResult(
+        _status_val = status.value if hasattr(status, "value") else str(status)
+        return EffectResult.success(
             relato_id=str(relato_id),
             effect_type="PERSIST_RELATO",
-            effect_ref=status.value if hasattr(status, "value") else str(status),
-            success=True,
             metadata={
-                "status": status.value if hasattr(status, "value") else str(status)
+                "status": _status_val,
+                "effect_ref": _status_val,
             },
-            error=None,
-            executed_at=datetime.utcnow(),
         )
 
 
     except Exception as exc:
         logger.exception("[PERSIST_RELATO] Falha")
 
-        return EffectResult(
+        _status_val = status.value if hasattr(status, "value") else str(status)
+        return EffectResult.error(
             relato_id=relato_id,
             effect_type="PERSIST_RELATO",
-            effect_ref=status,
-            success=False,
-            metadata={"status": status},
-            error=str(exc),
-            executed_at=datetime.utcnow(),
+            error_message=str(exc),
+            metadata={
+                "status": _status_val,
+                "effect_ref": _status_val,
+            },
         )

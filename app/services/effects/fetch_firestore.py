@@ -6,7 +6,7 @@ import logging
 from google.cloud.firestore_v1.base_query import And, FieldFilter
 
 from app.firestore.client import get_firestore_client
-from app.services.effects.result import EffectResult
+from app.services.effects.result import EffectResult, EffectStatus
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +31,8 @@ def fetch_effect_result_success(
                 [
                     FieldFilter("relato_id", "==", relato_id),
                     FieldFilter("effect_type", "==", effect_type),
-                    FieldFilter("effect_ref", "==", effect_ref),
-                    FieldFilter("success", "==", True),
+                    FieldFilter("metadata.effect_ref", "==", effect_ref),
+                    FieldFilter("status", "==", EffectStatus.SUCCESS.value),
                 ]
             )
         )
@@ -46,7 +46,16 @@ def fetch_effect_result_success(
     data = docs[0].to_dict()
     logger.info(f"Fetched EffectResult success: {data}")
 
-    return EffectResult(**data)
+    _metadata = data.get("metadata", {}) or {}
+    _metadata["old_executed_at"] = data.get("executed_at")
+    if data.get("effect_ref") is not None:
+        _metadata["effect_ref"] = data["effect_ref"]
+
+    return EffectResult.success(
+        relato_id=data["relato_id"],
+        effect_type=data["effect_type"],
+        metadata=_metadata,
+    )
 
 
 def fetch_failed_effects(
@@ -66,7 +75,7 @@ def fetch_failed_effects(
         filter=And(
             [
                 FieldFilter("relato_id", "==", relato_id),
-                FieldFilter("success", "==", False),
+                FieldFilter("status", "in", [EffectStatus.ERROR.value, EffectStatus.RETRYING.value]),
             ]
         )
     )
@@ -77,7 +86,21 @@ def fetch_failed_effects(
         data = doc.to_dict()
 
         try:
-            results.append(EffectResult(**data))
+            _metadata = data.get("metadata", {}) or {}
+            _metadata["old_executed_at"] = data.get("executed_at")
+            if data.get("effect_ref") is not None:
+                _metadata["effect_ref"] = data["effect_ref"]
+            if data.get("failure_type") is not None:
+                _metadata["failure_type"] = data["failure_type"]
+            if data.get("retry_decision") is not None:
+                _metadata["old_retry_decision"] = data["retry_decision"]
+
+            results.append(EffectResult.error(
+                relato_id=data["relato_id"],
+                effect_type=data["effect_type"],
+                error_message=data.get("error", "Unknown error"),
+                metadata=_metadata,
+            ))
         except TypeError as exc:
             # Defesa: não quebrar retry por dado legado
             logger.error(

@@ -10,8 +10,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 
-# Importar o UXEffectRecord original para manter a compatibilidade
+from app.services.effects.result import EffectStatus, EffectResult
 from app.core.projections.progress_projector import UXEffectRecord
+from app.domain.ux_effects.base import UXEffect, UXSeverity, UXChannel, UXTiming
 
 logger = logging.getLogger(__name__)
 
@@ -19,37 +20,8 @@ logger = logging.getLogger(__name__)
 # Contrato Canônico do UXEffect
 # =========================================================
 
-class UXEffectSeverity(str, Enum):
-    INFO = "info"
-    SUCCESS = "success"
-    WARNING = "warning"
-    ERROR = "error"
 
-class UXEffectChannel(str, Enum):
-    TOAST = "toast"
-    PROGRESS = "progress"
-    ALERT = "alert"
 
-class UXEffectTiming(str, Enum):
-    IMMEDIATE = "immediate"
-    NEXT_VIEW = "next_view"
-
-@dataclass(frozen=True)
-class UXEffect:
-    """
-    Representação canônica de um efeito de interface de usuário.
-    Usado para serialização na API.
-    """
-    type: str
-    subtype: str
-    severity: UXEffectSeverity
-    channel: UXEffectChannel
-    timing: UXEffectTiming
-    message: str
-    payload: dict | None = None
-    effect_id: str = ""
-    relato_id: str = ""
-    created_at: datetime = datetime.now()
 
 
 # =========================================================
@@ -88,12 +60,14 @@ def domain_effect_to_ux_effect(effect) -> UXEffect | None:
     # Efeitos de domínio representam o início de uma ação
     return UXEffect(
         type="processing_started",
-        subtype=mapping["subtype"],
-        severity=UXEffectSeverity.INFO,
-        channel=UXEffectChannel.PROGRESS,
-        timing=UXEffectTiming.IMMEDIATE,
         message=mapping["message"],
-        relato_id=getattr(effect, 'relato_id', ''),
+        severity=UXSeverity.INFO,
+        channel=UXChannel.BANNER,
+        timing=UXTiming.IMMEDIATE,
+        metadata={
+            "subtype": mapping["subtype"],
+            "relato_id": getattr(effect, 'relato_id', ''),
+        },
     )
 
 
@@ -117,20 +91,26 @@ def _default_message_for_result(subtype: str) -> str:
         "enrich_metadata": "Análise do relato concluída.",
     }.get(subtype, "Processamento concluído.")
 
-def effect_result_to_ux_effect(effect, relato_id: str) -> UXEffectRecord | None:
+def effect_result_to_ux_effect(effect: EffectResult, relato_id: str) -> UXEffectRecord | None:
     """Adapta um resultado de efeito (do banco de dados) para um UXEffectRecord."""
-    subtype = EFFECT_RESULT_TYPE_TO_SUBTYPE.get(effect.type)
+    subtype = EFFECT_RESULT_TYPE_TO_SUBTYPE.get(effect.effect_type)
 
     if not subtype:
-        logger.debug("Ignoring non-UX effect result | type=%s relato=%s", effect.type, relato_id)
+        logger.debug("Ignoring non-UX effect result | type=%s relato=%s", effect.effect_type, relato_id)
         return None
 
-    if effect.type == "ENRICH_METADATA_STARTED":
-        ux_type = "processing_started"
-    elif effect.success:
+    if effect.status == EffectStatus.SUCCESS:
         ux_type = "processing_completed"
-    else:
+        severity = UXSeverity.INFO
+        message = _default_message_for_result(subtype)
+    elif effect.status == EffectStatus.RETRYING:
+        ux_type = "processing_retrying"
+        severity = UXSeverity.WARNING
+        message = f"Retentando processamento. Tentativa {effect.metadata.get('attempt', 'N/A')} de {effect.metadata.get('max_attempts', 'N/A')}."
+    else: # EffectStatus.ERROR
         ux_type = "processing_failed"
+        severity = UXSeverity.ERROR
+        message = effect.error_message or "Erro no processamento."
 
     metadata = getattr(effect, "metadata", None)
 
@@ -139,16 +119,10 @@ def effect_result_to_ux_effect(effect, relato_id: str) -> UXEffectRecord | None:
         relato_id=relato_id,
         type=ux_type,
         subtype=subtype,
-        severity="info" if ux_type != "processing_failed" else "error",
-        channel="progress",
-        timing="immediate",
-        message=(
-            metadata.get("message")
-            if ux_type == "processing_started" and isinstance(metadata, dict)
-            else _default_message_for_result(subtype)
-            if ux_type == "processing_completed"
-            else effect.error_message or "Erro no processamento."
-        ),
+        severity=severity,
+        channel=UXChannel.BANNER,
+        timing=UXTiming.IMMEDIATE,
+        message=message,
         payload=metadata,
-        created_at=effect.executed_at,
+        created_at=effect.created_at,
     )

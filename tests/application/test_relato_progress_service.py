@@ -49,10 +49,9 @@ def test_service_passes_effects_to_domain_correctly():
     # Arrange
     mock_repo = Mock()
     mock_repo.fetch_by_relato_id.return_value = [
-        EffectResult(
-            type="PERSIST_RELATO",
-            success=True,
-            executed_at=datetime.utcnow(),
+        EffectResult.success(
+            relato_id="relato_test",
+            effect_type="PERSIST_RELATO",
         )
     ]
 

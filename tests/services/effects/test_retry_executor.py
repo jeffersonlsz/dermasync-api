@@ -46,12 +46,10 @@ def test_retry_persist_relato(executor):
         "conteudo": "conteudo",
         "imagens": {},
     }
-    result = EffectResult(
+    result = EffectResult.retrying(
         relato_id="relato-123",
         effect_type="PERSIST_RELATO",
-        effect_ref="relato-123",
-        success=False,
-        metadata={"effect_data": effect_data},
+        metadata={"effect_data": effect_data, "effect_ref": "relato-123"},
     )
 
     executor.execute_by_result(effect_result=result, attempt=1)
@@ -65,11 +63,10 @@ def test_retry_enqueue_processing(executor):
     """
     Deve reexecutar EnqueueProcessingEffect.
     """
-    result = EffectResult(
+    result = EffectResult.retrying(
         relato_id="relato-456",
         effect_type="ENQUEUE_PROCESSING",
-        effect_ref="relato-456",
-        success=False,
+        metadata={"effect_ref": "relato-456"},
     )
 
     executor.execute_by_result(effect_result=result, attempt=1)
@@ -81,13 +78,12 @@ def test_retry_emit_event(executor):
     """
     Deve reexecutar EmitDomainEventEffect com payload preservado.
     """
-    result = EffectResult(
+    result = EffectResult.retrying(
         relato_id="relato-789",
         effect_type="EMIT_EVENT",
-        effect_ref="relato_criado",
-        success=False,
         metadata={
-            "payload": {"relato_id": "relato-789", "foo": "bar"}
+            "payload": {"relato_id": "relato-789", "foo": "bar"},
+            "effect_ref": "relato_criado",
         },
     )
 
@@ -109,13 +105,12 @@ def test_retry_upload_images_success(executor):
         "depois": [],
     }
 
-    result = EffectResult(
+    result = EffectResult.retrying(
         relato_id="relato-999",
         effect_type="UPLOAD_IMAGES",
-        effect_ref="relato-999",
-        success=False,
         metadata={
-            "imagens": imagens
+            "imagens": imagens,
+            "effect_ref": "relato-999"
         },
     )
 
@@ -131,12 +126,10 @@ def test_retry_upload_images_without_metadata_fails(executor):
     """
     UploadImagesEffect sem metadata.imagens deve falhar explicitamente.
     """
-    result = EffectResult(
+    result = EffectResult.retrying(
         relato_id="relato-000",
         effect_type="UPLOAD_IMAGES",
-        effect_ref="relato-000",
-        success=False,
-        metadata=None,
+        metadata={"effect_ref": "relato-000"},
     )
 
     with pytest.raises(ValueError, match="UPLOAD_IMAGES"):
@@ -147,11 +140,10 @@ def test_retry_unknown_effect_type_fails(executor):
     """
     effect_type desconhecido deve falhar explicitamente.
     """
-    result = EffectResult(
+    result = EffectResult.retrying(
         relato_id="relato-err",
         effect_type="UNKNOWN_EFFECT",
-        effect_ref="x",
-        success=False,
+        metadata={"effect_ref": "x"},
     )
 
     with pytest.raises(ValueError, match="Retry não suportado"):

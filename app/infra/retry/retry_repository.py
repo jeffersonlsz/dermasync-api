@@ -4,8 +4,8 @@ import logging
 from datetime import datetime, timedelta
 
 from app.firestore.client import get_firestore_client
-from app.services.effects.result import EffectResult
-from app.services.effects.retry_decision import RetryDecision
+from app.services.effects.result import EffectResult, EffectStatus
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +24,13 @@ def load_failed_effect_results(
     if not db:
         raise RuntimeError("Firestore client indisponível")
 
-    query = db.collection("effect_results").where("success", "==", False)
+    query = db.collection("effect_results").where("status", "in", [EffectStatus.ERROR.value, EffectStatus.RETRYING.value])
 
     if since_minutes is not None:
         since_dt = datetime.utcnow() - timedelta(minutes=since_minutes)
-        query = query.where("executed_at", ">=", since_dt)
+        query = query.where("created_at", ">=", since_dt)
 
-    query = query.order_by("executed_at").limit(limit)
+    query = query.order_by("created_at").limit(limit)
 
     docs = query.stream()
 
@@ -41,25 +41,43 @@ def load_failed_effect_results(
         if not data:
             continue
 
-        # Defesa extrema: se já foi abortado, ignorar
-        retry_decision = data.get("retry_decision")
-        if retry_decision and retry_decision.get("should_retry") is False:
-            continue
-
         try:
-            result = EffectResult(
-                relato_id=data["relato_id"],
-                effect_type=data["effect_type"],
-                effect_ref=data["effect_ref"],
-                success=data["success"],
-                failure_type=data.get("failure_type"),
-                retry_decision=RetryDecision(**retry_decision)
-                if retry_decision
-                else None,
-                metadata=data.get("metadata"),
-                error=data.get("error"),
-                executed_at=data["executed_at"],
-            )
+            _metadata = data.get("metadata", {}) or {}
+            if "executed_at" in data:
+                _metadata["old_executed_at"] = data["executed_at"]
+            if "effect_ref" in data:
+                _metadata["effect_ref"] = data["effect_ref"]
+            if "failure_type" in data:
+                _metadata["failure_type"] = data["failure_type"]
+            if "retry_decision" in data:
+                _metadata["old_retry_decision"] = data["retry_decision"]
+
+            status = EffectStatus(data["status"])
+
+            if status == EffectStatus.ERROR:
+                result = EffectResult.error(
+                    relato_id=data["relato_id"],
+                    effect_type=data["effect_type"],
+                    error_message=data.get("error_message", data.get("error", "Unknown error")),
+                    metadata=_metadata,
+                )
+            elif status == EffectStatus.RETRYING:
+                retry_after_seconds = data.get("retry_after_seconds")
+                retry_after_timedelta = timedelta(seconds=retry_after_seconds) if retry_after_seconds is not None else None
+                result = EffectResult.retrying(
+                    relato_id=data["relato_id"],
+                    effect_type=data["effect_type"],
+                    retry_after=retry_after_timedelta,
+                    metadata=_metadata,
+                )
+            else:
+                # Should not happen due to query filter, but as a safeguard
+                logger.warning(
+                    "Unexpected EffectResult status '%s' encountered in retry repository for doc_id=%s",
+                    status.value, doc.id
+                )
+                continue
+
             results.append(result)
 
         except Exception as exc:

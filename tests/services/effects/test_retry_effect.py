@@ -7,7 +7,7 @@ from app.services.effects.registry import (
     register_effect_executor,
     clear_registry,
 )
-from app.services.effects.result import EffectResult
+from app.services.effects.result import EffectResult, EffectStatus
 
 
 def test_retry_effect_success():
@@ -16,14 +16,11 @@ def test_retry_effect_success():
     mock_executor = Mock()
     register_effect_executor("UPLOAD_IMAGE", mock_executor)
 
-    fake_result = EffectResult(
+    fake_result = EffectResult.error(
         relato_id="r1",
         effect_type="UPLOAD_IMAGE",
-        effect_ref="img123",
-        success=False,
-        metadata={"path": "x/y.jpg"},
-        error="fail",
-        executed_at=datetime.utcnow(),
+        error_message="fail",
+        metadata={"path": "x/y.jpg", "effect_ref": "img123"},
     )
 
     with patch(
@@ -34,5 +31,5 @@ def test_retry_effect_success():
     ):
         result = retry_effect("effect-id-1")
 
-    assert result.success is True
+    assert result.status == EffectStatus.SUCCESS
     mock_executor.assert_called_once_with(fake_result.metadata)

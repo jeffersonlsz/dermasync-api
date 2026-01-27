@@ -1,10 +1,10 @@
 # app/repositories/effect_result_repository.py
 from typing import List
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from google.cloud import firestore
 
-from app.domain.ux_progress.progress_aggregator import EffectResult
+from app.services.effects.result import EffectResult, EffectStatus
 """
 ⚠️ EffectResultRepository
 
@@ -14,6 +14,9 @@ Ele NÃO representa UX Effects canônicos.
 UX Effects são derivados via adapters
 e projeções semânticas.
 """
+
+
+from app.services.effects.persist_firestore import persist_effect_result_firestore
 
 
 class EffectResultRepository:
@@ -38,7 +41,7 @@ class EffectResultRepository:
         query = (
             self._db.collection("effect_results")
             .where("relato_id", "==", relato_id)
-            .order_by("executed_at")
+            .order_by("created_at")
         )
 
         results: List[EffectResult] = []
@@ -46,15 +49,57 @@ class EffectResultRepository:
         for doc in query.stream():
             data = doc.to_dict()
 
-            results.append(
-                EffectResult(
-                    type=data["effect_type"],
-                    success=bool(data.get("success", False)),
-                    executed_at=self._parse_datetime(data["executed_at"]),
-                    error_message=data.get("error"),
-                    metadata=data.get("metadata"),  # 👈 agora explícito
+            _metadata = data.get("metadata", {}) or {}
+            if "executed_at" in data:
+                _metadata["old_executed_at"] = self._parse_datetime(data["executed_at"])
+            if "effect_ref" in data:
+                _metadata["effect_ref"] = data["effect_ref"]
+            if "failure_type" in data:
+                _metadata["failure_type"] = data["failure_type"]
+            if "retry_decision" in data:
+                _metadata["old_retry_decision"] = data["retry_decision"]
+            if "retryable" in data:
+                _metadata["old_retryable"] = data["retryable"] # Capture legacy retryable field
+
+
+            # Handle legacy 'success' field if 'status' is not present
+            if "status" not in data:
+                if bool(data.get("success", False)):
+                    status = EffectStatus.SUCCESS
+                else:
+                    status = EffectStatus.ERROR # Default to ERROR for old failed effects
+            else:
+                status = EffectStatus(data["status"])
+
+            if status == EffectStatus.SUCCESS:
+                results.append(
+                    EffectResult.success(
+                        relato_id=data["relato_id"],
+                        effect_type=data["effect_type"],
+                        metadata=_metadata,
+                    )
                 )
-            )
+            elif status == EffectStatus.ERROR:
+                results.append(
+                    EffectResult.error(
+                        relato_id=data["relato_id"],
+                        effect_type=data["effect_type"],
+                        error_message=data.get("error_message", data.get("error", "Unknown error")),
+                        metadata=_metadata,
+                    )
+                )
+            elif status == EffectStatus.RETRYING:
+                # Firestore stores timedelta as seconds, convert back to timedelta
+                retry_after_seconds = data.get("retry_after_seconds")
+                retry_after_timedelta = timedelta(seconds=retry_after_seconds) if retry_after_seconds is not None else None
+                results.append(
+                    EffectResult.retrying(
+                        relato_id=data["relato_id"],
+                        effect_type=data["effect_type"],
+                        retry_after=retry_after_timedelta,
+                        metadata=_metadata,
+                    )
+                )
 
 
         return results
@@ -77,11 +122,7 @@ class EffectResultRepository:
     
     def register_failure(
         self,
-        relato_id: str,
-        effect_type: str,
-        error: str,
-        retryable: bool = False,
-        metadata: dict | None = None,
+        effect_result: EffectResult,
     ) -> None:
         """
         Registra um EffectResult com falha.
@@ -90,41 +131,19 @@ class EffectResultRepository:
         - NÃO contém lógica de domínio
         - Apenas persiste o fato ocorrido
         """
-
-        doc = {
-            "relato_id": relato_id,
-            "effect_type": effect_type,
-            "success": False,
-            "executed_at": datetime.utcnow(),
-            "error": error,
-            "retryable": retryable,
-            "metadata": metadata,
-        }
-
-        self._db.collection(self.COLLECTION).add(doc)
+        persist_effect_result_firestore(effect_result)
 
     
     
     def register_success(
         self,
-        relato_id: str,
-        effect_type: str,
-        metadata: dict | None = None,
+        effect_result: EffectResult,
     ) -> None:
         """
         Registra um EffectResult bem-sucedido.
 
         Este é o caminho canônico para efeitos concluídos com sucesso.
         """
-
-        doc = {
-            "relato_id": relato_id,
-            "effect_type": effect_type,
-            "success": True,
-            "executed_at": datetime.utcnow(),
-            "metadata": metadata or {},
-        }
-
-        self._db.collection(self.COLLECTION).add(doc)
+        persist_effect_result_firestore(effect_result)
         
     

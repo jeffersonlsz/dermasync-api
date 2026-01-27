@@ -44,6 +44,6 @@ def _effect_result_to_command(effect_result) -> EffectCommand:
     return EffectCommand(
         type=effect_result.effect_type,
         relato_id=effect_result.relato_id,
-        effect_ref=effect_result.effect_ref,
+        effect_ref=effect_result.metadata.get("effect_ref"),
         metadata=effect_result.metadata,
     )

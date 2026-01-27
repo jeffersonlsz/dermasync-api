@@ -2,7 +2,7 @@
 from typing import List
 
 from app.firestore.client import get_firestore_client
-from app.services.effects.result import EffectResult
+from app.services.effects.result import EffectResult, EffectStatus
 
 
 def load_failed_effect_results(
@@ -21,8 +21,8 @@ def load_failed_effect_results(
 
     query = (
         db.collection("effect_results")
-        .where("success", "==", False)
-        .order_by("executed_at")
+        .where("status", "in", [EffectStatus.ERROR.value, EffectStatus.RETRYING.value])
+        .order_by("created_at")
         .limit(limit)
     )
 
@@ -31,17 +31,36 @@ def load_failed_effect_results(
     for doc in query.stream():
         data = doc.to_dict()
 
-        results.append(
-            EffectResult(
-                relato_id=data["relato_id"],
-                effect_type=data["effect_type"],
-                effect_ref=data["effect_ref"],
-                success=data["success"],
-                metadata=data.get("metadata"),
-                error=data.get("error"),
-                executed_at=data["executed_at"],
+        _metadata = data.get("metadata", {}) or {}
+        if "executed_at" in data: # Legacy field
+            _metadata["old_executed_at"] = data["executed_at"]
+        if "effect_ref" in data: # Legacy field
+            _metadata["effect_ref"] = data["effect_ref"]
+        if "failure_type" in data:
+            _metadata["failure_type"] = data["failure_type"]
+        if "retry_decision" in data:
+            _metadata["old_retry_decision"] = data["retry_decision"]
+
+        status = EffectStatus(data["status"]) # Convert stored string to enum
+
+        if status == EffectStatus.ERROR:
+            results.append(
+                EffectResult.error(
+                    relato_id=data["relato_id"],
+                    effect_type=data["effect_type"],
+                    error_message=data.get("error_message", "Unknown error"),
+                    metadata=_metadata,
+                )
             )
-        )
+        elif status == EffectStatus.RETRYING:
+            results.append(
+                EffectResult.retrying(
+                    relato_id=data["relato_id"],
+                    effect_type=data["effect_type"],
+                    retry_after=data.get("retry_after"),
+                    metadata=_metadata,
+                )
+            )
 
     return results
 
@@ -59,12 +78,37 @@ def load_effect_result(effect_result_id: str) -> EffectResult:
 
     data = doc.to_dict()
 
-    return EffectResult(
-        relato_id=data["relato_id"],
-        effect_type=data["effect_type"],
-        effect_ref=data["effect_ref"],
-        success=data["success"],
-        metadata=data.get("metadata"),
-        error=data.get("error"),
-        executed_at=data["executed_at"],
-    )
+    data = doc.to_dict()
+
+    _metadata = data.get("metadata", {}) or {}
+    if "executed_at" in data:
+        _metadata["old_executed_at"] = data["executed_at"]
+    if "effect_ref" in data:
+        _metadata["effect_ref"] = data["effect_ref"]
+    if "failure_type" in data:
+        _metadata["failure_type"] = data["failure_type"]
+    if "retry_decision" in data:
+        _metadata["old_retry_decision"] = data["retry_decision"]
+
+    status = EffectStatus(data["status"])
+
+    if status == EffectStatus.SUCCESS:
+        return EffectResult.success(
+            relato_id=data["relato_id"],
+            effect_type=data["effect_type"],
+            metadata=_metadata,
+        )
+    elif status == EffectStatus.ERROR:
+        return EffectResult.error(
+            relato_id=data["relato_id"],
+            effect_type=data["effect_type"],
+            error_message=data.get("error_message", "Unknown error"),
+            metadata=_metadata,
+        )
+    elif status == EffectStatus.RETRYING:
+        return EffectResult.retrying(
+            relato_id=data["relato_id"],
+            effect_type=data["effect_type"],
+            retry_after=data.get("retry_after"),
+            metadata=_metadata,
+        )

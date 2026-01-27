@@ -23,6 +23,7 @@ from app.routes import health
 from app.routes import imagens
 from app.routes import relatos
 from app.routes import me
+from app.routes import galeria
 from app.routes.relatos_progress import router as relatos_progress_router
 from contextlib import asynccontextmanager
 from app.services.effects.register_effects import register_all_effect_executors
@@ -107,6 +108,7 @@ app.add_middleware(LoggingMiddleware)
 app.include_router(auth_routes.router)
 app.include_router(imagens.router)
 app.include_router(relatos.router, prefix="/relatos")
+app.include_router(galeria.router)
 app.include_router(me.router)
 app.include_router(relatos_progress_router)
 # Rotas DEV (somente em ambiente de desenvolvimento)

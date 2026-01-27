@@ -14,13 +14,12 @@ from app.domain.relato.states import RelatoStatus
 
 
 def test_criar_relato_estado_inicial():
-    """Testa a criação de um relato quando não existe estado anterior."""
     actor = Actor(id="user-123", role=ActorRole.USER)
     command = CreateRelato(
         relato_id="relato-456",
         owner_id="user-123",
         conteudo="Relato de teste",
-        imagens={"antes": [], "durante": [], "depois": []}
+        image_refs={"antes": [], "durante": [], "depois": []}
     )
 
     decision = decide(command=command, actor=actor, current_state=None)
@@ -39,9 +38,8 @@ def test_negar_criacao_relato_existente():
         relato_id="relato-456",
         owner_id="user-123",
         conteudo="Relato de teste",
-        imagens={"antes": [], "durante": [], "depois": []}
+        image_refs={"antes": [], "durante": [], "depois": []}
     )
-
     decision = decide(command=command, actor=actor, current_state=RelatoStatus.CREATED)
 
     assert decision.allowed is False
@@ -188,7 +186,7 @@ def test_create_relato_emits_typed_effects():
         relato_id="relato-1",
         owner_id="user-123",
         conteudo="Relato válido",
-        imagens={"antes": [], "durante": [], "depois": []},
+        image_refs={"antes": [], "durante": [], "depois": []},
     )
 
     decision = decide(
@@ -208,7 +206,7 @@ def test_create_relato_initial_state_is_created():
         relato_id="relato-1",
         owner_id="user-123",
         conteudo="Relato válido",
-        imagens={"antes": [], "durante": [], "depois": []},
+        image_refs={"antes": [], "durante": [], "depois": []},
     ),
         actor=Actor(id="user-123", role=ActorRole.USER),
         current_state=None

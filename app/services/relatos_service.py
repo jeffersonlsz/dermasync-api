@@ -1,11 +1,12 @@
 # app/services/relatos_service.py
 import logging
 import uuid
+import json
 from datetime import datetime, timezone
 from typing import Union, List
 
 import asyncio
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from google.cloud import firestore
 from google.api_core.exceptions import FailedPrecondition
 from google.cloud.firestore import FieldFilter
@@ -17,8 +18,11 @@ from app.archlog_sync.logger import registrar_log
 from app.firestore.client import get_firestore_client
 from app.logger_config import configurar_logger_json
 from app.schema.relato import RelatoFullOutput, RelatoPublicoOutput, RelatoCompletoInput, RelatoPublicPreviewDTO, ImagePreviewsDTO
+from app.schema.relato_draft import RelatoDraftInput
 from app.services.imagens_service import get_imagem_by_id, salvar_imagem_from_base64, mark_image_as_orphaned
 from app.firestore.persistencia import salvar_relato_firestore
+from app.services.relato_effect_executor import RelatoEffectExecutor
+
 
 
 
@@ -524,3 +528,20 @@ async def listar_relatos_publicos_galeria_publica_preview(
     except Exception as e:
         logger.error(f"Erro ao buscar relatos para galeria pública: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error while fetching gallery.")
+
+def run_submission_effects(effects: list, executor: RelatoEffectExecutor):
+    """Executa os efeitos da submissão em background."""
+    try:
+        executor.execute(effects)
+    except Exception as e:
+        logger.error(f"Erro ao executar efeitos da submissão em background: {e}", exc_info=True)
+
+def parse_payload_json(payload: str) -> "RelatoDraftInput":
+    try:
+        data = json.loads(payload)
+        return RelatoDraftInput(**data)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )

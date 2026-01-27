@@ -2,6 +2,10 @@
 
 import pytest
 from fastapi import status
+from unittest.mock import Mock
+
+from app.services.effects.result import EffectStatus
+from app.services.effects.result import EffectResult
 
 
 # =========================================================
@@ -25,6 +29,17 @@ async def test_get_relato_progress_forbidden(
     monkeypatch,
 ):
     from fastapi import HTTPException
+
+    # Mock EffectResultRepository and its fetch_by_relato_id method
+    mock_effect_repo_instance = Mock()
+    mock_effect_repo_instance.fetch_by_relato_id.return_value = [] # Return empty list for this test
+
+    mock_effect_repo_class = Mock(return_value=mock_effect_repo_instance)
+
+    monkeypatch.setattr(
+        "app.routes.relatos_progress.EffectResultRepository",
+        mock_effect_repo_class,
+    )
 
     async def fake_get_relato_by_id(*_, **__):
         raise HTTPException(status_code=403, detail="Acesso negado")
@@ -51,24 +66,20 @@ async def test_get_relato_progress_empty(
     async def fake_get_relato_by_id(*_, **__):
         return {"id": "relato-123"}
 
-    def fake_fetch_progress(relato_id: str):
-        return {
-            "relato_id": relato_id,
-            "total_effects": 0,
-            "completed": 0,
-            "failed": 0,
-            "progress_pct": 0,
-            "effects": [],
-        }
+    # Mock EffectResultRepository and its fetch_by_relato_id method
+    mock_effect_repo_instance = Mock()
+    mock_effect_repo_instance.fetch_by_relato_id.return_value = [] # Return empty list for this test
+
+    mock_effect_repo_class = Mock(return_value=mock_effect_repo_instance)
+
+    monkeypatch.setattr(
+        "app.routes.relatos_progress.EffectResultRepository",
+        mock_effect_repo_class,
+    )
 
     monkeypatch.setattr(
         "app.services.relatos_service.get_relato_by_id",
         fake_get_relato_by_id,
-    )
-
-    monkeypatch.setattr(
-        "app.services.readmodels.relato_progress.fetch_relato_progress",
-        fake_fetch_progress,
     )
 
     response = await client.get("/relatos/relato-123/progress")
@@ -76,7 +87,35 @@ async def test_get_relato_progress_empty(
 
     assert response.status_code == 200
     assert data["progress_pct"] == 0
-    assert data["effects"] == []
+    assert data["steps"] == [
+        {
+            "step_id": "persist_relato",
+            "label": "Enviando relato para processamento...",
+            "state": "pending",
+            "weight": 1,
+            "started_at": None,
+            "finished_at": None,
+            "error_message": None,
+        },
+        {
+            "step_id": "upload_images",
+            "label": "Processando imagens...",
+            "state": "pending",
+            "weight": 3,
+            "started_at": None,
+            "finished_at": None,
+            "error_message": None,
+        },
+        {
+            "step_id": "enrich_metadata",
+            "label": "Analisando o relato enviado...",
+            "state": "pending",
+            "weight": 3,
+            "started_at": None,
+            "finished_at": None,
+            "error_message": None,
+        },
+    ]
 
 
 # =========================================================
@@ -92,28 +131,23 @@ async def test_get_relato_progress_partial_with_error(
     async def fake_get_relato_by_id(*_, **__):
         return {"id": "relato-123"}
 
-    def fake_fetch_progress(relato_id: str):
-        return {
-            "relato_id": relato_id,
-            "total_effects": 3,
-            "completed": 2,
-            "failed": 1,
-            "progress_pct": 66,
-            "effects": [
-                {"effect_type": "PERSIST_RELATO", "success": True},
-                {"effect_type": "UPLOAD_IMAGES", "success": False},
-                {"effect_type": "ENQUEUE_PROCESSING", "success": True},
-            ],
-        }
+    mock_effect_repo_instance = Mock()
+    mock_effect_repo_instance.fetch_by_relato_id.return_value = [
+        EffectResult.success(relato_id="relato-123", effect_type="PERSIST_RELATO"),
+        EffectResult.error(relato_id="relato-123", effect_type="UPLOAD_IMAGES", error_message="failed"),
+        EffectResult.success(relato_id="relato-123", effect_type="ENQUEUE_PROCESSING"),
+    ]
+
+    mock_effect_repo_class = Mock(return_value=mock_effect_repo_instance)
+
+    monkeypatch.setattr(
+        "app.routes.relatos_progress.EffectResultRepository",
+        mock_effect_repo_class,
+    )
 
     monkeypatch.setattr(
         "app.services.relatos_service.get_relato_by_id",
         fake_get_relato_by_id,
-    )
-
-    monkeypatch.setattr(
-        "app.services.readmodels.relato_progress.fetch_relato_progress",
-        fake_fetch_progress,
     )
 
     response = await client.get("/relatos/relato-123/progress")
@@ -137,27 +171,23 @@ async def test_get_relato_progress_complete(
     async def fake_get_relato_by_id(*_, **__):
         return {"id": "relato-123"}
 
-    def fake_fetch_progress(relato_id: str):
-        return {
-            "relato_id": relato_id,
-            "total_effects": 2,
-            "completed": 2,
-            "failed": 0,
-            "progress_pct": 100,
-            "effects": [
-                {"effect_type": "PERSIST_RELATO", "success": True},
-                {"effect_type": "UPLOAD_IMAGES", "success": True},
-            ],
-        }
+    mock_effect_repo_instance = Mock()
+    mock_effect_repo_instance.fetch_by_relato_id.return_value = [
+        EffectResult.success(relato_id="relato-123", effect_type="PERSIST_RELATO"),
+        EffectResult.success(relato_id="relato-123", effect_type="UPLOAD_IMAGES"),
+        EffectResult.success(relato_id="relato-123", effect_type="ENRICH_METADATA"),
+    ]
+
+    mock_effect_repo_class = Mock(return_value=mock_effect_repo_instance)
+
+    monkeypatch.setattr(
+        "app.routes.relatos_progress.EffectResultRepository",
+        mock_effect_repo_class,
+    )
 
     monkeypatch.setattr(
         "app.services.relatos_service.get_relato_by_id",
         fake_get_relato_by_id,
-    )
-
-    monkeypatch.setattr(
-        "app.services.readmodels.relato_progress.fetch_relato_progress",
-        fake_fetch_progress,
     )
 
     response = await client.get("/relatos/relato-123/progress")

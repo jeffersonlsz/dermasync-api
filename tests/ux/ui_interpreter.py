@@ -16,13 +16,13 @@ def interpret_for_ui(ux_effects: List[Dict[str, Any]]) -> List[str]:
     for effect in ux_effects:
         effect_type = effect.get("type")
 
-        if effect_type == "processing_started":
+        if effect_type == "ProcessingStartedUXEffect":
             story.append("Recebemos seu relato")
 
-        elif effect_type == "retry":
-            message = (effect.get("message") or "").lower()
+        elif effect_type == "RetryUXEffect":
+            failed_effects_count = effect.get("failed_effects_count", 0)
 
-            if "tentando novamente" in message:
+            if failed_effects_count > 0:
                 story.append("Tentando novamente...")
             else:
                 story.append("Não foi possível concluir agora")

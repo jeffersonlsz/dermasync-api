@@ -1,4 +1,4 @@
-from app.services.effects.result import EffectResult
+from app.services.effects.result import EffectResult, EffectStatus
 from app.services.effects.failure_context import FailureContext
 from app.services.effects.retry_classifier import (
     DefaultRetryClassifier,
@@ -8,7 +8,7 @@ from app.services.effects.retry_decision import RetryDecision
 
 
 def classify_retry(effect: EffectResult) -> RetryDecision:
-    if effect.success:
+    if effect.status == EffectStatus.SUCCESS:
         return RetryDecision.abort(
             reason="already_succeeded"
         )

@@ -32,7 +32,7 @@ def persist_relato_firestore(
     }
 
     # Se for criação, adiciona created_at
-    if status == RelatoStatus.DRAFT:
+    if status == RelatoStatus.CREATED:
         data["created_at"] = now
 
     logger.info(

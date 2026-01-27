@@ -23,15 +23,15 @@ def test_direct():
         assert decision.allowed is True
         assert decision.reason is None
         assert decision.previous_state is None
-        assert decision.next_state == RelatoStatus.DRAFT
+        assert decision.next_state == RelatoStatus.CREATED
         assert len(decision.effects) > 0  # Deve ter efeitos de persistência e upload
         print("✓ Creation from initial state test passed")
         
         print("Testing denial of creation when relato already exists...")
-        decision = decide(command=command, actor=actor, current_state=RelatoStatus.DRAFT)
+        decision = decide(command=command, actor=actor, current_state=RelatoStatus.DRCREATEDAFT)
 
         assert decision.allowed is False
-        assert decision.previous_state == RelatoStatus.DRAFT
+        assert decision.previous_state == RelatoStatus.CREATED
         assert decision.next_state is None
         assert decision.effects == []  # Não deve ter efeitos quando negado
         assert decision.reason is not None  # Reason should not be None when denied

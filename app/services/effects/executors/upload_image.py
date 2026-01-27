@@ -32,31 +32,26 @@ def execute_upload_image(metadata: dict) -> EffectResult:
         )
 
         # --- EffectResult LIMPO ---
-        return EffectResult(
+        return EffectResult.success(
             relato_id=relato_id,
             effect_type="UPLOAD_IMAGE",
-            effect_ref=path,  # referência técnica estável
-            success=True,
             metadata={
                 "path": path,
                 "papel": papel,
+                "effect_ref": path,
             },
-            error=None,
-            executed_at=datetime.utcnow(),
         )
 
     except Exception as exc:
         logger.exception("[UPLOAD_IMAGE] Falha")
 
-        return EffectResult(
+        return EffectResult.error(
             relato_id=relato_id,
             effect_type="UPLOAD_IMAGE",
-            effect_ref=path,
-            success=False,
+            error_message=str(exc),
             metadata={
                 "path": path,
                 "papel": papel,
+                "effect_ref": path,
             },
-            error=str(exc),
-            executed_at=datetime.utcnow(),
         )

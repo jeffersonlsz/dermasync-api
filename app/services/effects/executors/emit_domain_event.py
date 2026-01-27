@@ -25,25 +25,24 @@ def execute_emit_domain_event(metadata: dict) -> EffectResult:
             payload,
         )
 
-        return EffectResult(
+        return EffectResult.success(
             relato_id=relato_id,
             effect_type="EMIT_DOMAIN_EVENT",
-            effect_ref=event_name,
-            success=True,
-            metadata={"payload": payload},
-            error=None,
-            executed_at=datetime.utcnow(),
+            metadata={
+                "payload": payload,
+                "effect_ref": event_name,
+            },
         )
 
     except Exception as exc:
         logger.exception("[EMIT_DOMAIN_EVENT] Falha")
 
-        return EffectResult(
+        return EffectResult.error(
             relato_id=relato_id,
             effect_type="EMIT_DOMAIN_EVENT",
-            effect_ref=event_name,
-            success=False,
-            metadata={"payload": payload},
-            error=str(exc),
-            executed_at=datetime.utcnow(),
+            error_message=str(exc),
+            metadata={
+                "payload": payload,
+                "effect_ref": event_name,
+            },
         )

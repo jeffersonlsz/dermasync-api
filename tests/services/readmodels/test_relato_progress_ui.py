@@ -1,6 +1,5 @@
-# tests/services/readmodels/test_relato_progress_ui.py
-
 from app.services.readmodels.relato_progress_ui import build_relato_progress_ui
+from app.services.effects.result import EffectStatus
 
 
 # =========================================================
@@ -38,9 +37,9 @@ def test_progress_ui_partial_with_error():
         "failed": 1,
         "progress_pct": 66,
         "effects": [
-            {"effect_type": "PERSIST_RELATO", "success": True},
-            {"effect_type": "UPLOAD_IMAGES", "success": False},
-            {"effect_type": "ENQUEUE_PROCESSING", "success": True},
+            {"effect_type": "PERSIST_RELATO", "status": EffectStatus.SUCCESS.value},
+            {"effect_type": "UPLOAD_IMAGES", "status": EffectStatus.ERROR.value},
+            {"effect_type": "ENQUEUE_PROCESSING", "status": EffectStatus.SUCCESS.value},
         ],
     }
 
@@ -52,10 +51,10 @@ def test_progress_ui_partial_with_error():
     assert ui["status"] == "PARTIAL_ERROR"
     assert ui["progress_pct"] == 66
     assert ui["failed"] == 1
-    assert "erro" in ui["summary"].lower()
+    assert ui["summary"].lower() == "algumas etapas falharam"
 
-    steps = {s["type"]: s["success"] for s in ui["steps"]}
-    assert steps["UPLOAD_IMAGES"] is False
+    steps = {s["key"]: s["status"] for s in ui["steps"]}
+    assert steps["UPLOAD_IMAGES"] == "error"
 
 
 # =========================================================
@@ -69,7 +68,7 @@ def test_progress_ui_in_progress():
         "failed": 0,
         "progress_pct": 33,
         "effects": [
-            {"effect_type": "PERSIST_RELATO", "success": True},
+            {"effect_type": "PERSIST_RELATO", "status": EffectStatus.SUCCESS.value},
         ],
     }
 
@@ -95,8 +94,8 @@ def test_progress_ui_completed():
         "failed": 0,
         "progress_pct": 100,
         "effects": [
-            {"effect_type": "PERSIST_RELATO", "success": True},
-            {"effect_type": "UPLOAD_IMAGES", "success": True},
+            {"effect_type": "PERSIST_RELATO", "status": EffectStatus.SUCCESS.value},
+            {"effect_type": "UPLOAD_IMAGES", "status": EffectStatus.SUCCESS.value},
         ],
     }
 

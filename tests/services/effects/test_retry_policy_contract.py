@@ -18,14 +18,11 @@ class DummyPolicy(RetryPolicy):
 def test_retry_policy_contract():
     policy = DummyPolicy()
 
-    result = EffectResult(
+    result = EffectResult.error(
         relato_id="r1",
         effect_type="UPLOAD_IMAGE",
-        effect_ref="x",
-        success=False,
-        metadata=None,
-        error="fail",
-        executed_at=datetime.utcnow(),
+        error_message="fail",
+        metadata={"effect_ref": "x"},
     )
 
     decision = policy.decide(effect_result=result, attempt=1)

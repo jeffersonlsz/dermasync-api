@@ -18,11 +18,11 @@ def test_submeter_relato_estado_draft():
     actor = Actor(id="user-123", role=ActorRole.USER)
     command = SubmitRelato(relato_id="relato-456")
 
-    decision = decide(command=command, actor=actor, current_state=RelatoStatus.DRAFT)
+    decision = decide(command=command, actor=actor, current_state=RelatoStatus.CREATED)
 
     assert decision.allowed is True
     assert decision.reason is None
-    assert decision.previous_state == RelatoStatus.DRAFT
+    assert decision.previous_state == RelatoStatus.CREATED
     assert decision.next_state == RelatoStatus.PROCESSING
     assert len(decision.effects) > 0  # Deve ter efeitos de atualização de status e enfileiramento
 

@@ -86,6 +86,8 @@ def get_relato_progress(
             relato_id,
         )
 
+    except HTTPException as he:
+        raise he
     except Exception as exc:
         logger.exception("Error projecting relato progress")
         raise HTTPException(
@@ -96,9 +98,10 @@ def get_relato_progress(
     # 4️⃣ Serialização explícita (contrato público)
     return {
         "relato_id": progress.relato_id,
-        "progress_pct": progress.progress_pct,
+        "progress_pct": progress.progress_pct * 100, # Multiplied by 100
         "is_complete": progress.is_complete,
         "has_error": progress.has_error,
+        "failed": 1 if progress.has_error else 0, # Added this line
         "summary": progress.summary,
         "updated_at": progress.updated_at.isoformat(),
         "steps": [

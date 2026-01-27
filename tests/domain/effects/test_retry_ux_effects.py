@@ -38,15 +38,12 @@ def test_retry_emits_retry_ux_effect(monkeypatch):
 def test_retry_executes_failed_effects(monkeypatch):
     executed = []
 
-    fake_result = EffectResult(
+    fake_result = EffectResult.error(
         relato_id="relato-123",
         effect_type="UPLOAD_IMAGES",
-        effect_ref="relato-123",
-        success=False,
-        metadata=None,
-        error="fail",
+        error_message="fail",
+        metadata={"effect_ref": "relato-123"},
         created_at=datetime.now(timezone.utc),
-        executed_at=None,
     )
 
     monkeypatch.setattr(

@@ -2,7 +2,7 @@
 import logging
 from typing import Iterable
 
-from app.services.effects.result import EffectResult
+from app.services.effects.result import EffectResult, EffectStatus
 from app.services.effects.retry_engine import RetryEngine
 from app.services.effects.persist_firestore import persist_effect_result_firestore
 from app.services.relato_effect_executor import RelatoEffectExecutor
@@ -45,33 +45,29 @@ class RetryScheduler:
             # Persistimos a decisão, SEMPRE
             persist_effect_result_firestore(enriched)
 
-            decision = enriched.retry_decision
+            if enriched.status == EffectStatus.RETRYING:
+                logger.info(
+                    "RetryScheduler | reexecutando effect=%s | attempt=%s",
+                    enriched.effect_type,
+                    enriched.metadata.get("attempt", 1) if enriched.metadata else 1,
+                )
 
-            if not decision or not decision.should_retry:
+                attempt = enriched.metadata.get("attempt", 1)
+
+                try:
+                    self._executor.execute_by_result(
+                        effect_result=enriched,
+                        attempt=attempt,
+                    )
+
+                except Exception:
+                    logger.exception(
+                        "RetryScheduler | falha ao reexecutar efeito | effect=%s",
+                        enriched.effect_type,
+                    )
+            else: # enriched.status == EffectStatus.ERROR (or SUCCESS, but that shouldn't happen here)
                 logger.info(
                     "RetryScheduler | abortando retry | effect=%s | reason=%s",
                     enriched.effect_type,
-                    decision.reason if decision else "no-decision",
-                )
-                continue
-
-            logger.info(
-                "RetryScheduler | reexecutando effect=%s | attempt=%s",
-                enriched.effect_type,
-                enriched.metadata.get("attempt", 0) if enriched.metadata else 0,
-            )
-
-            # Incrementa tentativa
-            attempt = (enriched.metadata or {}).get("attempt", 0) + 1
-
-            try:
-                self._executor.execute_by_result(
-                    effect_result=enriched,
-                    attempt=attempt,
-                )
-
-            except Exception:
-                logger.exception(
-                    "RetryScheduler | falha ao reexecutar efeito | effect=%s",
-                    enriched.effect_type,
+                    enriched.metadata.get("failure_type", "no-retry-decision"),
                 )

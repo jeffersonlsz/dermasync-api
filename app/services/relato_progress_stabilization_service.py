@@ -8,6 +8,7 @@ from app.domain.ux_progress.step_definition import default_step_definitions
 
 from app.repositories.effect_result_repository import EffectResultRepository
 from app.repositories.progress_snapshot_repository import ProgressSnapshotRepository
+from app.services.effects.result import EffectStatus
 
 import logging
 logger = logging.getLogger(__name__)
@@ -101,7 +102,7 @@ class RelatoProgressStabilizationService:
         last_effect_by_type: Dict[str, bool] = {}
 
         for effect in effect_results:
-            last_effect_by_type[effect.type] = effect.success
+            last_effect_by_type[effect.effect_type] = effect.status == EffectStatus.SUCCESS
 
         for step in step_definitions:
             effect_type = step.completion_effect_type

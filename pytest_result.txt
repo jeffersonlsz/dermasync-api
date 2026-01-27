@@ -1,10 +1,19 @@
 Return code: 4
 STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.11.4, pytest-9.0.2, pluggy-1.6.0 -- C:\Python311\python.exe
+cachedir: .pytest_cache
+rootdir: D:\workspace_projects_001\dermasync-api
+configfile: pytest.ini
+plugins: anyio-4.4.0, asyncio-1.3.0, mock-3.15.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 0 items
+
+============================ no tests ran in 0.20s ============================
 
 STDERR:
-ImportError while loading conftest 'D:\workspace_projects_001\dermasync-api\tests\conftest.py'.
-tests\conftest.py:13: in <module>
-    from httpx import AsyncClient, ASGITransport
-E   ModuleNotFoundError: No module named 'httpx'
+ERROR: not found: D:\workspace_projects_001\dermasync-api\tests\domain\effects\test_retry_ux_effects.py::test_retry_ignores_successful_effects
+(no match in any of [<Module test_retry_ux_effects.py>])
+
 
 TEST FAILED!

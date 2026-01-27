@@ -7,7 +7,7 @@ import uuid
 import json
 from typing import Optional, List
 
-from fastapi import APIRouter, Depends, Form, File, Query, UploadFile, HTTPException, status
+from fastapi import APIRouter, Depends, Form, File, Query, UploadFile, HTTPException, status, BackgroundTasks
 
 from app.auth.dependencies import get_current_user, get_optional_user
 from app.auth.schemas import User
@@ -23,48 +23,14 @@ from app.services.relato_adapters import (
     update_relato_status_adapter
 )
 from app.services.relato_effect_executor import RelatoEffectExecutor
-from app.services.relatos_service import get_relato_by_id, process_and_save_relato, moderate_relato
+from app.services.relatos_service import get_relato_by_id, process_and_save_relato, moderate_relato, run_submission_effects, parse_payload_json
 
 from app.services.retry_relato import retry_failed_effects
 from app.services.uploads_service import salvar_uploads_e_retornar_refs
 from app.services.ux_serializer import serialize_ux_effects
 
-
 router = APIRouter()
 logger = logging.getLogger(__name__)
-
-
-
-
-
-def parse_payload_json(payload: str) -> RelatoDraftInput:
-    try:
-        data = json.loads(payload)
-        return RelatoDraftInput(**data)
-    except Exception as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(exc),
-        )
-
-async def materialize_uploads(
-    files: List[UploadFile],
-) -> list[dict]:
-    result = []
-    for f in files:
-        if not f or not f.filename:
-            continue
-        content = await f.read()
-        if not content:
-            continue
-        result.append(
-            {
-                "filename": f.filename,
-                "content": content,
-                "content_type": f.content_type,
-            }
-        )
-    return result
 
 
 @router.post(
@@ -167,7 +133,6 @@ async def criar_e_enviar_relato(
     }
 
 
-
 @router.post(
     "/{relato_id}/submit",
     status_code=status.HTTP_202_ACCEPTED,
@@ -175,6 +140,7 @@ async def criar_e_enviar_relato(
 )
 async def submit_relato(
     relato_id: str,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
 ):
     actor = Actor(
@@ -213,7 +179,7 @@ async def submit_relato(
         update_relato_status=update_relato_status_adapter,
     )
 
-    executor.execute(decision.effects)
+    background_tasks.add_task(run_submission_effects, decision.effects, executor)
 
     return {
         "data": {
@@ -298,92 +264,6 @@ async def moderate_relato_route(
     )
     return result
 
-    
-@router.get(
-    "/admin/galeria/preview",
-    summary="Preview administrativo de relatos",
-    tags=["Admin"]
-)
-async def listar_relatos_preview_admin(
-    limit: int = 50,
-    status_filter: Optional[str] = None,
-    current_user: User = Depends(get_current_user)
-):
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Acesso restrito a administradores"
-        )
-
-    from app.services.relatos_service import listar_relatos_publicos_preview
-
-    relatos = await listar_relatos_publicos_preview(
-        limit=limit,
-        status_filter=status_filter
-    )
-
-    return {
-        "quantidade": len(relatos),
-        "dados": relatos
-    }
-
-
-@router.get(
-    "/galeria/public",
-    response_model=dict,
-    summary="Galeria pública anonimizadas",
-    tags=["Galeria Pública"]
-)
-async def listar_galeria_publica(
-    limit: int = Query(12, ge=1, le=24),
-    page: int = Query(1, ge=1)
-):
-    from app.services.relatos_service import listar_relatos_publicos_galeria_publica_preview
-
-    relatos = await listar_relatos_publicos_galeria_publica_preview(
-        limit=limit,
-        page=page,
-        only_public=True
-    )
-
-    return {
-        "meta": {
-            "page": page,
-            "limit": limit,
-            "count": len(relatos)
-        },
-        "dados": relatos
-    }
-@router.get(
-    "/galeria/public/v2",
-    response_model=dict,
-    summary="Galeria pública anonimizadas (v2)",
-    tags=["Galeria Pública"]
-)
-async def listar_galeria_publica_v2(
-    limit: int = Query(12, ge=1, le=24),
-    page: int = Query(1, ge=1)
-):
-    logger.info(f"Iniciando listagem galeria v2. Limit={limit}, Page={page}")
-    from app.services.relatos_service import listar_relatos_publicos_galeria_publica_preview
-
-    relatos = await listar_relatos_publicos_galeria_publica_preview(
-        limit=limit,
-        page=page,
-        only_public=True
-    )
-
-    logger.info(f"Retornando {len(relatos)} relatos na galeria v2.")
-
-    return {
-        "meta": {
-            "page": page,
-            "limit": limit,
-            "count": len(relatos)
-        },
-        "dados": relatos
-    }
-
 @router.get(
     "/{relato_id}/imagens",
     summary="Imagens associadas ao relato (contrato canônico)",
@@ -408,22 +288,7 @@ async def get_imagens_relato(
 
     return imagens
 
-@router.get(
-    "/galeria/public/v3",
-    summary="Galeria pública otimizada com thumbnails",
-    tags=["Galeria Pública"]
-)
-async def listar_galeria_publica_v3(
-    limit: int = Query(12, ge=1, le=24),
-    page: int = Query(1, ge=1),
-):
-    from app.services.galeria_service import listar_galeria_publica_v3
-
-    return await listar_galeria_publica_v3(
-        limit=limit,
-        page=page
-    )
-    
+  
 @router.post(
     "/{relato_id}/retry",
     status_code=status.HTTP_202_ACCEPTED,

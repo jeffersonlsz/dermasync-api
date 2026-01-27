@@ -21,25 +21,18 @@ def execute_enqueue_processing(relato_id: str) -> EffectResult:
     try:
         enqueue_relato_processing(relato_id)
 
-        return EffectResult(
+        return EffectResult.success(
             relato_id=relato_id,
             effect_type="ENQUEUE_PROCESSING",
-            effect_ref=relato_id,
-            success=True,
-            metadata=None,
-            error=None,
-            executed_at=datetime.utcnow(),
+            metadata={"effect_ref": relato_id},
         )
 
     except Exception as exc:
         logger.exception("[ENQUEUE_PROCESSING] Falha ao enfileirar relato")
 
-        return EffectResult(
+        return EffectResult.error(
             relato_id=relato_id,
             effect_type="ENQUEUE_PROCESSING",
-            effect_ref=relato_id,
-            success=False,
-            metadata=None,
-            error=str(exc),
-            executed_at=datetime.utcnow(),
+            error_message=str(exc),
+            metadata={"effect_ref": relato_id},
         )

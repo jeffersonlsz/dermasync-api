@@ -10,14 +10,11 @@ from datetime import datetime
 def test_retry_effect_unsupported_type_raises():
     clear_registry()
 
-    fake_result = EffectResult(
+    fake_result = EffectResult.error(
         relato_id="r1",
         effect_type="UNKNOWN_EFFECT",
-        effect_ref="x",
-        success=False,
-        metadata={},
-        error="fail",
-        executed_at=datetime.utcnow(),
+        error_message="fail",
+        metadata={"effect_ref": "x"},
     )
 
     with patch(

@@ -11,20 +11,17 @@ from app.services.effects.result import EffectResult
 def test_classify_timeout():
     classifier = DefaultRetryClassifier()
 
-    result = EffectResult(
+    result = EffectResult.error(
         relato_id="r1",
         effect_type="UPLOAD_IMAGE",
-        effect_ref="x",
-        success=False,
-        metadata=None,
-        error="Request timeout while uploading",
-        executed_at=datetime.utcnow(),
+        error_message="Request timeout while uploading",
+        metadata={"effect_ref": "x"},
     )
 
     failure = FailureContext(
         effect_type=result.effect_type,
-        effect_ref=result.effect_ref,
-        error=result.error,
+        effect_ref=result.metadata.get("effect_ref"),
+        error=result.error_message,
     )
 
     assert (
@@ -37,19 +34,16 @@ def test_classify_timeout():
 def test_classify_invalid_input():
     classifier = DefaultRetryClassifier()
 
-    result = EffectResult(
+    result = EffectResult.error(
         relato_id="r1",
         effect_type="PERSIST_RELATO",
-        effect_ref="draft",
-        success=False,
-        metadata=None,
-        error="Invalid payload structure",
-        executed_at=datetime.utcnow(),
+        error_message="Invalid payload structure",
+        metadata={"effect_ref": "draft"},
     )
     failure = FailureContext(
         effect_type=result.effect_type,
-        effect_ref=result.effect_ref,
-        error=result.error,
+        effect_ref=result.metadata.get("effect_ref"),
+        error=result.error_message,
     )
     
     assert (
@@ -61,20 +55,17 @@ def test_classify_invalid_input():
 def test_classify_unknown():
     classifier = DefaultRetryClassifier()
 
-    result = EffectResult(
+    result = EffectResult.error(
         relato_id="r1",
         effect_type="ENQUEUE_JOB",
-        effect_ref="r1",
-        success=False,
-        metadata=None,
-        error="Something weird happened",
-        executed_at=datetime.utcnow(),
+        error_message="Something weird happened",
+        metadata={"effect_ref": "r1"},
     )
     
     failure = FailureContext(
         effect_type=result.effect_type,
-        effect_ref=result.effect_ref,
-        error=result.error,
+        effect_ref=result.metadata.get("effect_ref"),
+        error=result.error_message,
     )
     
 

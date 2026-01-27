@@ -30,7 +30,7 @@ def test_post_relatos_success():
     mock_decision = Decision(
         allowed=True,
         reason=None,
-        next_state=RelatoStatus.DRAFT,
+        next_state=RelatoStatus.CREATED,
         previous_state=None,
         effects=["effect1", "effect2"]  # Mock effects
     )
@@ -66,7 +66,7 @@ def test_post_relatos_success():
         assert response.status_code == status.HTTP_201_CREATED
         response_data = response.json()
         assert "relato_id" in response_data
-        assert response_data["status"] == RelatoStatus.DRAFT.value
+        assert response_data["status"] == RelatoStatus.CREATED.value
 
         # Verify that executor.execute was called with the effects
         mock_executor_instance.execute.assert_called_once_with(mock_decision.effects)
@@ -82,7 +82,7 @@ def test_post_relatos_denied_by_domain():
         allowed=False,
         reason="Relato já existe.",
         next_state=None,
-        previous_state=RelatoStatus.DRAFT,
+        previous_state=RelatoStatus.CREATED,
         effects=[]  # No effects when denied
     )
 
@@ -179,7 +179,7 @@ def test_post_relatos_executor_not_called_when_denied():
         allowed=False,
         reason="Relato já existe.",
         next_state=None,
-        previous_state=RelatoStatus.DRAFT,
+        previous_state=RelatoStatus.CREATED,
         effects=[]  # No effects when denied
     )
 

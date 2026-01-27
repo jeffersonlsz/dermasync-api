@@ -10,28 +10,23 @@ class FakeEngine:
         decision = RetryDecision.abort(reason="test")
         # The decide method should return an EffectResult, not a RetryDecision.
         # Create a new EffectResult with the decision
-        return EffectResult(
+        return EffectResult.error(
             relato_id=result.relato_id,
             effect_type=result.effect_type,
-            effect_ref=result.effect_ref,
-            success=result.success,
-            failure_type=result.failure_type,
-            retry_decision=decision,
-            metadata=result.metadata,
-            error=result.error,
-            executed_at=result.executed_at,
+            error_message=decision.reason,
+            metadata={
+                **result.metadata,
+                "effect_ref": result.metadata.get("effect_ref") if result.metadata else None,
+            },
         )
 
 
 def test_retry_scheduler_runs_and_returns_decisions(mocker):
-    fake_result = EffectResult(
+    fake_result = EffectResult.error(
         relato_id="r1",
         effect_type="TEST",
-        effect_ref="ref-123",
-        success=False,
-        metadata={},
-        error="test error",
-        executed_at=datetime.utcnow()
+        error_message="test error",
+        metadata={"effect_ref": "ref-123"},
     )
 
     load_mock = mocker.patch(

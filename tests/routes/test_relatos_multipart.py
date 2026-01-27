@@ -124,15 +124,12 @@ def test_effect_result_persist_and_fetch_success():
 
     from app.services.effects.persist_firestore import persist_effect_result_firestore
     from app.services.effects.fetch_firestore import fetch_effect_result_success
-    from app.services.effects.result import EffectResult
+    from app.services.effects.result import EffectResult, EffectStatus
 
-    effect = EffectResult(
+    effect = EffectResult.success(
         relato_id="relato-test-001",
         effect_type="UPLOAD_IMAGES",
-        effect_ref="relato-test-001",
-        success=True,
-        metadata={"total_images": 2},
-        error=None,
+        metadata={"total_images": 2, "effect_ref": "relato-test-001"},
     )
 
     # Persistência real
@@ -147,4 +144,4 @@ def test_effect_result_persist_and_fetch_success():
 
     assert fetched is not None
     assert fetched.relato_id == effect.relato_id
-    assert fetched.success is True
+    assert fetched.status is EffectStatus.SUCCESS

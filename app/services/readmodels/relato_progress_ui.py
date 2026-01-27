@@ -3,6 +3,8 @@
 from datetime import datetime
 from typing import Dict, List
 
+from app.services.effects.result import EffectStatus
+
 
 STATUS_LABELS = {
     "RECEIVED": "Recebemos seu relato",
@@ -10,6 +12,8 @@ STATUS_LABELS = {
     "PARTIAL_ERROR": "Erro durante o processamento",
     "COMPLETED": "Relato concluído",
     "FAILED": "Falha ao processar relato",
+    "PENDING": "Aguardando início",
+    "IN_PROGRESS": "Em progresso",
 }
 
 
@@ -41,16 +45,19 @@ def build_relato_progress_ui(
     # -----------------------------
     # Status canônico UX
     # -----------------------------
-    if is_complete and not has_error:
+    if total == 0 and completed == 0:
+        status = "PENDING"
+    elif is_complete and not has_error:
         status = "COMPLETED"
     elif has_error and completed > 0:
         status = "PARTIAL_ERROR"
     elif has_error and completed == 0:
         status = "FAILED"
-    elif completed == 0:
-        status = "RECEIVED"
-    else:
+    elif completed > 0 and not is_complete: # Partial progress, not complete, no overall error
+        status = "IN_PROGRESS"
+    else: # Default for any other processing state
         status = "PROCESSING"
+
 
     status_label = STATUS_LABELS[status]
 
@@ -60,11 +67,11 @@ def build_relato_progress_ui(
     steps: List[Dict] = []
 
     for effect in progress.get("effects", []):
-        success = effect.get("success")
+        status_value = effect.get("status")
 
-        if success is True:
+        if status_value == EffectStatus.SUCCESS.value:
             step_status = "done"
-        elif success is False:
+        elif status_value in [EffectStatus.ERROR.value, EffectStatus.RETRYING.value]:
             step_status = "error"
         else:
             step_status = "pending"
@@ -85,10 +92,12 @@ def build_relato_progress_ui(
         summary = "Algumas etapas falharam"
     elif status == "FAILED":
         summary = "Erro ao processar relato"
-    elif status == "PROCESSING":
-        summary = "Processando relato"
-    else:
-        summary = "Relato recebido"
+    elif status == "IN_PROGRESS":
+        summary = "Relato em processamento"
+    elif status == "PENDING":
+        summary = "Relato aguardando processamento"
+    else: # PROCESSING
+        summary = "Relato recebido e processando"
 
     return {
         "relato_id": relato_id,
@@ -100,6 +109,7 @@ def build_relato_progress_ui(
 
         "has_error": has_error,
         "is_complete": is_complete,
+        "failed": failed, # Added this line
 
         "summary": summary,
 

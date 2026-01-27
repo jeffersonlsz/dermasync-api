@@ -111,7 +111,7 @@ class EnrichedMetadataV2(BaseModel):
     version: Literal["v2"]
     computable: ComputableMetadata
     summaries: dict
-    confidence: dict
+    confidence: Confidence
 
     # 🔒 MODO GLOBAL (default STRICT)
     validation_mode: ValidationMode = ValidationMode.STRICT

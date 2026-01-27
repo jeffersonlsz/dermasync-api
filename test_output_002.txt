@@ -1,0 +1,2320 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.4, pytest-8.4.1, pluggy-1.6.0
+rootdir: D:\workspace_projects_001\dermasync-api
+configfile: pytest.ini
+plugins: anyio-4.9.0, langsmith-0.4.5, asyncio-1.0.0, cov-6.2.1, html-4.1.1, json-report-1.5.0, logger-1.1.1, metadata-3.1.1, mock-3.15.1
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+----------------------------- live log collection -----------------------------
+2026-01-27 12:37:03 [INFO] Current Python path: ['D:\\workspace_projects_001\\dermasync-api', 'D:\\workspace_projects_001\\dermasync-api\\tests\\services', 'D:\\workspace_projects_001\\dermasync-api\\tests\\services\\readmodels', 'D:\\workspace_projects_001\\dermasync-api\\tests\\services\\effects', 'D:\\workspace_projects_001\\dermasync-api\\tests\\routes', 'D:\\workspace_projects_001\\dermasync-api\\tests\\integration', 'D:\\workspace_projects_001\\dermasync-api\\tests\\infra\\retry', 'D:\\workspace_projects_001\\dermasync-api\\tests\\domain', 'D:\\workspace_projects_001\\dermasync-api\\tests\\domain\\ux_effects', 'D:\\workspace_projects_001\\dermasync-api\\tests\\domain\\relato', 'D:\\workspace_projects_001\\dermasync-api\\tests\\domain', 'D:\\workspace_projects_001\\dermasync-api\\tests\\domain\\effects', 'D:\\workspace_projects_001\\dermasync-api\\tests\\core\\projections', 'D:\\workspace_projects_001\\dermasync-api\\tests\\auth', 'D:\\workspace_projects_001\\dermasync-api\\tests\\application', 'D:\\workspace_projects_001\\dermasync-api', 'D:\\workspace_projects_001\\dermasync-api\\venv\\Scripts\\pytest.exe', 'C:\\Python311\\python311.zip', 'C:\\Python311\\DLLs', 'C:\\Python311\\Lib', 'C:\\Python311', 'D:\\workspace_projects_001\\dermasync-api\\venv', 'D:\\workspace_projects_001\\dermasync-api\\venv\\Lib\\site-packages', 'D:\\workspace_projects_001\\dermasync-api\\app\\pipeline']
+collected 155 items
+
+tests/application/test_relato_progress_service.py::test_service_returns_progress_with_no_effects PASSED [  0%]
+tests/application/test_relato_progress_service.py::test_service_passes_effects_to_domain_correctly PASSED [  1%]
+tests/application/test_relato_progress_service.py::test_service_calls_repository_with_correct_relato_id PASSED [  1%]
+tests/application/test_relato_progress_service.py::test_service_propagates_repository_errors PASSED [  2%]
+tests/application/test_relato_progress_stabilization_service.py::test_job_returns_snapshot_if_stable_exists PASSED [  3%]
+tests/application/test_relato_progress_stabilization_service.py::test_job_persists_snapshot_when_progress_is_stable FAILED [  3%]
+tests/auth/test_auth_cenarios.py::test_get_me_usuario_nao_encontrado 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:04 [INFO] Auth token payload preview: sub=7b78b9c9-cd57-4f48-b615-7883f3aba666 role=usuario_logado type=access
+2026-01-27 12:37:04 [WARNING] auth_service.get_user_from_db levantou HTTPException: Usu├írio n├úo encontrado. (status=401)
+2026-01-27 12:37:04 [INFO] AUTH REJECT: usu├írio n├úo encontrado (sub=7b78b9c9-cd57-4f48-b615-7883f3aba666). (service_used=True)
+2026-01-27 12:37:04 [INFO] GET /auth/me 127.0.0.1 -> 401 (44.0ms) body_len=0
+2026-01-27 12:37:04 [INFO] HTTP Request: GET http://test/auth/me "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [  4%]
+tests/auth/test_auth_cenarios.py::test_get_me_usuario_desativado_apos_login 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:04 [INFO] Auth token payload preview: sub=cc24bcf4-0669-4c97-bbf3-0053ce877cb7 role=usuario_logado type=access
+2026-01-27 12:37:04 [INFO] AUTH FORBID: usu├írio inativo user=cc24bcf4-0669-4c97-bbf3-0053ce877cb7
+2026-01-27 12:37:04 [INFO] GET /auth/me 127.0.0.1 -> 403 (4.5ms) body_len=0
+2026-01-27 12:37:04 [INFO] HTTP Request: GET http://test/auth/me "HTTP/1.1 403 Forbidden"
+PASSED                                                                   [  5%]
+tests/auth/test_auth_cenarios.py::test_external_login_com_usuario_inativo 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:04 [INFO] POST /auth/external-login 127.0.0.1 -> 403 (4.6ms) body_len=40
+2026-01-27 12:37:04 [INFO] HTTP Request: POST http://test/auth/external-login "HTTP/1.1 403 Forbidden"
+PASSED                                                                   [  5%]
+tests/auth/test_auth_cenarios.py::test_role_mismatch_entre_token_e_db 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:04 [INFO] Auth token payload preview: sub=36e1f86e-7766-4204-82d5-866dc60736d9 role=admin type=access
+2026-01-27 12:37:04 [WARNING] AUTH REJECT: mismatch entre role do token (admin) e role do DB (usuario_logado) para user=36e1f86e-7766-4204-82d5-866dc60736d9
+2026-01-27 12:37:04 [INFO] GET /auth/me 127.0.0.1 -> 401 (4.1ms) body_len=0
+2026-01-27 12:37:04 [INFO] HTTP Request: GET http://test/auth/me "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [  6%]
+tests/auth/test_auth_cenarios.py::test_get_me_com_auth_header_invalido[None-Not authenticated] 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:04 [INFO] AUTH REJECT: Authorization header ausente.
+2026-01-27 12:37:04 [INFO] GET /auth/me 127.0.0.1 -> 401 (6.3ms) body_len=0
+2026-01-27 12:37:04 [INFO] HTTP Request: GET http://test/auth/me "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [  7%]
+tests/auth/test_auth_cenarios.py::test_get_me_com_auth_header_invalido[Token my-invalid-token-Not authenticated] 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:04 [INFO] AUTH REJECT: Authorization header presente mas esquema n├úo ├® Bearer (esquema=token).
+2026-01-27 12:37:04 [INFO] GET /auth/me 127.0.0.1 -> 401 (0.0ms) body_len=0
+2026-01-27 12:37:04 [INFO] HTTP Request: GET http://test/auth/me "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [  7%]
+tests/auth/test_auth_cenarios.py::test_get_me_com_auth_header_invalido[Bearer -Token inv\xe1lido.] 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:04 [INFO] AUTH REJECT: Bearer header presente mas token vazio.
+2026-01-27 12:37:04 [INFO] GET /auth/me 127.0.0.1 -> 401 (4.2ms) body_len=0
+2026-01-27 12:37:04 [INFO] HTTP Request: GET http://test/auth/me "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [  8%]
+tests/auth/test_auth_cenarios.py::test_get_me_com_auth_header_invalido[Bearer-Token inv\xe1lido.] 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:04 [INFO] AUTH REJECT: Bearer header presente mas token vazio.
+2026-01-27 12:37:04 [INFO] GET /auth/me 127.0.0.1 -> 401 (0.5ms) body_len=0
+2026-01-27 12:37:04 [INFO] HTTP Request: GET http://test/auth/me "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [  9%]
+tests/auth/test_auth_flow.py::test_auth_flow_end_to_end_and_log_stdout 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:04 [WARNING] (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "D:\workspace_projects_001\dermasync-api\venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-27 12:37:05 [INFO] Tentativa de login recebida para o e-mail: test+5e802e41@local.com
+2026-01-27 12:37:05 [INFO] Token de acesso e refresh emitidos para o usu├írio: test+5e802e41@local.com
+2026-01-27 12:37:05 [INFO] POST /auth/login testclient -> 200 (635.4ms) body_len=58
+2026-01-27 12:37:05 [INFO] HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+2026-01-27 12:37:05 [INFO] Auth token payload preview: sub=3693cd6e-2370-4d98-8444-5302956bb567 role=usuario_logado type=access
+2026-01-27 12:37:06 [WARNING] auth_service.get_user_from_db levantou HTTPException: Usu├írio n├úo encontrado. (status=401)
+2026-01-27 12:37:06 [INFO] AUTH OK: usu├írio autenticado user=3693cd6e-2370-4d98-8444-5302956bb567 role=usuario_logado (service_used=True)
+2026-01-27 12:37:06 [INFO] GET /me/profile testclient -> 200 (583.8ms) body_len=0
+2026-01-27 12:37:06 [INFO] HTTP Request: GET http://testserver/me/profile "HTTP/1.1 200 OK"
+PASSED                                                                   [  9%]
+tests/auth/test_auth_hardening.py::test_auth_refresh_expired PASSED      [ 10%]
+tests/auth/test_auth_hardening.py::test_auth_refresh_reuse PASSED        [ 10%]
+tests/auth/test_auth_hardening.py::test_auth_revoke_all_tokens PASSED    [ 11%]
+tests/auth/test_auth_logout.py::test_auth_logout_revokes_refresh_token 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:08 [INFO] POST /auth/logout 127.0.0.1 -> 200 (47.3ms) body_len=106
+2026-01-27 12:37:08 [INFO] HTTP Request: POST http://test/auth/logout "HTTP/1.1 200 OK"
+PASSED                                                                   [ 12%]
+tests/auth/test_auth_logout.py::test_auth_logout_idempotent 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:09 [INFO] POST /auth/logout 127.0.0.1 -> 200 (37.4ms) body_len=106
+2026-01-27 12:37:09 [INFO] HTTP Request: POST http://test/auth/logout "HTTP/1.1 200 OK"
+2026-01-27 12:37:09 [INFO] POST /auth/logout 127.0.0.1 -> 200 (10.1ms) body_len=106
+2026-01-27 12:37:09 [INFO] HTTP Request: POST http://test/auth/logout "HTTP/1.1 200 OK"
+PASSED                                                                   [ 12%]
+tests/auth/test_auth_logout.py::test_auth_logout_all_revokes_all_and_invalidates_access 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:09 [INFO] POST /auth/logout-all 127.0.0.1 -> 200 (31.1ms) body_len=0
+2026-01-27 12:37:09 [INFO] HTTP Request: POST http://test/auth/logout-all "HTTP/1.1 200 OK"
+PASSED                                                                   [ 13%]
+tests/auth/test_auth_logout.py::test_auth_logout_all_requires_auth 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:09 [INFO] AUTH REJECT: Authorization header ausente.
+2026-01-27 12:37:09 [INFO] POST /auth/logout-all 127.0.0.1 -> 401 (0.0ms) body_len=0
+2026-01-27 12:37:09 [INFO] HTTP Request: POST http://test/auth/logout-all "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [ 14%]
+tests/auth/test_auth_refresh.py::test_refresh_token_sucesso 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:09 [INFO] POST /auth/refresh 127.0.0.1 -> 200 (0.0ms) body_len=201
+2026-01-27 12:37:09 [INFO] HTTP Request: POST http://test/auth/refresh "HTTP/1.1 200 OK"
+PASSED                                                                   [ 14%]
+tests/auth/test_auth_refresh.py::test_refresh_token_expirado 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:09 [INFO] POST /auth/refresh 127.0.0.1 -> 401 (3.0ms) body_len=38
+2026-01-27 12:37:09 [INFO] HTTP Request: POST http://test/auth/refresh "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [ 15%]
+tests/auth/test_auth_refresh.py::test_refresh_com_access_token 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:09 [INFO] POST /auth/refresh 127.0.0.1 -> 401 (4.0ms) body_len=37
+2026-01-27 12:37:09 [INFO] HTTP Request: POST http://test/auth/refresh "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [ 16%]
+tests/auth/test_auth_refresh.py::test_refresh_token_usuario_inativo 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:09 [INFO] POST /auth/refresh 127.0.0.1 -> 403 (0.0ms) body_len=48
+2026-01-27 12:37:09 [INFO] HTTP Request: POST http://test/auth/refresh "HTTP/1.1 403 Forbidden"
+PASSED                                                                   [ 16%]
+tests/auth/test_auth_refresh_integration.py::test_login_and_refresh PASSED [ 17%]
+tests/auth/test_auth_rotas.py::test_external_login_sucesso 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:10 [INFO] POST /auth/external-login 127.0.0.1 -> 200 (4.6ms) body_len=40
+2026-01-27 12:37:10 [INFO] HTTP Request: POST http://test/auth/external-login "HTTP/1.1 200 OK"
+PASSED                                                                   [ 18%]
+tests/auth/test_auth_rotas.py::test_get_me_sem_token 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:10 [INFO] AUTH REJECT: Authorization header ausente.
+2026-01-27 12:37:10 [INFO] GET /auth/me 127.0.0.1 -> 401 (0.0ms) body_len=0
+2026-01-27 12:37:10 [INFO] HTTP Request: GET http://test/auth/me "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [ 18%]
+tests/auth/test_auth_rotas.py::test_get_me_com_token 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:10 [INFO] GET /auth/me 127.0.0.1 -> 200 (4.1ms) body_len=0
+2026-01-27 12:37:10 [INFO] HTTP Request: GET http://test/auth/me "HTTP/1.1 200 OK"
+PASSED                                                                   [ 19%]
+tests/auth/test_auth_rotas.py::test_get_me_com_token_expirado 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:10 [WARNING] JWT expired: Signature has expired
+2026-01-27 12:37:10 [WARNING] AUTH REJECT: falha ao decodificar token: Token expirado.
+2026-01-27 12:37:10 [INFO] GET /auth/me 127.0.0.1 -> 401 (7.4ms) body_len=0
+2026-01-27 12:37:10 [INFO] HTTP Request: GET http://test/auth/me "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [ 20%]
+tests/auth/test_auth_rotas.py::test_get_me_com_token_invalido 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:10 [WARNING] JWT invalid: Signature verification failed
+2026-01-27 12:37:10 [WARNING] AUTH REJECT: falha ao decodificar token: Token inv├ílido.
+2026-01-27 12:37:10 [INFO] GET /auth/me 127.0.0.1 -> 401 (6.7ms) body_len=0
+2026-01-27 12:37:10 [INFO] HTTP Request: GET http://test/auth/me "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [ 20%]
+tests/auth/test_auth_rotas.py::test_get_me_com_token_role_adulterada 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:10 [INFO] Auth token payload preview: sub=test_tampered_role_user role=admin type=access
+2026-01-27 12:37:10 [WARNING] AUTH REJECT: mismatch entre role do token (admin) e role do DB (usuario_logado) para user=test_tampered_role_user
+2026-01-27 12:37:10 [INFO] GET /auth/me 127.0.0.1 -> 401 (8.2ms) body_len=0
+2026-01-27 12:37:10 [INFO] HTTP Request: GET http://test/auth/me "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [ 21%]
+tests/auth/test_auth_rotas.py::test_external_login_usuario_inativo 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:10 [INFO] POST /auth/external-login 127.0.0.1 -> 403 (0.0ms) body_len=49
+2026-01-27 12:37:10 [INFO] HTTP Request: POST http://test/auth/external-login "HTTP/1.1 403 Forbidden"
+PASSED                                                                   [ 21%]
+tests/auth/test_auth_rotas.py::test_external_login_sem_provider_token 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:10 [INFO] POST /auth/external-login 127.0.0.1 -> 422 (40.4ms) body_len=2
+2026-01-27 12:37:10 [INFO] HTTP Request: POST http://test/auth/external-login "HTTP/1.1 422 Unprocessable Entity"
+PASSED                                                                   [ 22%]
+tests/core/projections/test_progress_projector.py::test_progress_with_no_effects_all_pending PASSED [ 23%]
+tests/core/projections/test_progress_projector.py::test_progress_step_completed PASSED [ 23%]
+tests/core/projections/test_progress_projector.py::test_progress_step_failed_sets_error PASSED [ 24%]
+tests/domain/effects/test_retry_ux_effects.py::test_retry_emits_retry_ux_effect PASSED [ 25%]
+tests/domain/effects/test_retry_ux_effects.py::test_retry_executes_failed_effects PASSED [ 25%]
+tests/domain/effects/test_retry_ux_effects.py::test_retry_endpoint_returns_202 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:11 [INFO] Fetched 6 failed EffectResults for relato=relato-123
+2026-01-27 12:37:11 [INFO] POST /relatos/relato-123/retry 127.0.0.1 -> 202 (428.5ms) body_len=0
+2026-01-27 12:37:11 [INFO] HTTP Request: POST http://test/relatos/relato-123/retry "HTTP/1.1 202 Accepted"
+PASSED                                                                   [ 26%]
+tests/domain/effects/test_retry_ux_effects.py::test_retry_endpoint_returns_ux_effect 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:11 [INFO] Fetched 6 failed EffectResults for relato=relato-123
+2026-01-27 12:37:11 [INFO] POST /relatos/relato-123/retry 127.0.0.1 -> 202 (91.7ms) body_len=0
+2026-01-27 12:37:11 [INFO] HTTP Request: POST http://test/relatos/relato-123/retry "HTTP/1.1 202 Accepted"
+FAILED                                                                   [ 27%]
+tests/domain/enrichment/test_enriched_metadata_v2_validator.py::test_valid_payload_passes_validation FAILED [ 27%]
+tests/domain/enrichment/test_enriched_metadata_v2_validator.py::test_invalid_tag_fails PASSED [ 28%]
+tests/domain/enrichment/test_enriched_metadata_v2_validator.py::test_invalid_signal_fails PASSED [ 29%]
+tests/domain/enrichment/test_enriched_metadata_v2_validator.py::test_invalid_body_region_fails PASSED [ 29%]
+tests/domain/enrichment/test_enriched_metadata_v2_validator.py::test_confidence_out_of_range_fails PASSED [ 30%]
+tests/domain/enrichment/test_enriched_metadata_v2_validator.py::test_summary_too_long_fails PASSED [ 30%]
+tests/domain/enrichment/test_enriched_metadata_v2_validator.py::test_missing_required_field_fails PASSED [ 31%]
+tests/domain/relato/test_create_relato.py::test_criar_relato_estado_inicial FAILED [ 32%]
+tests/domain/relato/test_create_relato.py::test_negar_criacao_relato_existente FAILED [ 32%]
+tests/domain/relato/test_create_relato.py::test_post_relatos_success_runs_domain_and_executes_effects 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:12 [INFO] POST /relatos/ testclient -> 201 (21.2ms) body_len=111
+2026-01-27 12:37:12 [INFO] HTTP Request: POST http://testserver/relatos/ "HTTP/1.1 201 Created"
+FAILED                                                                   [ 33%]
+tests/domain/relato/test_create_relato.py::test_post_relatos_admin_is_allowed_by_domain 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:12 [INFO] Executando efeitos do relato | total=2
+2026-01-27 12:37:12 [INFO] ADAPTER: Persistindo relato 8523e35389e345f098f2755e95961551 | owner=admin-123 status=created
+2026-01-27 12:37:12 [INFO] Executando UploadImagesEffect | relato=8523e35389e345f098f2755e95961551
+2026-01-27 12:37:12 [INFO] ADAPTER: Registrando image_refs do relato 8523e35389e345f098f2755e95961551 | stages=['antes', 'durante', 'depois']
+2026-01-27 12:37:12 [INFO] POST /relatos/ testclient -> 201 (453.2ms) body_len=114
+2026-01-27 12:37:12 [INFO] HTTP Request: POST http://testserver/relatos/ "HTTP/1.1 201 Created"
+PASSED                                                                   [ 34%]
+tests/domain/relato/test_create_relato.py::test_executor_called_when_admin_creates_relato 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:12 [INFO] POST /relatos/ testclient -> 201 (16.9ms) body_len=114
+2026-01-27 12:37:12 [INFO] HTTP Request: POST http://testserver/relatos/ "HTTP/1.1 201 Created"
+PASSED                                                                   [ 34%]
+tests/domain/relato/test_create_relato.py::test_create_relato_emits_typed_effects FAILED [ 35%]
+tests/domain/relato/test_create_relato.py::test_create_relato_initial_state_is_created FAILED [ 36%]
+tests/domain/relato/test_create_relato_decision.py::test_create_relato_allowed_from_initial_state FAILED [ 36%]
+tests/domain/relato/test_create_relato_decision.py::test_create_relato_denied_when_already_exists FAILED [ 37%]
+tests/domain/relato/test_create_relato_decision.py::test_create_relato_denied_from_any_existing_state FAILED [ 38%]
+tests/domain/relato/test_create_relato_decision.py::test_create_relato_effects_structure FAILED [ 38%]
+tests/domain/relato/test_invalid_transitions.py::test_negar_submissao_estado_error PASSED [ 39%]
+tests/domain/relato/test_invalid_transitions.py::test_negar_submissao_estado_processado PASSED [ 40%]
+tests/domain/relato/test_invalid_transitions.py::test_negar_aprovacao_estado_draft FAILED [ 40%]
+tests/domain/relato/test_invalid_transitions.py::test_negar_aprovacao_estado_processing PASSED [ 41%]
+tests/domain/relato/test_invalid_transitions.py::test_negar_rejeicao_estado_draft FAILED [ 41%]
+tests/domain/relato/test_invalid_transitions.py::test_negar_rejeicao_estado_processing PASSED [ 42%]
+tests/domain/relato/test_invalid_transitions.py::test_negar_marcar_como_processado_estado_draft FAILED [ 43%]
+tests/domain/relato/test_permissions.py::test_admin_pode_aprovar_relato PASSED [ 43%]
+tests/domain/relato/test_permissions.py::test_colaborador_pode_aprovar_relato PASSED [ 44%]
+tests/domain/relato/test_permissions.py::test_usuario_comum_nao_pode_aprovar_relato PASSED [ 45%]
+tests/domain/relato/test_permissions.py::test_admin_pode_rejeitar_relato PASSED [ 45%]
+tests/domain/relato/test_permissions.py::test_colaborador_pode_rejeitar_relato PASSED [ 46%]
+tests/domain/relato/test_permissions.py::test_usuario_comum_nao_pode_rejeitar_relato PASSED [ 47%]
+tests/domain/relato/test_permissions.py::test_admin_pode_arquivar_relato PASSED [ 47%]
+tests/domain/relato/test_permissions.py::test_colaborador_pode_arquivar_relato PASSED [ 48%]
+tests/domain/relato/test_permissions.py::test_usuario_comum_nao_pode_arquivar_relato PASSED [ 49%]
+tests/domain/relato/test_submit_relato.py::test_submeter_relato_estado_draft FAILED [ 49%]
+tests/domain/relato/test_submit_relato.py::test_negar_submissao_estado_invalido PASSED [ 50%]
+tests/domain/relato/test_submit_relato.py::test_negar_submissao_estado_processado PASSED [ 50%]
+tests/domain/relato/test_submit_relato.py::test_negar_submissao_estado_error PASSED [ 51%]
+tests/domain/ux_effects/test_ux_effect_public_contract.py::test_ux_effect_public_contract_snapshot FAILED [ 52%]
+tests/domain/ux_effects/test_ux_effects_composition.py::test_multiple_ux_effects_preserve_order_and_contract FAILED [ 52%]
+tests/domain/ux_progress/test_ux_progress.py::test_progress_with_no_effects_returns_all_steps_pending PASSED [ 53%]
+tests/domain/ux_progress/test_ux_progress.py::test_persist_relato_marks_first_step_done FAILED [ 54%]
+tests/domain/ux_progress/test_ux_progress.py::test_upload_images_becomes_active_when_effect_exists_but_not_completed FAILED [ 54%]
+tests/domain/ux_progress/test_ux_progress.py::test_upload_images_has_more_weight_in_progress FAILED [ 55%]
+tests/domain/ux_progress/test_ux_progress.py::test_error_in_any_step_sets_has_error FAILED [ 56%]
+tests/domain/ux_progress/test_ux_progress.py::test_all_steps_done_marks_progress_complete FAILED [ 56%]
+tests/infra/retry/test_retry_repository.py::test_load_failed_effect_results_basic 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:14 [INFO] RetryRepository | carregados=1 | limit=10
+PASSED                                                                   [ 57%]
+tests/infra/retry/test_retry_scheduler.py::test_retry_scheduler_runs_and_returns_decisions 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:14 [INFO] RetryScheduler | falhas encontradas=1
+2026-01-27 12:37:14 [INFO] RetryScheduler | abortando retry | effect=TEST | reason=test
+PASSED                                                                   [ 58%]
+tests/integration/test_relato_progress_firestore.py::test_effect_result_repository_reads_from_firestore FAILED [ 58%]
+tests/integration/test_relato_progress_firestore.py::test_progress_service_with_firestore_emulator PASSED [ 59%]
+tests/routes/test_galeria_refactor.py::test_galeria_publica_v3_route_exists 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:25 [INFO] Obtendo o bucket de armazenamento do Firebase ... $fake-bucket.appspot.com
+2026-01-27 12:37:25 [INFO] Obtendo o bucket de armazenamento do Firebase ... $fake-bucket.appspot.com
+2026-01-27 12:37:25 [INFO] Obtendo o bucket de armazenamento do Firebase ... $fake-bucket.appspot.com
+2026-01-27 12:37:25 [INFO] GET /galeria/public/v3 127.0.0.1 -> 200 (207.3ms) body_len=0
+2026-01-27 12:37:25 [INFO] HTTP Request: GET http://test/galeria/public/v3 "HTTP/1.1 200 OK"
+PASSED                                                                   [ 60%]
+tests/routes/test_galeria_refactor.py::test_relatos_galeria_publica_v3_route_does_not_exist 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:25 [INFO] GET /relatos/galeria/public/v3 127.0.0.1 -> 404 (24.4ms) body_len=0
+2026-01-27 12:37:25 [INFO] HTTP Request: GET http://test/relatos/galeria/public/v3 "HTTP/1.1 404 Not Found"
+PASSED                                                                   [ 60%]
+tests/routes/test_relatos_multipart.py::test_post_relatos_with_real_multipart_upload 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:25 [INFO] POST /relatos/ testclient -> 201 (39.2ms) body_len=363
+2026-01-27 12:37:25 [INFO] HTTP Request: POST http://testserver/relatos/ "HTTP/1.1 201 Created"
+FAILED                                                                   [ 61%]
+tests/routes/test_relatos_multipart.py::test_upload_failure_triggers_rollback FAILED [ 61%]
+tests/routes/test_relatos_multipart.py::test_effect_result_persist_and_fetch_success 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:25 [INFO] Fetched EffectResult success: {'success': True, 'relato_id': 'relato-test-001', 'effect_type': 'UPLOAD_IMAGES', 'metadata': {'total_images': 2}, 'created_at': DatetimeWithNanoseconds(2026, 1, 11, 14, 26, 23, 502811, tzinfo=datetime.timezone.utc), 'error': None, 'executed_at': DatetimeWithNanoseconds(2026, 1, 11, 14, 26, 23, 502811, tzinfo=datetime.timezone.utc), 'effect_ref': 'relato-test-001'}
+PASSED                                                                   [ 62%]
+tests/routes/test_relatos_post.py::test_post_relatos_success FAILED      [ 63%]
+tests/routes/test_relatos_post.py::test_post_relatos_denied_by_domain FAILED [ 63%]
+tests/routes/test_relatos_post.py::test_post_relatos_missing_consentimento 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:26 [INFO] POST /relatos testclient -> 307 (2.6ms) body_len=169
+2026-01-27 12:37:26 [INFO] HTTP Request: POST http://testserver/relatos "HTTP/1.1 307 Temporary Redirect"
+2026-01-27 12:37:26 [INFO] AUTH REJECT: Authorization header ausente.
+2026-01-27 12:37:26 [INFO] POST /relatos/ testclient -> 401 (12.4ms) body_len=169
+2026-01-27 12:37:26 [INFO] HTTP Request: POST http://testserver/relatos/ "HTTP/1.1 401 Unauthorized"
+FAILED                                                                   [ 64%]
+tests/routes/test_relatos_post.py::test_post_relatos_no_consentimento_field 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:26 [INFO] POST /relatos testclient -> 307 (2.0ms) body_len=137
+2026-01-27 12:37:26 [INFO] HTTP Request: POST http://testserver/relatos "HTTP/1.1 307 Temporary Redirect"
+2026-01-27 12:37:26 [INFO] AUTH REJECT: Authorization header ausente.
+2026-01-27 12:37:26 [INFO] POST /relatos/ testclient -> 401 (7.4ms) body_len=137
+2026-01-27 12:37:26 [INFO] HTTP Request: POST http://testserver/relatos/ "HTTP/1.1 401 Unauthorized"
+FAILED                                                                   [ 65%]
+tests/routes/test_relatos_post.py::test_post_relatos_executor_not_called_when_denied FAILED [ 65%]
+tests/routes/test_relatos_progress.py::test_get_relato_progress_unauthenticated 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:26 [INFO] AUTH REJECT: Authorization header ausente.
+2026-01-27 12:37:26 [INFO] GET /relatos/relato-123/progress 127.0.0.1 -> 401 (5.5ms) body_len=0
+2026-01-27 12:37:26 [INFO] HTTP Request: GET http://test/relatos/relato-123/progress "HTTP/1.1 401 Unauthorized"
+PASSED                                                                   [ 66%]
+tests/routes/test_relatos_progress.py::test_get_relato_progress_forbidden 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:32 [INFO] GET /relatos/relato-123/progress 127.0.0.1 -> 200 (6382.5ms) body_len=0
+2026-01-27 12:37:32 [INFO] HTTP Request: GET http://test/relatos/relato-123/progress "HTTP/1.1 200 OK"
+FAILED                                                                   [ 67%]
+tests/routes/test_relatos_progress.py::test_get_relato_progress_empty 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:38 [INFO] GET /relatos/relato-123/progress 127.0.0.1 -> 200 (5057.2ms) body_len=0
+2026-01-27 12:37:38 [INFO] HTTP Request: GET http://test/relatos/relato-123/progress "HTTP/1.1 200 OK"
+FAILED                                                                   [ 67%]
+tests/routes/test_relatos_progress.py::test_get_relato_progress_partial_with_error 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:42 [INFO] GET /relatos/relato-123/progress 127.0.0.1 -> 200 (4320.3ms) body_len=0
+2026-01-27 12:37:42 [INFO] HTTP Request: GET http://test/relatos/relato-123/progress "HTTP/1.1 200 OK"
+FAILED                                                                   [ 68%]
+tests/routes/test_relatos_progress.py::test_get_relato_progress_complete 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:47 [INFO] GET /relatos/relato-123/progress 127.0.0.1 -> 200 (4703.5ms) body_len=0
+2026-01-27 12:37:47 [INFO] HTTP Request: GET http://test/relatos/relato-123/progress "HTTP/1.1 200 OK"
+FAILED                                                                   [ 69%]
+tests/services/effects/test_persist_effect_result_firestore.py::test_persist_effect_result_firestore_accepts_uuid_fields PASSED [ 69%]
+tests/services/effects/test_persist_effect_result_firestore.py::test_persist_effect_result_firestore_rejects_raw_uuid_values PASSED [ 70%]
+tests/services/effects/test_persist_effect_result_firestore.py::test_persist_effect_result_firestore_normalizes_uuid_before_persisting PASSED [ 70%]
+tests/services/effects/test_registry_real_effects.py::test_all_effects_registered PASSED [ 71%]
+tests/services/effects/test_retry_classifier.py::test_classify_timeout PASSED [ 72%]
+tests/services/effects/test_retry_classifier.py::test_classify_invalid_input PASSED [ 72%]
+tests/services/effects/test_retry_classifier.py::test_classify_unknown PASSED [ 73%]
+tests/services/effects/test_retry_effect.py::test_retry_effect_success FAILED [ 74%]
+tests/services/effects/test_retry_effect_unsupported.py::test_retry_effect_unsupported_type_raises FAILED [ 74%]
+tests/services/effects/test_retry_executor.py::test_retry_persist_relato 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:47 [INFO] RetryExecutor | effect=PERSIST_RELATO | relato=relato-123 | attempt=1
+FAILED                                                                   [ 75%]
+tests/services/effects/test_retry_executor.py::test_retry_enqueue_processing 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:47 [INFO] RetryExecutor | effect=ENQUEUE_PROCESSING | relato=relato-456 | attempt=1
+2026-01-27 12:37:47 [INFO] Executando efeitos do relato | total=1
+2026-01-27 12:37:48 [INFO] Executando EnqueueProcessingEffect | relato=relato-456
+PASSED                                                                   [ 76%]
+tests/services/effects/test_retry_executor.py::test_retry_emit_event 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:48 [INFO] RetryExecutor | effect=EMIT_EVENT | relato=relato-789 | attempt=1
+2026-01-27 12:37:48 [INFO] Executando efeitos do relato | total=1
+2026-01-27 12:37:48 [WARNING] Falha na execu├º├úo de efeitos. Iniciando rollback compensat├│rio | total_executados=0
+2026-01-27 12:37:48 [ERROR] RetryExecutor | falha ao reexecutar effect=EMIT_EVENT | relato=relato-789
+Traceback (most recent call last):
+  File "D:\workspace_projects_001\dermasync-api\app\services\relato_effect_executor.py", line 400, in execute_by_result
+    self.execute([effect])
+  File "D:\workspace_projects_001\dermasync-api\app\services\relato_effect_executor.py", line 70, in execute
+    relato_id=effect.relato_id,
+              ^^^^^^^^^^^^^^^^
+AttributeError: 'EmitDomainEventEffect' object has no attribute 'relato_id'
+FAILED                                                                   [ 76%]
+tests/services/effects/test_retry_executor.py::test_retry_upload_images_success 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:48 [INFO] RetryExecutor | effect=UPLOAD_IMAGES | relato=relato-999 | attempt=2
+FAILED                                                                   [ 77%]
+tests/services/effects/test_retry_executor.py::test_retry_upload_images_without_metadata_fails 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:48 [INFO] RetryExecutor | effect=UPLOAD_IMAGES | relato=relato-000 | attempt=1
+PASSED                                                                   [ 78%]
+tests/services/effects/test_retry_executor.py::test_retry_unknown_effect_type_fails 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:48 [INFO] RetryExecutor | effect=UNKNOWN_EFFECT | relato=relato-err | attempt=1
+PASSED                                                                   [ 78%]
+tests/services/effects/test_retry_policy_contract.py::test_retry_policy_contract PASSED [ 79%]
+tests/services/effects/test_retry_policy_decision.py::test_network_error_retries PASSED [ 80%]
+tests/services/effects/test_retry_policy_decision.py::test_invalid_input_never_retries PASSED [ 80%]
+tests/services/effects/test_retry_policy_decision.py::test_unknown_allows_single_retry PASSED [ 81%]
+tests/services/readmodels/test_relato_progress_ui.py::test_progress_ui_empty FAILED [ 81%]
+tests/services/readmodels/test_relato_progress_ui.py::test_progress_ui_partial_with_error FAILED [ 82%]
+tests/services/readmodels/test_relato_progress_ui.py::test_progress_ui_in_progress FAILED [ 83%]
+tests/services/readmodels/test_relato_progress_ui.py::test_progress_ui_completed FAILED [ 83%]
+tests/services/readmodels/test_relato_progress_ui.py::test_progress_ui_with_missing_fields PASSED [ 84%]
+tests/services/test_executor_idempotency.py::test_executor_skips_effect_if_already_succeeded FAILED [ 85%]
+tests/services/test_ux_effects.py::test_ux_effect_contract_shape FAILED  [ 85%]
+tests/services/test_ux_effects.py::test_processing_started_ux_effect_contract FAILED [ 86%]
+tests/test_archlog_sync_extra.py::test_parse_logs_file_not_found 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:48 [INFO] Parsing logs from: app/archlog_sync/exemplos/nao_existe.jsonl
+2026-01-27 12:37:48 [ERROR] Log file not found: app/archlog_sync/exemplos/nao_existe.jsonl
+PASSED                                                                   [ 87%]
+tests/test_archlog_sync_extra.py::test_parse_logs_empty 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:48 [INFO] Criando arquivo vazio para teste: C:\Users\Jefferson\AppData\Local\Temp\pytest-of-Jefferson\pytest-8\test_parse_logs_empty0\empty.jsonl
+2026-01-27 12:37:48 [INFO] Parsing logs from: C:\Users\Jefferson\AppData\Local\Temp\pytest-of-Jefferson\pytest-8\test_parse_logs_empty0\empty.jsonl
+PASSED                                                                   [ 87%]
+tests/test_archlog_sync_extra.py::test_mermaid_empty 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:48 [INFO] Gerando diagrama de sequ├¬ncia Mermaid a partir dos eventos de log
+2026-01-27 12:37:48 [INFO] Total de eventos recebidos: 0
+2026-01-27 12:37:48 [WARNING] Nenhum evento fornecido, retornando diagrama vazio
+PASSED                                                                   [ 88%]
+tests/test_archlog_sync_extra.py::test_mermaid_order 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:48 [INFO] Testando ordem de eventos no diagrama Mermaid
+2026-01-27 12:37:48 [INFO] Total de eventos no sample: 4
+2026-01-27 12:37:48 [INFO] Tipo da vari├ível sample_events: <class 'list'>
+2026-01-27 12:37:48 [INFO] Gerando diagrama de sequ├¬ncia Mermaid a partir dos eventos de log
+2026-01-27 12:37:48 [INFO] Total de eventos recebidos: 4
+PASSED                                                                   [ 89%]
+tests/test_archlog_sync_extra.py::test_detect_slow_calls_edge PASSED     [ 89%]
+tests/test_archlog_sync_extra.py::test_compute_avg_latency_simple PASSED [ 90%]
+tests/test_healthcheck.py::test_healthz_success 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:49 [INFO] GET /healthz 127.0.0.1 -> 200 (7.1ms) body_len=0
+2026-01-27 12:37:49 [INFO] HTTP Request: GET http://test/healthz "HTTP/1.1 200 OK"
+PASSED                                                                   [ 90%]
+tests/test_healthcheck.py::test_healthz_failure_firebase 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:49 [INFO] GET /healthz 127.0.0.1 -> 503 (11.2ms) body_len=0
+2026-01-27 12:37:49 [INFO] HTTP Request: GET http://test/healthz "HTTP/1.1 503 Service Unavailable"
+PASSED                                                                   [ 91%]
+tests/test_healthcheck.py::test_healthz_failure_chromadb 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:49 [INFO] GET /healthz 127.0.0.1 -> 503 (3.1ms) body_len=0
+2026-01-27 12:37:49 [INFO] HTTP Request: GET http://test/healthz "HTTP/1.1 503 Service Unavailable"
+PASSED                                                                   [ 92%]
+tests/test_imagens_avancado.py::test_upload_imagem_tipo_invalido 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:49 [INFO] Upload de imagem solicitado por user_123: invalid_file.txt
+2026-01-27 12:37:49 [INFO] POST /imagens/upload 127.0.0.1 -> 415 (5.5ms) body_len=198
+2026-01-27 12:37:49 [INFO] HTTP Request: POST http://test/imagens/upload "HTTP/1.1 415 Unsupported Media Type"
+PASSED                                                                   [ 92%]
+tests/test_imagens_avancado.py::test_upload_imagem_valido 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:49 [INFO] Upload de imagem solicitado por user_123: valid_image.jpeg
+2026-01-27 12:37:49 [INFO] POST /imagens/upload 127.0.0.1 -> 200 (10.8ms) body_len=811
+2026-01-27 12:37:49 [INFO] HTTP Request: POST http://test/imagens/upload "HTTP/1.1 200 OK"
+PASSED                                                                   [ 93%]
+tests/test_parser_metrics.py::test_parse_logs_groups 
+------------------------------- live log setup --------------------------------
+2026-01-27 12:37:49 [INFO] Parsing logs from: app/archlog_sync/exemplos/relato_log.jsonl
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:01Z', 'request_id': 'req_001', 'caller': 'frontend', 'callee': 'relato_service', 'operation': 'POST /enviar-relato', 'status_code': 200, 'duration_ms': 122}
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:02Z', 'request_id': 'req_001', 'caller': 'relato_service', 'callee': 'firebase_storage', 'operation': 'upload_imagem', 'status_code': 200, 'duration_ms': 321}
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:03Z', 'request_id': 'req_001', 'caller': 'relato_service', 'callee': 'llm_extractor', 'operation': 'extrair_tags', 'status_code': 200, 'duration_ms': 1522}
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:04Z', 'request_id': 'req_001', 'caller': 'llm_extractor', 'callee': 'chromadb', 'operation': 'persistir_vetor', 'status_code': 200, 'duration_ms': 88}
+2026-01-27 12:37:49 [INFO] Loaded groups: {"req_001": [{"timestamp": "2025-07-04T14:00:01Z", "request_id": "req_001", "caller": "frontend", "callee": "relato_service", "operation": "POST /enviar-relato", "status_code": 200, "duration_ms": 122}, {"timestamp": "2025-07-04T14:00:02Z", "request_id": "req_001", "caller": "relato_service", "callee": "firebase_storage", "operation": "upload_imagem", "status_code": 200, "duration_ms": 321}, {"timestamp": "2025-07-04T14:00:03Z", "request_id": "req_001", "caller": "relato_service", "callee": "llm_extractor", "operation": "extrair_tags", "status_code": 200, "duration_ms": 1522}, {"timestamp": "2025-07-04T14:00:04Z", "request_id": "req_001", "caller": "llm_extractor", "callee": "chromadb", "operation": "persistir_vetor", "status_code": 200, "duration_ms": 88}]}
+PASSED                                                                   [ 94%]
+tests/test_parser_metrics.py::test_mermaid_generator 
+------------------------------- live log setup --------------------------------
+2026-01-27 12:37:49 [INFO] Parsing logs from: app/archlog_sync/exemplos/relato_log.jsonl
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:01Z', 'request_id': 'req_001', 'caller': 'frontend', 'callee': 'relato_service', 'operation': 'POST /enviar-relato', 'status_code': 200, 'duration_ms': 122}
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:02Z', 'request_id': 'req_001', 'caller': 'relato_service', 'callee': 'firebase_storage', 'operation': 'upload_imagem', 'status_code': 200, 'duration_ms': 321}
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:03Z', 'request_id': 'req_001', 'caller': 'relato_service', 'callee': 'llm_extractor', 'operation': 'extrair_tags', 'status_code': 200, 'duration_ms': 1522}
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:04Z', 'request_id': 'req_001', 'caller': 'llm_extractor', 'callee': 'chromadb', 'operation': 'persistir_vetor', 'status_code': 200, 'duration_ms': 88}
+2026-01-27 12:37:49 [INFO] Loaded groups: {"req_001": [{"timestamp": "2025-07-04T14:00:01Z", "request_id": "req_001", "caller": "frontend", "callee": "relato_service", "operation": "POST /enviar-relato", "status_code": 200, "duration_ms": 122}, {"timestamp": "2025-07-04T14:00:02Z", "request_id": "req_001", "caller": "relato_service", "callee": "firebase_storage", "operation": "upload_imagem", "status_code": 200, "duration_ms": 321}, {"timestamp": "2025-07-04T14:00:03Z", "request_id": "req_001", "caller": "relato_service", "callee": "llm_extractor", "operation": "extrair_tags", "status_code": 200, "duration_ms": 1522}, {"timestamp": "2025-07-04T14:00:04Z", "request_id": "req_001", "caller": "llm_extractor", "callee": "chromadb", "operation": "persistir_vetor", "status_code": 200, "duration_ms": 88}]}
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:49 [INFO] Gerando diagrama de sequ├¬ncia Mermaid a partir dos eventos de log
+2026-01-27 12:37:49 [INFO] Total de eventos recebidos: 4
+PASSED                                                                   [ 94%]
+tests/test_parser_metrics.py::test_compute_avg_latency 
+------------------------------- live log setup --------------------------------
+2026-01-27 12:37:49 [INFO] Parsing logs from: app/archlog_sync/exemplos/relato_log.jsonl
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:01Z', 'request_id': 'req_001', 'caller': 'frontend', 'callee': 'relato_service', 'operation': 'POST /enviar-relato', 'status_code': 200, 'duration_ms': 122}
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:02Z', 'request_id': 'req_001', 'caller': 'relato_service', 'callee': 'firebase_storage', 'operation': 'upload_imagem', 'status_code': 200, 'duration_ms': 321}
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:03Z', 'request_id': 'req_001', 'caller': 'relato_service', 'callee': 'llm_extractor', 'operation': 'extrair_tags', 'status_code': 200, 'duration_ms': 1522}
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:04Z', 'request_id': 'req_001', 'caller': 'llm_extractor', 'callee': 'chromadb', 'operation': 'persistir_vetor', 'status_code': 200, 'duration_ms': 88}
+2026-01-27 12:37:49 [INFO] Loaded groups: {"req_001": [{"timestamp": "2025-07-04T14:00:01Z", "request_id": "req_001", "caller": "frontend", "callee": "relato_service", "operation": "POST /enviar-relato", "status_code": 200, "duration_ms": 122}, {"timestamp": "2025-07-04T14:00:02Z", "request_id": "req_001", "caller": "relato_service", "callee": "firebase_storage", "operation": "upload_imagem", "status_code": 200, "duration_ms": 321}, {"timestamp": "2025-07-04T14:00:03Z", "request_id": "req_001", "caller": "relato_service", "callee": "llm_extractor", "operation": "extrair_tags", "status_code": 200, "duration_ms": 1522}, {"timestamp": "2025-07-04T14:00:04Z", "request_id": "req_001", "caller": "llm_extractor", "callee": "chromadb", "operation": "persistir_vetor", "status_code": 200, "duration_ms": 88}]}
+PASSED                                                                   [ 95%]
+tests/test_parser_metrics.py::test_detect_slow_calls 
+------------------------------- live log setup --------------------------------
+2026-01-27 12:37:49 [INFO] Parsing logs from: app/archlog_sync/exemplos/relato_log.jsonl
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:01Z', 'request_id': 'req_001', 'caller': 'frontend', 'callee': 'relato_service', 'operation': 'POST /enviar-relato', 'status_code': 200, 'duration_ms': 122}
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:02Z', 'request_id': 'req_001', 'caller': 'relato_service', 'callee': 'firebase_storage', 'operation': 'upload_imagem', 'status_code': 200, 'duration_ms': 321}
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:03Z', 'request_id': 'req_001', 'caller': 'relato_service', 'callee': 'llm_extractor', 'operation': 'extrair_tags', 'status_code': 200, 'duration_ms': 1522}
+2026-01-27 12:37:49 [INFO] Processing entry: {'timestamp': '2025-07-04T14:00:04Z', 'request_id': 'req_001', 'caller': 'llm_extractor', 'callee': 'chromadb', 'operation': 'persistir_vetor', 'status_code': 200, 'duration_ms': 88}
+2026-01-27 12:37:49 [INFO] Loaded groups: {"req_001": [{"timestamp": "2025-07-04T14:00:01Z", "request_id": "req_001", "caller": "frontend", "callee": "relato_service", "operation": "POST /enviar-relato", "status_code": 200, "duration_ms": 122}, {"timestamp": "2025-07-04T14:00:02Z", "request_id": "req_001", "caller": "relato_service", "callee": "firebase_storage", "operation": "upload_imagem", "status_code": 200, "duration_ms": 321}, {"timestamp": "2025-07-04T14:00:03Z", "request_id": "req_001", "caller": "relato_service", "callee": "llm_extractor", "operation": "extrair_tags", "status_code": 200, "duration_ms": 1522}, {"timestamp": "2025-07-04T14:00:04Z", "request_id": "req_001", "caller": "llm_extractor", "callee": "chromadb", "operation": "persistir_vetor", "status_code": 200, "duration_ms": 88}]}
+PASSED                                                                   [ 96%]
+tests/test_pipeline_01_jsonlbruto.py::test_gerar_jsonl_bruto_formato_valido 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:49 [INFO] Iniciando a gera├º├úo do JSONL bruto...
+2026-01-27 12:37:49 [INFO] Par├ómetros de entrada: {'origem': 'facebook', 'src_dir': 'C:\\Users\\JEFFER~1\\AppData\\Local\\Temp\\tmp0a78jt3x', 'ctx_id': '1234567890', 'grupo': 'Dermatite At├│pica Brasil', 'tipo': 'comentario'}, C:\Users\JEFFER~1\AppData\Local\Temp\tmp0a78jt3x\saida.jsonl
+2026-01-27 12:37:49 [INFO] Dado gerado: {'id_relato': 'cc9276701a8c46398f12350442ae92f0', 'origem': {'plataforma': 'facebook', 'link': None, 'tipo': 'comentario', 'ano_postagem': None, 'grupo': 'Dermatite At├│pica Brasil', 'ctx_id': '1234567890'}, 'versao_pipeline': 'v0.0.1', 'data_modificacao': '2026-01-27T12:37:49.409333', 'conteudo_original': 'Relato de teste sobre coceira e pele seca.'}
+PASSED                                                                   [ 96%]
+tests/test_pipeline_01_jsonlbruto.py::test_valida_schema_jsonl_bruto PASSED [ 97%]
+tests/test_pipeline_02_enriquecer_metadados.py::test_enriquecer_metadados_formato_valido 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:52 [INFO] Usando cliente LLM: <app.pipeline.llm_client.gemini_client.GeminiClient object at 0x00000230FF995B10>
+2026-01-27 12:37:52 [INFO] Enviando prompt para LLM...
+2026-01-27 12:37:53 [ERROR] Erro ao processar relato: 404 models/gemini is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+XFAIL (pipeline n├úo estabilizado)                                        [ 98%]
+tests/test_pipeline_02_enriquecer_metadados.py::test_if_jsonl_linha_valido PASSED [ 98%]
+tests/test_pipeline_integracao_01_02.py::test_integracao_fase_01_e_02 
+-------------------------------- live log call --------------------------------
+2026-01-27 12:37:53 [INFO] Iniciando a gera├º├úo do JSONL bruto...
+2026-01-27 12:37:53 [INFO] Par├ómetros de entrada: {'origem': 'facebook', 'src_dir': 'C:\\Users\\JEFFER~1\\AppData\\Local\\Temp\\tmpogz4rffr', 'ctx_id': 'CTX1234567890', 'grupo': 'Grupo de Teste', 'tipo': 'comentario'}, C:\Users\JEFFER~1\AppData\Local\Temp\tmpogz4rffr\saida.jsonl
+2026-01-27 12:37:53 [INFO] Usando cliente LLM: <app.pipeline.llm_client.gemini_client.GeminiClient object at 0x0000023086607490>
+2026-01-27 12:37:53 [INFO] Enviando prompt para LLM...
+2026-01-27 12:37:53 [ERROR] Erro ao processar relato: 404 models/gemini is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+XFAIL (pipeline n├úo estabilizado)                                        [ 99%]
+tests/ux/test_cognitive_integration_flow.py::test_user_sees_coherent_story_from_ux_effects FAILED [100%]
+
+================================== FAILURES ===================================
+_____________ test_job_persists_snapshot_when_progress_is_stable ______________
+
+    def test_job_persists_snapshot_when_progress_is_stable():
+        snapshot_repo = Mock()
+        effect_repo = Mock()
+    
+        snapshot_repo.get_by_relato_id.return_value = None
+    
+        effect_repo.fetch_by_relato_id.return_value = [
+>           EffectResult(
+                type="PERSIST_RELATO",
+                success=True,
+                executed_at=datetime.utcnow(),
+            ),
+            EffectResult(
+                type="UPLOAD_IMAGES",
+                success=True,
+                executed_at=datetime.utcnow(),
+            ),
+            EffectResult(
+                type="ENRICH_METADATA",
+                success=True,
+                executed_at=datetime.utcnow(),
+            ),
+        ]
+E       TypeError: EffectResult.__init__() missing 2 required positional arguments: 'error_message' and 'metadata'
+
+tests\application\test_relato_progress_stabilization_service.py:35: TypeError
+____________________ test_retry_endpoint_returns_ux_effect ____________________
+
+client = <httpx.AsyncClient object at 0x00000230F5F34E50>
+
+    @pytest.mark.asyncio
+    async def test_retry_endpoint_returns_ux_effect(client):
+        response = await client.post("/relatos/relato-123/retry")
+        body = response.json()
+    
+        assert "ux_effects" in body
+>       assert body["ux_effects"][0]["type"] == "RetryUXEffect"
+               ^^^^^^^^^^^^^^^^^^^^^
+E       IndexError: list index out of range
+
+tests\domain\effects\test_retry_ux_effects.py:92: IndexError
+---------------------------- Captured stdout setup ----------------------------
+{"timestamp": "2026-01-27 12:37:11,357", "level": "DEBUG", "logger": "asyncio", "message": "Using proactor: IocpProactor"}
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:11,542", "level": "INFO", "logger": "app.services.effects.fetch_firestore", "message": "Fetched 6 failed EffectResults for relato=relato-123"}
+{"timestamp": "2026-01-27 12:37:11,544", "level": "DEBUG", "logger": "app.services.ux_adapters", "message": "Ignoring non-UX domain effect: RetryUXEffect"}
+{"timestamp": "2026-01-27 12:37:11,547", "level": "INFO", "logger": "root", "message": "POST /relatos/relato-123/retry 127.0.0.1 -> 202 (91.7ms) body_len=0"}
+{"timestamp": "2026-01-27 12:37:11,553", "level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://test/relatos/relato-123/retry \"HTTP/1.1 202 Accepted\""}
+---------------------------- Captured stderr call -----------------------------
+[32m[2026-01-27 12:37:11] [INFO] [request_logger] POST /relatos/relato-123/retry Status: 202 Tempo: 90.73ms[0m
+------------------------------ Captured log call ------------------------------
+2026-01-27 12:37:11 [INFO] Fetched 6 failed EffectResults for relato=relato-123
+2026-01-27 12:37:11 [INFO] POST /relatos/relato-123/retry 127.0.0.1 -> 202 (91.7ms) body_len=0
+2026-01-27 12:37:11 [INFO] HTTP Request: POST http://test/relatos/relato-123/retry "HTTP/1.1 202 Accepted"
+____________________ test_valid_payload_passes_validation _____________________
+
+    def test_valid_payload_passes_validation():
+        model = EnrichedMetadataV2.model_validate(VALID_PAYLOAD)
+        assert model.version == "v2"
+>       assert model.confidence.extraction == 0.85
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'dict' object has no attribute 'extraction'
+
+tests\domain\enrichment\test_enriched_metadata_v2_validator.py:39: AttributeError
+______________________ test_criar_relato_estado_inicial _______________________
+
+    def test_criar_relato_estado_inicial():
+        """Testa a cria├º├úo de um relato quando n├úo existe estado anterior."""
+        actor = Actor(id="user-123", role=ActorRole.USER)
+>       command = CreateRelato(
+            relato_id="relato-456",
+            owner_id="user-123",
+            conteudo="Relato de teste",
+            imagens={"antes": [], "durante": [], "depois": []}
+        )
+E       TypeError: CreateRelato.__init__() got an unexpected keyword argument 'imagens'
+
+tests\domain\relato\test_create_relato.py:19: TypeError
+_____________________ test_negar_criacao_relato_existente _____________________
+
+    def test_negar_criacao_relato_existente():
+        """Testa que n├úo ├® poss├¡vel criar um relato se ele j├í existe (estado n├úo ├® None)."""
+        actor = Actor(id="user-123", role=ActorRole.USER)
+>       command = CreateRelato(
+            relato_id="relato-456",
+            owner_id="user-123",
+            conteudo="Relato de teste",
+            imagens={"antes": [], "durante": [], "depois": []}
+        )
+E       TypeError: CreateRelato.__init__() got an unexpected keyword argument 'imagens'
+
+tests\domain\relato\test_create_relato.py:38: TypeError
+_________ test_post_relatos_success_runs_domain_and_executes_effects __________
+
+    def test_post_relatos_success_runs_domain_and_executes_effects():
+        from app.main import app
+        from app.auth.schemas import User
+        from app.auth.dependencies import get_current_user
+        from fastapi.testclient import TestClient
+        from unittest.mock import MagicMock, patch
+        import json
+    
+        mock_user = User(
+            id="user-123",
+            email="test@example.com",
+            role="usuario_logado"
+        )
+    
+        # ­ƒöæ override correto do Depends
+        app.dependency_overrides[get_current_user] = lambda: mock_user
+    
+        client = TestClient(app)
+    
+        # Ô£à payload MINIMAMENTE v├ílido segundo RelatoDraftInput
+        payload = {
+            "descricao": "Relato v├ílido",
+            "consentimento": True,
+            "idade": 35
+        }
+    
+        try:
+            with patch(
+                "app.routes.relatos.RelatoEffectExecutor"
+            ) as mock_executor_class:
+                mock_executor_instance = MagicMock()
+                mock_executor_class.return_value = mock_executor_instance
+    
+                response = client.post(
+                    "/relatos/",
+                    data={"payload": json.dumps(payload)}
+                )
+    
+                assert response.status_code == 201
+    
+                body = response.json()
+>               assert "relato_id" in body
+E               AssertionError: assert 'relato_id' in {'data': {'relato_id': 'bcdc33e79f714167b4a9ed178973f44c', 'status': 'created'}, 'ux_effects': [{'channel': 'progress', 'message': 'Relato recebido e salvo.', 'relato_id': 'bcdc33e79f714167b4a9ed178973f44c', 'severity': 'info', ...}, {'channel': 'progress', 'message': 'Imagens enviadas para processamento.', 'relato_id': 'bcdc33e79f714167b4a9ed178973f44c', 'severity': 'info', ...}]}
+
+tests\domain\relato\test_create_relato.py:95: AssertionError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:12,050", "level": "DEBUG", "logger": "asyncio", "message": "Using proactor: IocpProactor"}
+{"timestamp": "2026-01-27 12:37:12,089", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_field_start with no data"}
+{"timestamp": "2026-01-27 12:37:12,090", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_field_name with data[0:7]"}
+{"timestamp": "2026-01-27 12:37:12,090", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_field_data with data[8:111]"}
+{"timestamp": "2026-01-27 12:37:12,091", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_field_end with no data"}
+{"timestamp": "2026-01-27 12:37:12,091", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_end with no data"}
+{"timestamp": "2026-01-27 12:37:12,104", "level": "INFO", "logger": "root", "message": "POST /relatos/ testclient -> 201 (21.2ms) body_len=111"}
+{"timestamp": "2026-01-27 12:37:12,133", "level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://testserver/relatos/ \"HTTP/1.1 201 Created\""}
+---------------------------- Captured stderr call -----------------------------
+[32m[2026-01-27 12:37:12] [INFO] [request_logger] POST /relatos/ Status: 201 Tempo: 17.68ms[0m
+------------------------------ Captured log call ------------------------------
+2026-01-27 12:37:12 [INFO] POST /relatos/ testclient -> 201 (21.2ms) body_len=111
+2026-01-27 12:37:12 [INFO] HTTP Request: POST http://testserver/relatos/ "HTTP/1.1 201 Created"
+___________________ test_create_relato_emits_typed_effects ____________________
+
+    def test_create_relato_emits_typed_effects():
+        actor = Actor(id="user-123", role=ActorRole.USER)
+    
+>       command = CreateRelato(
+            relato_id="relato-1",
+            owner_id="user-123",
+            conteudo="Relato v├ílido",
+            imagens={"antes": [], "durante": [], "depois": []},
+        )
+E       TypeError: CreateRelato.__init__() got an unexpected keyword argument 'imagens'
+
+tests\domain\relato\test_create_relato.py:187: TypeError
+_________________ test_create_relato_initial_state_is_created _________________
+
+    def test_create_relato_initial_state_is_created():
+        decision = decide(
+>           command=CreateRelato(
+            relato_id="relato-1",
+            owner_id="user-123",
+            conteudo="Relato v├ílido",
+            imagens={"antes": [], "durante": [], "depois": []},
+        ),
+            actor=Actor(id="user-123", role=ActorRole.USER),
+            current_state=None
+        )
+E       TypeError: CreateRelato.__init__() got an unexpected keyword argument 'imagens'
+
+tests\domain\relato\test_create_relato.py:207: TypeError
+________________ test_create_relato_allowed_from_initial_state ________________
+
+    def test_create_relato_allowed_from_initial_state():
+        """Testa que a cria├º├úo de relato ├® permitida a partir do estado inicial (None)."""
+        actor = Actor(id="user-123", role=ActorRole.USER)
+>       command = CreateRelato(
+            relato_id="relato-456",
+            owner_id="user-123",
+            conteudo="Relato de teste",
+            imagens={"antes": [], "durante": [], "depois": []}
+        )
+E       TypeError: CreateRelato.__init__() got an unexpected keyword argument 'imagens'
+
+tests\domain\relato\test_create_relato_decision.py:19: TypeError
+________________ test_create_relato_denied_when_already_exists ________________
+
+    def test_create_relato_denied_when_already_exists():
+        """Testa que a cria├º├úo de relato ├® negada quando o relato j├í existe (estado n├úo ├® None)."""
+        actor = Actor(id="user-123", role=ActorRole.USER)
+>       command = CreateRelato(
+            relato_id="relato-456",
+            owner_id="user-123",
+            conteudo="Relato de teste",
+            imagens={"antes": [], "durante": [], "depois": []}
+        )
+E       TypeError: CreateRelato.__init__() got an unexpected keyword argument 'imagens'
+
+tests\domain\relato\test_create_relato_decision.py:38: TypeError
+______________ test_create_relato_denied_from_any_existing_state ______________
+
+    def test_create_relato_denied_from_any_existing_state():
+        """Testa que a cria├º├úo de relato ├® negada a partir de qualquer estado existente."""
+        actor = Actor(id="user-123", role=ActorRole.USER)
+>       command = CreateRelato(
+            relato_id="relato-456",
+            owner_id="user-123",
+            conteudo="Relato de teste",
+            imagens={"antes": [], "durante": [], "depois": []}
+        )
+E       TypeError: CreateRelato.__init__() got an unexpected keyword argument 'imagens'
+
+tests\domain\relato\test_create_relato_decision.py:58: TypeError
+____________________ test_create_relato_effects_structure _____________________
+
+    def test_create_relato_effects_structure():
+        """Testa que a decis├úo de cria├º├úo retorna efeitos com a estrutura esperada."""
+        actor = Actor(id="user-123", role=ActorRole.USER)
+>       command = CreateRelato(
+            relato_id="relato-456",
+            owner_id="user-123",
+            conteudo="Relato de teste",
+            imagens={"antes": [{"filename": "img.jpg", "content": b"...", "content_type": "image/jpeg"}],
+                     "durante": [], "depois": []}
+        )
+E       TypeError: CreateRelato.__init__() got an unexpected keyword argument 'imagens'
+
+tests\domain\relato\test_create_relato_decision.py:81: TypeError
+______________________ test_negar_aprovacao_estado_draft ______________________
+
+    def test_negar_aprovacao_estado_draft():
+        """N├úo ├® poss├¡vel aprovar um relato em estado DRAFT."""
+        actor = Actor(id="admin-123", role=ActorRole.ADMIN)
+        command = ApproveRelatoPublic(relato_id="relato-456")
+    
+        decision = decide(
+            command=command,
+            actor=actor,
+>           current_state=RelatoStatus.DRAFT,
+                          ^^^^^^^^^^^^^^^^^^
+        )
+
+tests\domain\relato\test_invalid_transitions.py:66: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <enum 'RelatoStatus'>, name = 'DRAFT'
+
+    def __getattr__(cls, name):
+        """
+        Return the enum member matching `name`
+    
+        We use __getattr__ instead of descriptors or inserting into the enum
+        class' __dict__ in order to support `name` and `value` being both
+        properties for enum members (which live in the class' __dict__) and
+        enum members themselves.
+        """
+        if _is_dunder(name):
+            raise AttributeError(name)
+        try:
+            return cls._member_map_[name]
+        except KeyError:
+>           raise AttributeError(name) from None
+E           AttributeError: DRAFT
+
+C:\Python311\Lib\enum.py:783: AttributeError
+______________________ test_negar_rejeicao_estado_draft _______________________
+
+    def test_negar_rejeicao_estado_draft():
+        """N├úo ├® poss├¡vel rejeitar um relato em estado DRAFT."""
+        actor = Actor(id="admin-123", role=ActorRole.ADMIN)
+        command = RejectRelato(relato_id="relato-456")
+    
+        decision = decide(
+            command=command,
+            actor=actor,
+>           current_state=RelatoStatus.DRAFT,
+                          ^^^^^^^^^^^^^^^^^^
+        )
+
+tests\domain\relato\test_invalid_transitions.py:102: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <enum 'RelatoStatus'>, name = 'DRAFT'
+
+    def __getattr__(cls, name):
+        """
+        Return the enum member matching `name`
+    
+        We use __getattr__ instead of descriptors or inserting into the enum
+        class' __dict__ in order to support `name` and `value` being both
+        properties for enum members (which live in the class' __dict__) and
+        enum members themselves.
+        """
+        if _is_dunder(name):
+            raise AttributeError(name)
+        try:
+            return cls._member_map_[name]
+        except KeyError:
+>           raise AttributeError(name) from None
+E           AttributeError: DRAFT
+
+C:\Python311\Lib\enum.py:783: AttributeError
+_______________ test_negar_marcar_como_processado_estado_draft ________________
+
+    def test_negar_marcar_como_processado_estado_draft():
+        """N├úo ├® poss├¡vel marcar um relato como processado a partir de DRAFT."""
+        actor = Actor(id="system", role=ActorRole.SYSTEM)
+        command = MarkRelatoAsProcessed(relato_id="relato-456")
+    
+        decision = decide(
+            command=command,
+            actor=actor,
+>           current_state=RelatoStatus.DRAFT,
+                          ^^^^^^^^^^^^^^^^^^
+        )
+
+tests\domain\relato\test_invalid_transitions.py:138: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <enum 'RelatoStatus'>, name = 'DRAFT'
+
+    def __getattr__(cls, name):
+        """
+        Return the enum member matching `name`
+    
+        We use __getattr__ instead of descriptors or inserting into the enum
+        class' __dict__ in order to support `name` and `value` being both
+        properties for enum members (which live in the class' __dict__) and
+        enum members themselves.
+        """
+        if _is_dunder(name):
+            raise AttributeError(name)
+        try:
+            return cls._member_map_[name]
+        except KeyError:
+>           raise AttributeError(name) from None
+E           AttributeError: DRAFT
+
+C:\Python311\Lib\enum.py:783: AttributeError
+______________________ test_submeter_relato_estado_draft ______________________
+
+    def test_submeter_relato_estado_draft():
+        """Testa a submiss├úo de um relato a partir do estado DRAFT."""
+        actor = Actor(id="user-123", role=ActorRole.USER)
+        command = SubmitRelato(relato_id="relato-456")
+    
+>       decision = decide(command=command, actor=actor, current_state=RelatoStatus.DRAFT)
+                                                                      ^^^^^^^^^^^^^^^^^^
+
+tests\domain\relato\test_submit_relato.py:21: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <enum 'RelatoStatus'>, name = 'DRAFT'
+
+    def __getattr__(cls, name):
+        """
+        Return the enum member matching `name`
+    
+        We use __getattr__ instead of descriptors or inserting into the enum
+        class' __dict__ in order to support `name` and `value` being both
+        properties for enum members (which live in the class' __dict__) and
+        enum members themselves.
+        """
+        if _is_dunder(name):
+            raise AttributeError(name)
+        try:
+            return cls._member_map_[name]
+        except KeyError:
+>           raise AttributeError(name) from None
+E           AttributeError: DRAFT
+
+C:\Python311\Lib\enum.py:783: AttributeError
+___________________ test_ux_effect_public_contract_snapshot ___________________
+
+    def test_ux_effect_public_contract_snapshot():
+        """
+        Este teste protege o CONTRATO P├ÜBLICO de UX Effects.
+        Qualquer altera├º├úo aqui ├® BREAKING CHANGE.
+        """
+    
+        effect = ProcessingStartedUXEffect.default(
+            relato_id="relato_123"
+        )
+    
+        payload = serialize_ux_effects([effect])
+    
+        # Garantia 1: serializ├ível em JSON puro
+        json.dumps(payload)
+    
+        # Garantia 2: shape p├║blico est├ível
+>       assert payload == {
+            "ux_effects": [
+                {
+                    "type": "processing_started",
+                    "severity": "info",
+                    "channel": "banner",
+                    "timing": "after_processing",
+                    "message": "Seu relato est├í sendo processado. Isso pode levar alguns instantes.",
+                }
+            ]
+        }
+E       AssertionError: assert [] == {'ux_effects'...ssing', ...}]}
+E         
+E         Full diff:
+E         + []
+E         - {
+E         -     'ux_effects': [
+E         -         {
+E         -             'channel': 'banner',...
+E         
+E         ...Full output truncated (8 lines hidden), use '-vv' to show
+
+tests\domain\ux_effects\test_ux_effect_public_contract.py:24: AssertionError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:13,941", "level": "DEBUG", "logger": "app.services.ux_adapters", "message": "Ignoring non-UX domain effect: ProcessingStartedUXEffect"}
+____________ test_multiple_ux_effects_preserve_order_and_contract _____________
+
+    def test_multiple_ux_effects_preserve_order_and_contract():
+        effects = [
+            ProcessingStartedUXEffect.default(relato_id="relato_123"),
+            RetryUXEffect.retrying(
+                relato_id="relato_123",
+                count=2,
+            ),
+        ]
+    
+        payload = serialize_ux_effects(effects)
+    
+        json.dumps(payload)
+    
+>       assert payload == {
+            "ux_effects": [
+                {
+                    "type": "processing_started",
+                    "severity": "info",
+                    "channel": "banner",
+                    "timing": "after_processing",
+                    "message": "Seu relato est├í sendo processado. Isso pode levar alguns instantes.",
+                },
+                {
+                    "type": "retrying",
+                    "severity": "info",
+                    "channel": "banner",
+                    "timing": "immediate",
+                    "message": "2 a├º├Áes est├úo sendo repetidas.",
+                },
+            ]
+        }
+E       AssertionError: assert [] == {'ux_effects'...diate', ...}]}
+E         
+E         Full diff:
+E         + []
+E         - {
+E         -     'ux_effects': [
+E         -         {
+E         -             'channel': 'banner',...
+E         
+E         ...Full output truncated (15 lines hidden), use '-vv' to show
+
+tests\domain\ux_effects\test_ux_effects_composition.py:22: AssertionError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:13,982", "level": "DEBUG", "logger": "app.services.ux_adapters", "message": "Ignoring non-UX domain effect: ProcessingStartedUXEffect"}
+{"timestamp": "2026-01-27 12:37:13,982", "level": "DEBUG", "logger": "app.services.ux_adapters", "message": "Ignoring non-UX domain effect: RetryUXEffect"}
+__________________ test_persist_relato_marks_first_step_done __________________
+
+    def test_persist_relato_marks_first_step_done():
+        steps = default_step_definitions()
+    
+        effects = [
+            EffectResult(
+                type="PERSIST_RELATO",
+                success=True,
+>               executed_at=dt("2026-01-17T10:00:00")
+                            ^^
+            )
+        ]
+E       NameError: name 'dt' is not defined
+
+tests\domain\ux_progress\test_ux_progress.py:31: NameError
+___ test_upload_images_becomes_active_when_effect_exists_but_not_completed ____
+
+    def test_upload_images_becomes_active_when_effect_exists_but_not_completed():
+        steps = default_step_definitions()
+    
+        effects = [
+>           EffectResult(type="PERSIST_RELATO", success=True),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            EffectResult(type="UPLOAD_IMAGES", success=False)
+        ]
+E       TypeError: EffectResult.__init__() got an unexpected keyword argument 'type'
+
+tests\domain\ux_progress\test_ux_progress.py:47: TypeError
+_______________ test_upload_images_has_more_weight_in_progress ________________
+
+    def test_upload_images_has_more_weight_in_progress():
+        steps = default_step_definitions()
+    
+        effects = [
+>           EffectResult(type="PERSIST_RELATO", success=True),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            EffectResult(type="UPLOAD_IMAGES", success=True),
+        ]
+E       TypeError: EffectResult.__init__() got an unexpected keyword argument 'type'
+
+tests\domain\ux_progress\test_ux_progress.py:62: TypeError
+____________________ test_error_in_any_step_sets_has_error ____________________
+
+    def test_error_in_any_step_sets_has_error():
+        steps = default_step_definitions()
+    
+        effects = [
+>           EffectResult(type="PERSIST_RELATO", success=True),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            EffectResult(type="UPLOAD_IMAGES", success=False),
+        ]
+E       TypeError: EffectResult.__init__() got an unexpected keyword argument 'type'
+
+tests\domain\ux_progress\test_ux_progress.py:74: TypeError
+_________________ test_all_steps_done_marks_progress_complete _________________
+
+    def test_all_steps_done_marks_progress_complete():
+        steps = default_step_definitions()
+    
+        effects = [
+>           EffectResult(type="PERSIST_RELATO", success=True),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            EffectResult(type="UPLOAD_IMAGES", success=True),
+            EffectResult(type="ENRICH_METADATA", success=True),
+        ]
+E       TypeError: EffectResult.__init__() got an unexpected keyword argument 'type'
+
+tests\domain\ux_progress\test_ux_progress.py:87: TypeError
+_____________ test_effect_result_repository_reads_from_firestore ______________
+
+    def test_effect_result_repository_reads_from_firestore():
+        client = firestore.Client()
+        repo = EffectResultRepository(firestore_client=client)
+    
+        relato_id = "relato_integration_1"
+    
+        client.collection("effect_results").add({
+            "relato_id": relato_id,
+            "effect_type": "PERSIST_RELATO",
+            "success": True,
+            "executed_at": datetime.utcnow(),
+            "error": None,
+        })
+    
+        results = repo.fetch_by_relato_id(relato_id)
+    
+>       assert len(results) == 1
+E       AssertionError: assert 10 == 1
+E        +  where 10 = len([EffectResult(type='PERSIST_RELATO', success=True, executed_at=DatetimeWithNanoseconds(2026, 1, 23, 9, 1, 12, 819992, tzinfo=datetime.timezone.utc), error_message=None, metadata=None), EffectResult(type='PERSIST_RELATO', success=True, executed_at=DatetimeWithNanoseconds(2026, 1, 24, 17, 30, 17, 804956, tzinfo=datetime.timezone.utc), error_message=None, metadata=None), EffectResult(type='PERSIST_RELATO', success=True, executed_at=DatetimeWithNanoseconds(2026, 1, 26, 18, 31, 43, 809187, tzinfo=datetime.timezone.utc), error_message=None, metadata=None), EffectResult(type='PERSIST_RELATO', success=True, executed_at=DatetimeWithNanoseconds(2026, 1, 26, 18, 47, 49, 61347, tzinfo=datetime.timezone.utc), error_message=None, metadata=None), EffectResult(type='PERSIST_RELATO', success=True, executed_at=DatetimeWithNanoseconds(2026, 1, 26, 21, 47, 35, 450343, tzinfo=datetime.timezone.utc), error_message=None, metadata=None), EffectResult(type='PERSIST_RELATO', success=True, executed_at=DatetimeWithNanoseconds(2026, 1, 26, 21, 54, 58, 894728, tzinfo=datetime.timezone.utc), error_message=None, metadata=None), ...])
+
+tests\integration\test_relato_progress_firestore.py:24: AssertionError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:18,608", "level": "DEBUG", "logger": "urllib3.connectionpool", "message": "Starting new HTTPS connection (1): oauth2.googleapis.com:443"}
+{"timestamp": "2026-01-27 12:37:18,829", "level": "DEBUG", "logger": "urllib3.connectionpool", "message": "https://oauth2.googleapis.com:443 \"POST /token HTTP/1.1\" 200 None"}
+________________ test_post_relatos_with_real_multipart_upload _________________
+
+    def test_post_relatos_with_real_multipart_upload():
+    
+    
+        # -----------------------------------
+        # Auth override (correto)
+        # -----------------------------------
+        mock_user = User(
+            id="user-123",
+            email="user@test.com",
+            role="usuario_logado"
+        )
+    
+        app.dependency_overrides[get_current_user] = lambda: mock_user
+        client = TestClient(app)
+    
+        # -----------------------------------
+        # Payload v├ílido (schema real)
+        # -----------------------------------
+        payload = {
+            "descricao": "Relato com imagem real",
+            "consentimento": True,
+            "idade": 33
+        }
+    
+        # -----------------------------------
+        # Arquivo real em mem├│ria
+        # -----------------------------------
+        fake_image_bytes = BytesIO(b"fake-image-bytes-123")
+        fake_image_bytes.name = "antes.jpg"
+    
+        files = {
+            "imagens_antes": (
+                "antes.jpg",
+                fake_image_bytes,
+                "image/jpeg",
+            )
+        }
+    
+        try:
+            # -----------------------------------
+            # Mock SOMENTE do executor
+            # -----------------------------------
+            with patch("app.routes.relatos.RelatoEffectExecutor") as mock_exec:
+                exec_instance = MagicMock()
+                mock_exec.return_value = exec_instance
+    
+                response = client.post(
+                    "/relatos/",
+                    data={"payload": json.dumps(payload)},
+                    files=files,
+                )
+    
+                # -----------------------------------
+                # Asser├º├Áes cr├¡ticas
+                # -----------------------------------
+                assert response.status_code == 201
+    
+                body = response.json()
+>               assert "relato_id" in body
+E               AssertionError: assert 'relato_id' in {'data': {'relato_id': '93112336f37a48d8b2992579f07684ec', 'status': 'created'}, 'ux_effects': [{'channel': 'progress', 'message': 'Relato recebido e salvo.', 'relato_id': '93112336f37a48d8b2992579f07684ec', 'severity': 'info', ...}, {'channel': 'progress', 'message': 'Imagens enviadas para processamento.', 'relato_id': '93112336f37a48d8b2992579f07684ec', 'severity': 'info', ...}]}
+
+tests\routes\test_relatos_multipart.py:68: AssertionError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:25,442", "level": "DEBUG", "logger": "asyncio", "message": "Using proactor: IocpProactor"}
+{"timestamp": "2026-01-27 12:37:25,474", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_part_begin with no data"}
+{"timestamp": "2026-01-27 12:37:25,475", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_header_field with data[36:55]"}
+{"timestamp": "2026-01-27 12:37:25,476", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_header_value with data[57:82]"}
+{"timestamp": "2026-01-27 12:37:25,476", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_header_end with no data"}
+{"timestamp": "2026-01-27 12:37:25,477", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_headers_finished with no data"}
+{"timestamp": "2026-01-27 12:37:25,478", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_part_data with data[86:161]"}
+{"timestamp": "2026-01-27 12:37:25,478", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_part_end with no data"}
+{"timestamp": "2026-01-27 12:37:25,478", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_part_begin with no data"}
+{"timestamp": "2026-01-27 12:37:25,481", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_header_field with data[199:218]"}
+{"timestamp": "2026-01-27 12:37:25,482", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_header_value with data[220:273]"}
+{"timestamp": "2026-01-27 12:37:25,482", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_header_end with no data"}
+{"timestamp": "2026-01-27 12:37:25,483", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_header_field with data[275:287]"}
+{"timestamp": "2026-01-27 12:37:25,484", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_header_value with data[289:299]"}
+{"timestamp": "2026-01-27 12:37:25,485", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_header_end with no data"}
+{"timestamp": "2026-01-27 12:37:25,485", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_headers_finished with no data"}
+{"timestamp": "2026-01-27 12:37:25,486", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_part_data with data[303:323]"}
+{"timestamp": "2026-01-27 12:37:25,486", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_part_end with no data"}
+{"timestamp": "2026-01-27 12:37:25,487", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_end with no data"}
+{"timestamp": "2026-01-27 12:37:25,507", "level": "INFO", "logger": "root", "message": "POST /relatos/ testclient -> 201 (39.2ms) body_len=363"}
+{"timestamp": "2026-01-27 12:37:25,518", "level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://testserver/relatos/ \"HTTP/1.1 201 Created\""}
+---------------------------- Captured stderr call -----------------------------
+[32m[2026-01-27 12:37:25] [INFO] [request_logger] POST /relatos/ Status: 201 Tempo: 35.68ms[0m
+------------------------------ Captured log call ------------------------------
+2026-01-27 12:37:25 [INFO] POST /relatos/ testclient -> 201 (39.2ms) body_len=363
+2026-01-27 12:37:25 [INFO] HTTP Request: POST http://testserver/relatos/ "HTTP/1.1 201 Created"
+____________________ test_upload_failure_triggers_rollback ____________________
+
+    def test_upload_failure_triggers_rollback():
+        from app.services.relato_effect_executor import RelatoEffectExecutor
+        from app.domain.relato.effects import UploadImagesEffect, RollbackImagesEffect
+    
+        upload_called = False
+        rollback_called = False
+    
+        def fake_upload(relato_id, imagens):
+            nonlocal upload_called
+            upload_called = True
+            raise RuntimeError("upload failed")
+    
+        def fake_rollback(image_ids):
+            nonlocal rollback_called
+            rollback_called = True
+    
+    
+        executor = RelatoEffectExecutor(
+            upload_images=fake_upload,
+            rollback_images=fake_rollback,
+            persist_relato=lambda e: None,
+            enqueue_processing=lambda e: None,
+            emit_event=lambda e: None,
+            update_relato_status=lambda e: None,
+    
+        )
+    
+        effects = [
+>           UploadImagesEffect(relato_id="r1", imagens={})
+        ]
+E       TypeError: UploadImagesEffect.__init__() got an unexpected keyword argument 'imagens'
+
+tests\routes\test_relatos_multipart.py:106: TypeError
+__________________________ test_post_relatos_success __________________________
+
+    def test_post_relatos_success():
+        """Testa a cria├º├úo bem-sucedida de um relato (status 201)."""
+        # Mock dependencies
+        mock_user = User(id="user-123", email="test@example.com", role="usuario_logado")
+    
+        # Mock the domain decision
+        mock_decision = Decision(
+            allowed=True,
+            reason=None,
+>           next_state=RelatoStatus.DRAFT,
+                       ^^^^^^^^^^^^^^^^^^
+            previous_state=None,
+            effects=["effect1", "effect2"]  # Mock effects
+        )
+
+tests\routes\test_relatos_post.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <enum 'RelatoStatus'>, name = 'DRAFT'
+
+    def __getattr__(cls, name):
+        """
+        Return the enum member matching `name`
+    
+        We use __getattr__ instead of descriptors or inserting into the enum
+        class' __dict__ in order to support `name` and `value` being both
+        properties for enum members (which live in the class' __dict__) and
+        enum members themselves.
+        """
+        if _is_dunder(name):
+            raise AttributeError(name)
+        try:
+            return cls._member_map_[name]
+        except KeyError:
+>           raise AttributeError(name) from None
+E           AttributeError: DRAFT
+
+C:\Python311\Lib\enum.py:783: AttributeError
+_____________________ test_post_relatos_denied_by_domain ______________________
+
+    def test_post_relatos_denied_by_domain():
+        """Testa que a rota retorna 403 quando o dom├¡nio nega a cria├º├úo."""
+        # Mock dependencies
+        mock_user = User(id="user-123", email="test@example.com", role="usuario_logado")
+    
+        # Mock the domain decision (denied)
+        mock_decision = Decision(
+            allowed=False,
+            reason="Relato j├í existe.",
+            next_state=None,
+>           previous_state=RelatoStatus.DRAFT,
+                           ^^^^^^^^^^^^^^^^^^
+            effects=[]  # No effects when denied
+        )
+
+tests\routes\test_relatos_post.py:85: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <enum 'RelatoStatus'>, name = 'DRAFT'
+
+    def __getattr__(cls, name):
+        """
+        Return the enum member matching `name`
+    
+        We use __getattr__ instead of descriptors or inserting into the enum
+        class' __dict__ in order to support `name` and `value` being both
+        properties for enum members (which live in the class' __dict__) and
+        enum members themselves.
+        """
+        if _is_dunder(name):
+            raise AttributeError(name)
+        try:
+            return cls._member_map_[name]
+        except KeyError:
+>           raise AttributeError(name) from None
+E           AttributeError: DRAFT
+
+C:\Python311\Lib\enum.py:783: AttributeError
+___________________ test_post_relatos_missing_consentimento ___________________
+
+    def test_post_relatos_missing_consentimento():
+        """Testa que a rota retorna 400 quando consentimento n├úo ├® informado."""
+        # Mock dependencies
+        mock_user = User(id="user-123", email="test@example.com", role="usuario_logado")
+    
+        # Create a test client
+        client = TestClient(app)
+    
+        # Prepare payload without consentimento
+        payload = {
+            "descricao": "Relato de teste",
+            "consentimento": False,  # Explicitly false
+            "tags": ["teste"],
+            "tratamentos": ["tratamento1"]
+        }
+    
+        with patch("app.auth.dependencies.get_current_user", return_value=mock_user):
+            # Make the request
+            response = client.post(
+                "/relatos",
+                data={"payload": json.dumps(payload)},
+            )
+    
+            # Assertions
+>           assert response.status_code == status.HTTP_400_BAD_REQUEST
+E           assert 401 == 400
+E            +  where 401 = <Response [401 Unauthorized]>.status_code
+E            +  and   400 = status.HTTP_400_BAD_REQUEST
+
+tests\routes\test_relatos_post.py:140: AssertionError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:26,054", "level": "DEBUG", "logger": "asyncio", "message": "Using proactor: IocpProactor"}
+{"timestamp": "2026-01-27 12:37:26,074", "level": "INFO", "logger": "root", "message": "POST /relatos testclient -> 307 (2.6ms) body_len=169"}
+{"timestamp": "2026-01-27 12:37:26,079", "level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://testserver/relatos \"HTTP/1.1 307 Temporary Redirect\""}
+{"timestamp": "2026-01-27 12:37:26,082", "level": "DEBUG", "logger": "asyncio", "message": "Using proactor: IocpProactor"}
+{"timestamp": "2026-01-27 12:37:26,101", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_field_start with no data"}
+{"timestamp": "2026-01-27 12:37:26,101", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_field_name with data[0:7]"}
+{"timestamp": "2026-01-27 12:37:26,102", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_field_data with data[8:169]"}
+{"timestamp": "2026-01-27 12:37:26,102", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_field_end with no data"}
+{"timestamp": "2026-01-27 12:37:26,103", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_end with no data"}
+{"timestamp": "2026-01-27 12:37:26,107", "level": "DEBUG", "logger": "app.auth.dependencies", "message": "Auth dependency: Authorization header raw -> None"}
+{"timestamp": "2026-01-27 12:37:26,107", "level": "INFO", "logger": "app.auth.dependencies", "message": "AUTH REJECT: Authorization header ausente."}
+{"timestamp": "2026-01-27 12:37:26,110", "level": "INFO", "logger": "root", "message": "POST /relatos/ testclient -> 401 (12.4ms) body_len=169"}
+{"timestamp": "2026-01-27 12:37:26,114", "level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://testserver/relatos/ \"HTTP/1.1 401 Unauthorized\""}
+---------------------------- Captured stderr call -----------------------------
+[32m[2026-01-27 12:37:26] [INFO] [request_logger] POST /relatos Status: 307 Tempo: 0.00ms[0m
+[32m[2026-01-27 12:37:26] [INFO] [request_logger] POST /relatos/ Status: 401 Tempo: 11.31ms[0m
+------------------------------ Captured log call ------------------------------
+2026-01-27 12:37:26 [INFO] POST /relatos testclient -> 307 (2.6ms) body_len=169
+2026-01-27 12:37:26 [INFO] HTTP Request: POST http://testserver/relatos "HTTP/1.1 307 Temporary Redirect"
+2026-01-27 12:37:26 [INFO] AUTH REJECT: Authorization header ausente.
+2026-01-27 12:37:26 [INFO] POST /relatos/ testclient -> 401 (12.4ms) body_len=169
+2026-01-27 12:37:26 [INFO] HTTP Request: POST http://testserver/relatos/ "HTTP/1.1 401 Unauthorized"
+__________________ test_post_relatos_no_consentimento_field ___________________
+
+    def test_post_relatos_no_consentimento_field():
+        """Testa que a rota retorna 400 quando campo consentimento est├í ausente."""
+        # Mock dependencies
+        mock_user = User(id="user-123", email="test@example.com", role="usuario_logado")
+    
+        # Create a test client
+        client = TestClient(app)
+    
+        # Prepare payload without consentimento field
+        payload = {
+            "descricao": "Relato de teste",
+            "tags": ["teste"],
+            "tratamentos": ["tratamento1"]
+        }
+    
+        with patch("app.auth.dependencies.get_current_user", return_value=mock_user):
+            # Make the request
+            response = client.post(
+                "/relatos",
+                data={"payload": json.dumps(payload)},
+            )
+    
+            # Assertions - this might be a validation error depending on schema
+            # If the schema requires consentimento, this will be 422, otherwise 400 if checked in code
+>           assert response.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_422_UNPROCESSABLE_ENTITY]
+E           assert 401 in [400, 422]
+E            +  where 401 = <Response [401 Unauthorized]>.status_code
+
+tests\routes\test_relatos_post.py:169: AssertionError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:26,223", "level": "DEBUG", "logger": "asyncio", "message": "Using proactor: IocpProactor"}
+{"timestamp": "2026-01-27 12:37:26,240", "level": "INFO", "logger": "root", "message": "POST /relatos testclient -> 307 (2.0ms) body_len=137"}
+{"timestamp": "2026-01-27 12:37:26,243", "level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://testserver/relatos \"HTTP/1.1 307 Temporary Redirect\""}
+{"timestamp": "2026-01-27 12:37:26,245", "level": "DEBUG", "logger": "asyncio", "message": "Using proactor: IocpProactor"}
+{"timestamp": "2026-01-27 12:37:26,260", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_field_start with no data"}
+{"timestamp": "2026-01-27 12:37:26,260", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_field_name with data[0:7]"}
+{"timestamp": "2026-01-27 12:37:26,260", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_field_data with data[8:137]"}
+{"timestamp": "2026-01-27 12:37:26,261", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_field_end with no data"}
+{"timestamp": "2026-01-27 12:37:26,261", "level": "DEBUG", "logger": "python_multipart.multipart", "message": "Calling on_end with no data"}
+{"timestamp": "2026-01-27 12:37:26,262", "level": "DEBUG", "logger": "app.auth.dependencies", "message": "Auth dependency: Authorization header raw -> None"}
+{"timestamp": "2026-01-27 12:37:26,264", "level": "INFO", "logger": "app.auth.dependencies", "message": "AUTH REJECT: Authorization header ausente."}
+{"timestamp": "2026-01-27 12:37:26,265", "level": "INFO", "logger": "root", "message": "POST /relatos/ testclient -> 401 (7.4ms) body_len=137"}
+{"timestamp": "2026-01-27 12:37:26,268", "level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://testserver/relatos/ \"HTTP/1.1 401 Unauthorized\""}
+---------------------------- Captured stderr call -----------------------------
+[32m[2026-01-27 12:37:26] [INFO] [request_logger] POST /relatos Status: 307 Tempo: 1.04ms[0m
+[32m[2026-01-27 12:37:26] [INFO] [request_logger] POST /relatos/ Status: 401 Tempo: 6.42ms[0m
+------------------------------ Captured log call ------------------------------
+2026-01-27 12:37:26 [INFO] POST /relatos testclient -> 307 (2.0ms) body_len=137
+2026-01-27 12:37:26 [INFO] HTTP Request: POST http://testserver/relatos "HTTP/1.1 307 Temporary Redirect"
+2026-01-27 12:37:26 [INFO] AUTH REJECT: Authorization header ausente.
+2026-01-27 12:37:26 [INFO] POST /relatos/ testclient -> 401 (7.4ms) body_len=137
+2026-01-27 12:37:26 [INFO] HTTP Request: POST http://testserver/relatos/ "HTTP/1.1 401 Unauthorized"
+______________ test_post_relatos_executor_not_called_when_denied ______________
+
+    def test_post_relatos_executor_not_called_when_denied():
+        """Testa que o executor de efeitos N├âO ├® chamado quando decision.allowed == False."""
+        # Mock dependencies
+        mock_user = User(id="user-123", email="test@example.com", role="usuario_logado")
+    
+        # Mock the domain decision (denied)
+        mock_decision = Decision(
+            allowed=False,
+            reason="Relato j├í existe.",
+            next_state=None,
+>           previous_state=RelatoStatus.DRAFT,
+                           ^^^^^^^^^^^^^^^^^^
+            effects=[]  # No effects when denied
+        )
+
+tests\routes\test_relatos_post.py:182: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <enum 'RelatoStatus'>, name = 'DRAFT'
+
+    def __getattr__(cls, name):
+        """
+        Return the enum member matching `name`
+    
+        We use __getattr__ instead of descriptors or inserting into the enum
+        class' __dict__ in order to support `name` and `value` being both
+        properties for enum members (which live in the class' __dict__) and
+        enum members themselves.
+        """
+        if _is_dunder(name):
+            raise AttributeError(name)
+        try:
+            return cls._member_map_[name]
+        except KeyError:
+>           raise AttributeError(name) from None
+E           AttributeError: DRAFT
+
+C:\Python311\Lib\enum.py:783: AttributeError
+_____________________ test_get_relato_progress_forbidden ______________________
+
+client = <httpx.AsyncClient object at 0x00000230F5F5F1D0>
+mock_current_user_usuario_logado = None
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000230F602D450>
+
+    @pytest.mark.asyncio
+    async def test_get_relato_progress_forbidden(
+        client,
+        mock_current_user_usuario_logado,
+        monkeypatch,
+    ):
+        from fastapi import HTTPException
+    
+        async def fake_get_relato_by_id(*_, **__):
+            raise HTTPException(status_code=403, detail="Acesso negado")
+    
+        monkeypatch.setattr(
+            "app.services.relatos_service.get_relato_by_id",
+            fake_get_relato_by_id,
+        )
+    
+        response = await client.get("/relatos/relato-123/progress")
+>       assert response.status_code == status.HTTP_403_FORBIDDEN
+E       assert 200 == 403
+E        +  where 200 = <Response [200 OK]>.status_code
+E        +  and   403 = status.HTTP_403_FORBIDDEN
+
+tests\routes\test_relatos_progress.py:38: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+{"timestamp": "2026-01-27 12:37:26,463", "level": "DEBUG", "logger": "asyncio", "message": "Using proactor: IocpProactor"}
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:26,483", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Getting progress for relato_id=relato-123 user=user_123"}
+{"timestamp": "2026-01-27 12:37:32,397", "level": "DEBUG", "logger": "urllib3.connectionpool", "message": "Starting new HTTPS connection (1): oauth2.googleapis.com:443"}
+{"timestamp": "2026-01-27 12:37:32,670", "level": "DEBUG", "logger": "urllib3.connectionpool", "message": "https://oauth2.googleapis.com:443 \"POST /token HTTP/1.1\" 200 None"}
+{"timestamp": "2026-01-27 12:37:32,850", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Found 26 effect records for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:32,852", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Converted effect records to UXEffectRecords for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:32,852", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Sorted UXEffectRecords for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:32,852", "level": "DEBUG", "logger": "app.core.projections.progress_projector", "message": "Projecting progress for relato_id=relato-123 with 26 effects"}
+{"timestamp": "2026-01-27 12:37:32,852", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Projected progress for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:32,861", "level": "INFO", "logger": "root", "message": "GET /relatos/relato-123/progress 127.0.0.1 -> 200 (6382.5ms) body_len=0"}
+{"timestamp": "2026-01-27 12:37:32,864", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET http://test/relatos/relato-123/progress \"HTTP/1.1 200 OK\""}
+---------------------------- Captured stderr call -----------------------------
+[32m[2026-01-27 12:37:32] [INFO] [request_logger] GET /relatos/relato-123/progress Status: 200 Tempo: 6381.02ms[0m
+------------------------------ Captured log call ------------------------------
+2026-01-27 12:37:32 [INFO] GET /relatos/relato-123/progress 127.0.0.1 -> 200 (6382.5ms) body_len=0
+2026-01-27 12:37:32 [INFO] HTTP Request: GET http://test/relatos/relato-123/progress "HTTP/1.1 200 OK"
+_______________________ test_get_relato_progress_empty ________________________
+
+client = <httpx.AsyncClient object at 0x00000230F60A6550>
+mock_current_user_usuario_logado = None
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000230F60A6510>
+
+    @pytest.mark.asyncio
+    async def test_get_relato_progress_empty(
+        client,
+        mock_current_user_usuario_logado,
+        monkeypatch,
+    ):
+        async def fake_get_relato_by_id(*_, **__):
+            return {"id": "relato-123"}
+    
+        def fake_fetch_progress(relato_id: str):
+            return {
+                "relato_id": relato_id,
+                "total_effects": 0,
+                "completed": 0,
+                "failed": 0,
+                "progress_pct": 0,
+                "effects": [],
+            }
+    
+        monkeypatch.setattr(
+            "app.services.relatos_service.get_relato_by_id",
+            fake_get_relato_by_id,
+        )
+    
+        monkeypatch.setattr(
+            "app.services.readmodels.relato_progress.fetch_relato_progress",
+            fake_fetch_progress,
+        )
+    
+        response = await client.get("/relatos/relato-123/progress")
+        data = response.json()
+    
+        assert response.status_code == 200
+>       assert data["progress_pct"] == 0
+E       assert 0.42857142857142855 == 0
+
+tests\routes\test_relatos_progress.py:78: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+{"timestamp": "2026-01-27 12:37:32,928", "level": "DEBUG", "logger": "asyncio", "message": "Using proactor: IocpProactor"}
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:32,971", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Getting progress for relato_id=relato-123 user=user_123"}
+{"timestamp": "2026-01-27 12:37:37,639", "level": "DEBUG", "logger": "urllib3.connectionpool", "message": "Starting new HTTPS connection (1): oauth2.googleapis.com:443"}
+{"timestamp": "2026-01-27 12:37:37,887", "level": "DEBUG", "logger": "urllib3.connectionpool", "message": "https://oauth2.googleapis.com:443 \"POST /token HTTP/1.1\" 200 None"}
+{"timestamp": "2026-01-27 12:37:38,014", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Found 26 effect records for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:38,014", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Converted effect records to UXEffectRecords for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:38,014", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Sorted UXEffectRecords for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:38,021", "level": "DEBUG", "logger": "app.core.projections.progress_projector", "message": "Projecting progress for relato_id=relato-123 with 26 effects"}
+{"timestamp": "2026-01-27 12:37:38,021", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Projected progress for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:38,022", "level": "INFO", "logger": "root", "message": "GET /relatos/relato-123/progress 127.0.0.1 -> 200 (5057.2ms) body_len=0"}
+{"timestamp": "2026-01-27 12:37:38,022", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET http://test/relatos/relato-123/progress \"HTTP/1.1 200 OK\""}
+---------------------------- Captured stderr call -----------------------------
+[32m[2026-01-27 12:37:38] [INFO] [request_logger] GET /relatos/relato-123/progress Status: 200 Tempo: 5056.19ms[0m
+------------------------------ Captured log call ------------------------------
+2026-01-27 12:37:38 [INFO] GET /relatos/relato-123/progress 127.0.0.1 -> 200 (5057.2ms) body_len=0
+2026-01-27 12:37:38 [INFO] HTTP Request: GET http://test/relatos/relato-123/progress "HTTP/1.1 200 OK"
+_________________ test_get_relato_progress_partial_with_error _________________
+
+client = <httpx.AsyncClient object at 0x00000230F5F4A8D0>
+mock_current_user_usuario_logado = None
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000230F5F4BD90>
+
+    @pytest.mark.asyncio
+    async def test_get_relato_progress_partial_with_error(
+        client,
+        mock_current_user_usuario_logado,
+        monkeypatch,
+    ):
+        async def fake_get_relato_by_id(*_, **__):
+            return {"id": "relato-123"}
+    
+        def fake_fetch_progress(relato_id: str):
+            return {
+                "relato_id": relato_id,
+                "total_effects": 3,
+                "completed": 2,
+                "failed": 1,
+                "progress_pct": 66,
+                "effects": [
+                    {"effect_type": "PERSIST_RELATO", "success": True},
+                    {"effect_type": "UPLOAD_IMAGES", "success": False},
+                    {"effect_type": "ENQUEUE_PROCESSING", "success": True},
+                ],
+            }
+    
+        monkeypatch.setattr(
+            "app.services.relatos_service.get_relato_by_id",
+            fake_get_relato_by_id,
+        )
+    
+        monkeypatch.setattr(
+            "app.services.readmodels.relato_progress.fetch_relato_progress",
+            fake_fetch_progress,
+        )
+    
+        response = await client.get("/relatos/relato-123/progress")
+        data = response.json()
+    
+        assert response.status_code == 200
+>       assert data["failed"] == 1
+               ^^^^^^^^^^^^^^
+E       KeyError: 'failed'
+
+tests\routes\test_relatos_progress.py:123: KeyError
+---------------------------- Captured stdout setup ----------------------------
+{"timestamp": "2026-01-27 12:37:38,060", "level": "DEBUG", "logger": "asyncio", "message": "Using proactor: IocpProactor"}
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:38,084", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Getting progress for relato_id=relato-123 user=user_123"}
+{"timestamp": "2026-01-27 12:37:41,987", "level": "DEBUG", "logger": "urllib3.connectionpool", "message": "Starting new HTTPS connection (1): oauth2.googleapis.com:443"}
+{"timestamp": "2026-01-27 12:37:42,255", "level": "DEBUG", "logger": "urllib3.connectionpool", "message": "https://oauth2.googleapis.com:443 \"POST /token HTTP/1.1\" 200 None"}
+{"timestamp": "2026-01-27 12:37:42,391", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Found 26 effect records for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:42,392", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Converted effect records to UXEffectRecords for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:42,392", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Sorted UXEffectRecords for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:42,392", "level": "DEBUG", "logger": "app.core.projections.progress_projector", "message": "Projecting progress for relato_id=relato-123 with 26 effects"}
+{"timestamp": "2026-01-27 12:37:42,393", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Projected progress for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:42,395", "level": "INFO", "logger": "root", "message": "GET /relatos/relato-123/progress 127.0.0.1 -> 200 (4320.3ms) body_len=0"}
+{"timestamp": "2026-01-27 12:37:42,397", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET http://test/relatos/relato-123/progress \"HTTP/1.1 200 OK\""}
+---------------------------- Captured stderr call -----------------------------
+[32m[2026-01-27 12:37:42] [INFO] [request_logger] GET /relatos/relato-123/progress Status: 200 Tempo: 4320.26ms[0m
+------------------------------ Captured log call ------------------------------
+2026-01-27 12:37:42 [INFO] GET /relatos/relato-123/progress 127.0.0.1 -> 200 (4320.3ms) body_len=0
+2026-01-27 12:37:42 [INFO] HTTP Request: GET http://test/relatos/relato-123/progress "HTTP/1.1 200 OK"
+______________________ test_get_relato_progress_complete ______________________
+
+client = <httpx.AsyncClient object at 0x00000230F5FAB450>
+mock_current_user_usuario_logado = None
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000230F5FAABD0>
+
+    @pytest.mark.asyncio
+    async def test_get_relato_progress_complete(
+        client,
+        mock_current_user_usuario_logado,
+        monkeypatch,
+    ):
+        async def fake_get_relato_by_id(*_, **__):
+            return {"id": "relato-123"}
+    
+        def fake_fetch_progress(relato_id: str):
+            return {
+                "relato_id": relato_id,
+                "total_effects": 2,
+                "completed": 2,
+                "failed": 0,
+                "progress_pct": 100,
+                "effects": [
+                    {"effect_type": "PERSIST_RELATO", "success": True},
+                    {"effect_type": "UPLOAD_IMAGES", "success": True},
+                ],
+            }
+    
+        monkeypatch.setattr(
+            "app.services.relatos_service.get_relato_by_id",
+            fake_get_relato_by_id,
+        )
+    
+        monkeypatch.setattr(
+            "app.services.readmodels.relato_progress.fetch_relato_progress",
+            fake_fetch_progress,
+        )
+    
+        response = await client.get("/relatos/relato-123/progress")
+        data = response.json()
+    
+        assert response.status_code == 200
+>       assert data["progress_pct"] == 100
+E       assert 0.42857142857142855 == 100
+
+tests\routes\test_relatos_progress.py:167: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+{"timestamp": "2026-01-27 12:37:42,419", "level": "DEBUG", "logger": "asyncio", "message": "Using proactor: IocpProactor"}
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:42,440", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Getting progress for relato_id=relato-123 user=user_123"}
+{"timestamp": "2026-01-27 12:37:46,742", "level": "DEBUG", "logger": "urllib3.connectionpool", "message": "Starting new HTTPS connection (1): oauth2.googleapis.com:443"}
+{"timestamp": "2026-01-27 12:37:47,009", "level": "DEBUG", "logger": "urllib3.connectionpool", "message": "https://oauth2.googleapis.com:443 \"POST /token HTTP/1.1\" 200 None"}
+{"timestamp": "2026-01-27 12:37:47,144", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Found 26 effect records for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:47,144", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Converted effect records to UXEffectRecords for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:47,144", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Sorted UXEffectRecords for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:47,144", "level": "DEBUG", "logger": "app.core.projections.progress_projector", "message": "Projecting progress for relato_id=relato-123 with 26 effects"}
+{"timestamp": "2026-01-27 12:37:47,144", "level": "DEBUG", "logger": "app.routes.relatos_progress", "message": "Projected progress for relato_id=relato-123"}
+{"timestamp": "2026-01-27 12:37:47,144", "level": "INFO", "logger": "root", "message": "GET /relatos/relato-123/progress 127.0.0.1 -> 200 (4703.5ms) body_len=0"}
+{"timestamp": "2026-01-27 12:37:47,151", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET http://test/relatos/relato-123/progress \"HTTP/1.1 200 OK\""}
+---------------------------- Captured stderr call -----------------------------
+[32m[2026-01-27 12:37:47] [INFO] [request_logger] GET /relatos/relato-123/progress Status: 200 Tempo: 4703.49ms[0m
+------------------------------ Captured log call ------------------------------
+2026-01-27 12:37:47 [INFO] GET /relatos/relato-123/progress 127.0.0.1 -> 200 (4703.5ms) body_len=0
+2026-01-27 12:37:47 [INFO] HTTP Request: GET http://test/relatos/relato-123/progress "HTTP/1.1 200 OK"
+__________________________ test_retry_effect_success __________________________
+
+    def test_retry_effect_success():
+        clear_registry()
+    
+        mock_executor = Mock()
+        register_effect_executor("UPLOAD_IMAGE", mock_executor)
+    
+        fake_result = EffectResult(
+            relato_id="r1",
+            effect_type="UPLOAD_IMAGE",
+            effect_ref="img123",
+            success=False,
+            metadata={"path": "x/y.jpg"},
+            error="fail",
+            executed_at=datetime.utcnow(),
+        )
+    
+>       with patch(
+            "app.services.effects.retry_engine.load_effect_result",
+            return_value=fake_result,
+        ), patch(
+            "app.services.effects.retry_engine.persist_effect_result_firestore"
+        ):
+
+tests\services\effects\test_retry_effect.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Python311\Lib\unittest\mock.py:1443: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x00000230F60CA390>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'app.services.effects.retry_engine' from 'D:\\workspace_projects_001\\dermasync-api\\app\\services\\effects\\retry_engine.py'> does not have the attribute 'load_effect_result'
+
+C:\Python311\Lib\unittest\mock.py:1416: AttributeError
+__________________ test_retry_effect_unsupported_type_raises __________________
+
+    def test_retry_effect_unsupported_type_raises():
+        clear_registry()
+    
+        fake_result = EffectResult(
+            relato_id="r1",
+            effect_type="UNKNOWN_EFFECT",
+            effect_ref="x",
+            success=False,
+            metadata={},
+            error="fail",
+            executed_at=datetime.utcnow(),
+        )
+    
+>       with patch(
+            "app.services.effects.retry_engine.load_effect_result",
+            return_value=fake_result,
+        ):
+
+tests\services\effects\test_retry_effect_unsupported.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Python311\Lib\unittest\mock.py:1443: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x00000230F6071E10>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'app.services.effects.retry_engine' from 'D:\\workspace_projects_001\\dermasync-api\\app\\services\\effects\\retry_engine.py'> does not have the attribute 'load_effect_result'
+
+C:\Python311\Lib\unittest\mock.py:1416: AttributeError
+__________________________ test_retry_persist_relato __________________________
+
+executor = <app.services.relato_effect_executor.RelatoEffectExecutor object at 0x00000230F60079D0>
+
+    def test_retry_persist_relato(executor):
+        """
+        Deve reexecutar PersistRelatoEffect a partir de EffectResult.
+        """
+        effect_data = {
+            "owner_id": "user-123",
+            "status": "novo",
+            "conteudo": "conteudo",
+            "imagens": {},
+        }
+        result = EffectResult(
+            relato_id="relato-123",
+            effect_type="PERSIST_RELATO",
+            effect_ref="relato-123",
+            success=False,
+            metadata={"effect_data": effect_data},
+        )
+    
+>       executor.execute_by_result(effect_result=result, attempt=1)
+
+tests\services\effects\test_retry_executor.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <app.services.relato_effect_executor.RelatoEffectExecutor object at 0x00000230F60079D0>
+
+    def execute_by_result(
+        self,
+        *,
+        effect_result: EffectResult,
+        attempt: int,
+    ):
+        """
+        Reexecuta um efeito com base em um EffectResult anterior.
+        N├âO decide retry.
+        N├âO muda dom├¡nio.
+        """
+    
+        effect_type = effect_result.effect_type
+        relato_id = effect_result.relato_id
+    
+        logger.info(
+            "RetryExecutor | effect=%s | relato=%s | attempt=%d",
+            effect_type,
+            relato_id,
+            attempt,
+        )
+    
+        # Reconstru├º├úo m├¡nima do efeito
+        if effect_type == "PERSIST_RELATO":
+            effect_data = effect_result.metadata.get("effect_data", {})
+>           effect = PersistRelatoEffect(relato_id=relato_id, **effect_data)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: PersistRelatoEffect.__init__() got an unexpected keyword argument 'imagens'
+
+app\services\relato_effect_executor.py:376: TypeError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:47,873", "level": "INFO", "logger": "app.services.relato_effect_executor", "message": "RetryExecutor | effect=PERSIST_RELATO | relato=relato-123 | attempt=1"}
+------------------------------ Captured log call ------------------------------
+2026-01-27 12:37:47 [INFO] RetryExecutor | effect=PERSIST_RELATO | relato=relato-123 | attempt=1
+____________________________ test_retry_emit_event ____________________________
+
+executor = <app.services.relato_effect_executor.RelatoEffectExecutor object at 0x00000230F600F490>
+
+    def test_retry_emit_event(executor):
+        """
+        Deve reexecutar EmitDomainEventEffect com payload preservado.
+        """
+        result = EffectResult(
+            relato_id="relato-789",
+            effect_type="EMIT_EVENT",
+            effect_ref="relato_criado",
+            success=False,
+            metadata={
+                "payload": {"relato_id": "relato-789", "foo": "bar"}
+            },
+        )
+    
+>       executor.execute_by_result(effect_result=result, attempt=1)
+
+tests\services\effects\test_retry_executor.py:94: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+app\services\relato_effect_executor.py:408: in execute_by_result
+    raise exc
+app\services\relato_effect_executor.py:400: in execute_by_result
+    self.execute([effect])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <app.services.relato_effect_executor.RelatoEffectExecutor object at 0x00000230F600F490>
+effects = [EmitDomainEventEffect(event_name='relato_criado', payload={'relato_id': 'relato-789', 'foo': 'bar'})]
+
+    def execute(self, effects: list):
+        logger.info("Executando efeitos do relato | total=%d", len(effects))
+    
+        executed_effects: list = []
+    
+        try:
+            for effect in effects:
+                # =====================================================
+                # Idempot├¬ncia ÔÇö skip se j├í executado com sucesso
+                # =====================================================
+                effect_type = effect.__class__.__name__
+    
+                if isinstance(effect, UpdateRelatoStatusEffect):
+                    effect_ref = effect.new_status.value
+                elif isinstance(effect, EmitDomainEventEffect):
+                    effect_ref = effect.event_name
+                else:
+                    effect_ref = effect.relato_id
+    
+                if effect_ref and effect_already_succeeded(
+>                   relato_id=effect.relato_id,
+                              ^^^^^^^^^^^^^^^^
+                    effect_type=effect_type,
+                    effect_ref=effect_ref,
+                ):
+E               AttributeError: 'EmitDomainEventEffect' object has no attribute 'relato_id'
+
+app\services\relato_effect_executor.py:70: AttributeError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:48,078", "level": "INFO", "logger": "app.services.relato_effect_executor", "message": "RetryExecutor | effect=EMIT_EVENT | relato=relato-789 | attempt=1"}
+{"timestamp": "2026-01-27 12:37:48,079", "level": "INFO", "logger": "app.services.relato_effect_executor", "message": "Executando efeitos do relato | total=1"}
+{"timestamp": "2026-01-27 12:37:48,079", "level": "WARNING", "logger": "app.services.relato_effect_executor", "message": "Falha na execu├º├úo de efeitos. Iniciando rollback compensat├│rio | total_executados=0"}
+{"timestamp": "2026-01-27 12:37:48,080", "level": "ERROR", "logger": "app.services.relato_effect_executor", "message": "RetryExecutor | falha ao reexecutar effect=EMIT_EVENT | relato=relato-789"}
+------------------------------ Captured log call ------------------------------
+2026-01-27 12:37:48 [INFO] RetryExecutor | effect=EMIT_EVENT | relato=relato-789 | attempt=1
+2026-01-27 12:37:48 [INFO] Executando efeitos do relato | total=1
+2026-01-27 12:37:48 [WARNING] Falha na execu├º├úo de efeitos. Iniciando rollback compensat├│rio | total_executados=0
+2026-01-27 12:37:48 [ERROR] RetryExecutor | falha ao reexecutar effect=EMIT_EVENT | relato=relato-789
+Traceback (most recent call last):
+  File "D:\workspace_projects_001\dermasync-api\app\services\relato_effect_executor.py", line 400, in execute_by_result
+    self.execute([effect])
+  File "D:\workspace_projects_001\dermasync-api\app\services\relato_effect_executor.py", line 70, in execute
+    relato_id=effect.relato_id,
+              ^^^^^^^^^^^^^^^^
+AttributeError: 'EmitDomainEventEffect' object has no attribute 'relato_id'
+______________________ test_retry_upload_images_success _______________________
+
+executor = <app.services.relato_effect_executor.RelatoEffectExecutor object at 0x00000230F60C8090>
+
+    def test_retry_upload_images_success(executor):
+        """
+        Deve reexecutar UploadImagesEffect quando metadata.imagens existe.
+        """
+        imagens = {
+            "antes": ["img1"],
+            "durante": ["img2", "img3"],
+            "depois": [],
+        }
+    
+        result = EffectResult(
+            relato_id="relato-999",
+            effect_type="UPLOAD_IMAGES",
+            effect_ref="relato-999",
+            success=False,
+            metadata={
+                "imagens": imagens
+            },
+        )
+    
+>       executor.execute_by_result(effect_result=result, attempt=2)
+
+tests\services\effects\test_retry_executor.py:122: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <app.services.relato_effect_executor.RelatoEffectExecutor object at 0x00000230F60C8090>
+
+    def execute_by_result(
+        self,
+        *,
+        effect_result: EffectResult,
+        attempt: int,
+    ):
+        """
+        Reexecuta um efeito com base em um EffectResult anterior.
+        N├âO decide retry.
+        N├âO muda dom├¡nio.
+        """
+    
+        effect_type = effect_result.effect_type
+        relato_id = effect_result.relato_id
+    
+        logger.info(
+            "RetryExecutor | effect=%s | relato=%s | attempt=%d",
+            effect_type,
+            relato_id,
+            attempt,
+        )
+    
+        # Reconstru├º├úo m├¡nima do efeito
+        if effect_type == "PERSIST_RELATO":
+            effect_data = effect_result.metadata.get("effect_data", {})
+            effect = PersistRelatoEffect(relato_id=relato_id, **effect_data)
+    
+        elif effect_type == "ENQUEUE_PROCESSING":
+            effect = EnqueueProcessingEffect(relato_id=relato_id)
+    
+        elif effect_type == "EMIT_EVENT":
+            effect = EmitDomainEventEffect(
+                event_name=effect_result.effect_ref,
+                payload=effect_result.metadata.get("payload") if effect_result.metadata else None,
+            )
+    
+        elif effect_type == "UPLOAD_IMAGES":
+            # TODO: suportar retry quando upload for idempotente (hash + versionamento)
+>           raise ValueError(
+                "Retry autom├ítico de UPLOAD_IMAGES n├úo ├® suportado. "
+                "Uploads n├úo s├úo idempotentes sem controle de storage."
+            )
+E           ValueError: Retry autom├ítico de UPLOAD_IMAGES n├úo ├® suportado. Uploads n├úo s├úo idempotentes sem controle de storage.
+
+app\services\relato_effect_executor.py:389: ValueError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:48,154", "level": "INFO", "logger": "app.services.relato_effect_executor", "message": "RetryExecutor | effect=UPLOAD_IMAGES | relato=relato-999 | attempt=2"}
+------------------------------ Captured log call ------------------------------
+2026-01-27 12:37:48 [INFO] RetryExecutor | effect=UPLOAD_IMAGES | relato=relato-999 | attempt=2
+___________________________ test_progress_ui_empty ____________________________
+
+    def test_progress_ui_empty():
+        progress = {
+            "total_effects": 0,
+            "completed": 0,
+            "failed": 0,
+            "progress_pct": 0,
+            "effects": [],
+        }
+    
+        ui = build_relato_progress_ui(
+            relato_id="relato-1",
+            progress=progress,
+        )
+    
+>       assert ui["status"] == "PENDING"
+E       AssertionError: assert 'RECEIVED' == 'PENDING'
+E         
+E         - PENDING
+E         + RECEIVED
+
+tests\services\readmodels\test_relato_progress_ui.py:24: AssertionError
+_____________________ test_progress_ui_partial_with_error _____________________
+
+    def test_progress_ui_partial_with_error():
+        progress = {
+            "total_effects": 3,
+            "completed": 2,
+            "failed": 1,
+            "progress_pct": 66,
+            "effects": [
+                {"effect_type": "PERSIST_RELATO", "success": True},
+                {"effect_type": "UPLOAD_IMAGES", "success": False},
+                {"effect_type": "ENQUEUE_PROCESSING", "success": True},
+            ],
+        }
+    
+        ui = build_relato_progress_ui(
+            relato_id="relato-2",
+            progress=progress,
+        )
+    
+        assert ui["status"] == "PARTIAL_ERROR"
+        assert ui["progress_pct"] == 66
+>       assert ui["failed"] == 1
+               ^^^^^^^^^^^^
+E       KeyError: 'failed'
+
+tests\services\readmodels\test_relato_progress_ui.py:54: KeyError
+________________________ test_progress_ui_in_progress _________________________
+
+    def test_progress_ui_in_progress():
+        progress = {
+            "total_effects": 3,
+            "completed": 1,
+            "failed": 0,
+            "progress_pct": 33,
+            "effects": [
+                {"effect_type": "PERSIST_RELATO", "success": True},
+            ],
+        }
+    
+        ui = build_relato_progress_ui(
+            relato_id="relato-3",
+            progress=progress,
+        )
+    
+>       assert ui["status"] == "IN_PROGRESS"
+E       AssertionError: assert 'PROCESSING' == 'IN_PROGRESS'
+E         
+E         - IN_PROGRESS
+E         + PROCESSING
+
+tests\services\readmodels\test_relato_progress_ui.py:81: AssertionError
+_________________________ test_progress_ui_completed __________________________
+
+    def test_progress_ui_completed():
+        progress = {
+            "total_effects": 2,
+            "completed": 2,
+            "failed": 0,
+            "progress_pct": 100,
+            "effects": [
+                {"effect_type": "PERSIST_RELATO", "success": True},
+                {"effect_type": "UPLOAD_IMAGES", "success": True},
+            ],
+        }
+    
+        ui = build_relato_progress_ui(
+            relato_id="relato-4",
+            progress=progress,
+        )
+    
+        assert ui["status"] == "COMPLETED"
+        assert ui["progress_pct"] == 100
+>       assert ui["failed"] == 0
+               ^^^^^^^^^^^^
+E       KeyError: 'failed'
+
+tests\services\readmodels\test_relato_progress_ui.py:110: KeyError
+_______________ test_executor_skips_effect_if_already_succeeded _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000230F73ACFD0>
+
+    def test_executor_skips_effect_if_already_succeeded(monkeypatch):
+        """
+        Prova que o executor N├âO executa novamente
+        um efeito que j├í possui EffectResult success=True.
+        """
+    
+        from app.services.relato_effect_executor import RelatoEffectExecutor
+        from app.domain.relato.effects import UploadImagesEffect
+    
+        # -----------------------------
+        # Controle de chamadas
+        # -----------------------------
+        upload_call_count = 0
+    
+        def fake_upload(relato_id, imagens):
+            nonlocal upload_call_count
+            upload_call_count += 1
+            return ["img-1", "img-2"]
+    
+        # -----------------------------
+        # Simula idempot├¬ncia ativa
+        # -----------------------------
+        def fake_effect_already_succeeded(*, relato_id, effect_type, effect_ref):
+            # Simula que o efeito J├ü FOI executado com sucesso
+            return True
+    
+        monkeypatch.setattr(
+            "app.services.relato_effect_executor.effect_already_succeeded",
+            fake_effect_already_succeeded,
+        )
+    
+    
+        # -----------------------------
+        # Executor real
+        # -----------------------------
+        executor = RelatoEffectExecutor(
+            upload_images=fake_upload,
+            rollback_images=None,
+            persist_relato=lambda **_: None,
+            enqueue_processing=lambda *_: None,
+            emit_event=lambda *_: None,
+            update_relato_status=lambda *_: None,
+        )
+    
+        effects = [
+>           UploadImagesEffect(
+                relato_id="relato-123",
+                imagens={"antes": [], "durante": [], "depois": []},
+            )
+        ]
+E       TypeError: UploadImagesEffect.__init__() got an unexpected keyword argument 'imagens'
+
+tests\services\test_executor_idempotency.py:48: TypeError
+________________________ test_ux_effect_contract_shape ________________________
+
+    def test_ux_effect_contract_shape():
+        effect = RetryUXEffect.none_needed(relato_id="r1")
+    
+>       data = serialize_ux_effects([effect])[0]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       IndexError: list index out of range
+
+tests\services\test_ux_effects.py:11: IndexError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:48,404", "level": "DEBUG", "logger": "app.services.ux_adapters", "message": "Ignoring non-UX domain effect: RetryUXEffect"}
+_________________ test_processing_started_ux_effect_contract __________________
+
+    def test_processing_started_ux_effect_contract():
+        effect = ProcessingStartedUXEffect.default(relato_id="r1")
+    
+>       data = serialize_ux_effects([effect])[0]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       IndexError: list index out of range
+
+tests\services\test_ux_effects.py:24: IndexError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-01-27 12:37:48,444", "level": "DEBUG", "logger": "app.services.ux_adapters", "message": "Ignoring non-UX domain effect: ProcessingStartedUXEffect"}
+________________ test_user_sees_coherent_story_from_ux_effects ________________
+
+    def test_user_sees_coherent_story_from_ux_effects():
+        relato_id = "123"
+    
+        effects = [
+            ProcessingStartedUXEffect.default(relato_id=relato_id),
+            RetryUXEffect.retrying(relato_id=relato_id, count=1),
+            RetryUXEffect.retrying(relato_id=relato_id, count=2),
+            RetryUXEffect.failed_final(relato_id=relato_id),
+        ]
+    
+        serialized_effects = [e.serialize() for e in effects]
+    
+        ui_story = interpret_for_ui(serialized_effects)
+    
+>       assert ui_story == [
+            "Recebemos seu relato",
+            "Tentando novamente...",
+            "Tentando novamente...",
+            "N├úo foi poss├¡vel concluir agora",
+        ]
+E       AssertionError: assert ['Recebemos s...ncluir agora'] == ['Recebemos s...ncluir agora']
+E         
+E         At index 1 diff: 'N├úo foi poss├¡vel concluir agora' != 'Tentando novamente...'
+E         Right contains 2 more items, first extra item: 'Tentando novamente...'
+E         
+E         Full diff:
+E           [
+E               'Recebemos seu relato',...
+E         
+E         ...Full output truncated (4 lines hidden), use '-vv' to show
+
+tests\ux\test_cognitive_integration_flow.py:30: AssertionError
+============================== warnings summary ===============================
+tests\auth\test_auth_hardening.py:29
+  d:\workspace_projects_001\dermasync-api\tests\auth\test_auth_hardening.py:29: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests\auth\test_auth_hardening.py:56
+  d:\workspace_projects_001\dermasync-api\tests\auth\test_auth_hardening.py:56: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests\auth\test_auth_hardening.py:79
+  d:\workspace_projects_001\dermasync-api\tests\auth\test_auth_hardening.py:79: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests/auth/test_auth_hardening.py::test_auth_refresh_expired
+  D:\workspace_projects_001\dermasync-api\venv\Lib\site-packages\passlib\handlers\argon2.py:716: DeprecationWarning: Accessing argon2.__version__ is deprecated and will be removed in a future release. Use importlib.metadata directly to query for argon2-cffi's packaging metadata.
+    _argon2_cffi.__version__, max_version)
+
+tests/integration/test_relato_progress_firestore.py::test_effect_result_repository_reads_from_firestore
+tests/integration/test_relato_progress_firestore.py::test_progress_service_with_firestore_emulator
+tests/routes/test_relatos_progress.py::test_get_relato_progress_forbidden
+tests/routes/test_relatos_progress.py::test_get_relato_progress_empty
+tests/routes/test_relatos_progress.py::test_get_relato_progress_partial_with_error
+tests/routes/test_relatos_progress.py::test_get_relato_progress_complete
+  D:\workspace_projects_001\dermasync-api\venv\Lib\site-packages\google\cloud\firestore_v1\base_collection.py:304: UserWarning: Detected filter using positional arguments. Prefer using the 'filter' keyword argument instead.
+    return query.where(field_path, op_string, value)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+--------------------------------- JSON report ---------------------------------
+report saved to: report.json
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.11.4-final-0 _______________
+
+Coverage HTML written to dir htmlcov
+=========================== short test summary info ===========================
+FAILED tests/application/test_relato_progress_stabilization_service.py::test_job_persists_snapshot_when_progress_is_stable
+FAILED tests/domain/effects/test_retry_ux_effects.py::test_retry_endpoint_returns_ux_effect
+FAILED tests/domain/enrichment/test_enriched_metadata_v2_validator.py::test_valid_payload_passes_validation
+FAILED tests/domain/relato/test_create_relato.py::test_criar_relato_estado_inicial
+FAILED tests/domain/relato/test_create_relato.py::test_negar_criacao_relato_existente
+FAILED tests/domain/relato/test_create_relato.py::test_post_relatos_success_runs_domain_and_executes_effects
+FAILED tests/domain/relato/test_create_relato.py::test_create_relato_emits_typed_effects
+FAILED tests/domain/relato/test_create_relato.py::test_create_relato_initial_state_is_created
+FAILED tests/domain/relato/test_create_relato_decision.py::test_create_relato_allowed_from_initial_state
+FAILED tests/domain/relato/test_create_relato_decision.py::test_create_relato_denied_when_already_exists
+FAILED tests/domain/relato/test_create_relato_decision.py::test_create_relato_denied_from_any_existing_state
+FAILED tests/domain/relato/test_create_relato_decision.py::test_create_relato_effects_structure
+FAILED tests/domain/relato/test_invalid_transitions.py::test_negar_aprovacao_estado_draft
+FAILED tests/domain/relato/test_invalid_transitions.py::test_negar_rejeicao_estado_draft
+FAILED tests/domain/relato/test_invalid_transitions.py::test_negar_marcar_como_processado_estado_draft
+FAILED tests/domain/relato/test_submit_relato.py::test_submeter_relato_estado_draft
+FAILED tests/domain/ux_effects/test_ux_effect_public_contract.py::test_ux_effect_public_contract_snapshot
+FAILED tests/domain/ux_effects/test_ux_effects_composition.py::test_multiple_ux_effects_preserve_order_and_contract
+FAILED tests/domain/ux_progress/test_ux_progress.py::test_persist_relato_marks_first_step_done
+FAILED tests/domain/ux_progress/test_ux_progress.py::test_upload_images_becomes_active_when_effect_exists_but_not_completed
+FAILED tests/domain/ux_progress/test_ux_progress.py::test_upload_images_has_more_weight_in_progress
+FAILED tests/domain/ux_progress/test_ux_progress.py::test_error_in_any_step_sets_has_error
+FAILED tests/domain/ux_progress/test_ux_progress.py::test_all_steps_done_marks_progress_complete
+FAILED tests/integration/test_relato_progress_firestore.py::test_effect_result_repository_reads_from_firestore
+FAILED tests/routes/test_relatos_multipart.py::test_post_relatos_with_real_multipart_upload
+FAILED tests/routes/test_relatos_multipart.py::test_upload_failure_triggers_rollback
+FAILED tests/routes/test_relatos_post.py::test_post_relatos_success - Attribu...
+FAILED tests/routes/test_relatos_post.py::test_post_relatos_denied_by_domain
+FAILED tests/routes/test_relatos_post.py::test_post_relatos_missing_consentimento
+FAILED tests/routes/test_relatos_post.py::test_post_relatos_no_consentimento_field
+FAILED tests/routes/test_relatos_post.py::test_post_relatos_executor_not_called_when_denied
+FAILED tests/routes/test_relatos_progress.py::test_get_relato_progress_forbidden
+FAILED tests/routes/test_relatos_progress.py::test_get_relato_progress_empty
+FAILED tests/routes/test_relatos_progress.py::test_get_relato_progress_partial_with_error
+FAILED tests/routes/test_relatos_progress.py::test_get_relato_progress_complete
+FAILED tests/services/effects/test_retry_effect.py::test_retry_effect_success
+FAILED tests/services/effects/test_retry_effect_unsupported.py::test_retry_effect_unsupported_type_raises
+FAILED tests/services/effects/test_retry_executor.py::test_retry_persist_relato
+FAILED tests/services/effects/test_retry_executor.py::test_retry_emit_event
+FAILED tests/services/effects/test_retry_executor.py::test_retry_upload_images_success
+FAILED tests/services/readmodels/test_relato_progress_ui.py::test_progress_ui_empty
+FAILED tests/services/readmodels/test_relato_progress_ui.py::test_progress_ui_partial_with_error
+FAILED tests/services/readmodels/test_relato_progress_ui.py::test_progress_ui_in_progress
+FAILED tests/services/readmodels/test_relato_progress_ui.py::test_progress_ui_completed
+FAILED tests/services/test_executor_idempotency.py::test_executor_skips_effect_if_already_succeeded
+FAILED tests/services/test_ux_effects.py::test_ux_effect_contract_shape - Ind...
+FAILED tests/services/test_ux_effects.py::test_processing_started_ux_effect_contract
+FAILED tests/ux/test_cognitive_integration_flow.py::test_user_sees_coherent_story_from_ux_effects
+=========== 48 failed, 105 passed, 2 xfailed, 10 warnings in 55.19s ===========
+­ƒº╣ Limpando relat├│rios anteriores...
+Ô£à Rodando Pytest com cobertura e relat├│rio JSON...
+
+
+­ƒôè Resumo dos testes:
+   Ô£à Passaram: 105
+   ÔØî Falharam: 48
+   ­ƒº¬ Total:     155
+
+­ƒÜ¿ Alguns testes falharam. Verifique detalhes no report.json e logs_testes.jsonl
+
+­ƒôé Abrindo relat├│rio de cobertura: D:\workspace_projects_001\dermasync-api\htmlcov\index.html
+
+ÔØî Execu├º├úo finalizada com falhas.

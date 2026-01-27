@@ -1,57 +1,48 @@
-# app/domain/ux_effects/base.py
-"""
-Docstring for app.domain.ux_effects.base
-
-This module defines the base UXEffect class and related enumerations for severity,
-channel, and timing. These are used to standardize the representation of UX effects
-across the application.
-
-Usage:
-from app.domain.ux_effects.base import UXEffect, UXSeverity, UXChannel, UXTiming
-
-"""
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
 from enum import Enum
-from dataclasses import asdict
-
-class UXSeverity(str, Enum):
-    info = "info"
-    success = "success"
-    warning = "warning"
-    error = "error"
+from typing import Dict
 
 
-class UXChannel(str, Enum):
-    banner = "banner"
-    toast = "toast"
-    modal = "modal"
+class UXSeverity(Enum):
+    INFO = "info"
+    WARNING = "warning"
+    ERROR = "error"
+    SUCCESS = "success"
 
 
-class UXTiming(str, Enum):
-    immediate = "immediate"
-    after_processing = "after_processing"
-    delayed = "delayed"
+class UXChannel(Enum):
+    TOAST = "toast"
+    BANNER = "banner"
+    INLINE = "inline"
+    MODAL = "modal"
+
+
+class UXTiming(Enum):
+    IMMEDIATE = "immediate"
+    DEFERRED = "deferred"
 
 
 @dataclass(frozen=True)
 class UXEffect:
     type: str
+    message: str
     severity: UXSeverity
     channel: UXChannel
     timing: UXTiming
-    relato_id: Optional[str] = None
-    message: Optional[str] = None
+    metadata: Dict = field(default_factory=dict)
 
-    def serialize(self) -> dict:
-        """
-        Serializa o UXEffect para o contrato público (JSON-safe).
-        """
+    # -----------------
+    # Helpers semânticos
+    # -----------------
 
-        def normalize(value):
-            if isinstance(value, Enum):
-                return value.value
-            return value
+    def is_blocking(self) -> bool:
+        return self.severity == UXSeverity.ERROR
 
-        raw = asdict(self)
-        return {key: normalize(value) for key, value in raw.items()}
+    def is_terminal(self) -> bool:
+        return self.severity == UXSeverity.ERROR
+
+    def affects_progress(self) -> bool:
+        return self.channel in {UXChannel.INLINE, UXChannel.BANNER}
+
+    def requires_user_action(self) -> bool:
+        return self.is_blocking()

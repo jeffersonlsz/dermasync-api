@@ -32,20 +32,17 @@ def test_job_persists_snapshot_when_progress_is_stable():
     snapshot_repo.get_by_relato_id.return_value = None
 
     effect_repo.fetch_by_relato_id.return_value = [
-        EffectResult(
-            type="PERSIST_RELATO",
-            success=True,
-            executed_at=datetime.utcnow(),
+        EffectResult.success(
+            relato_id="relato_2",
+            effect_type="PERSIST_RELATO",
         ),
-        EffectResult(
-            type="UPLOAD_IMAGES",
-            success=True,
-            executed_at=datetime.utcnow(),
+        EffectResult.success(
+            relato_id="relato_2",
+            effect_type="UPLOAD_IMAGES",
         ),
-        EffectResult(
-            type="ENRICH_METADATA",
-            success=True,
-            executed_at=datetime.utcnow(),
+        EffectResult.success(
+            relato_id="relato_2",
+            effect_type="ENRICH_METADATA",
         ),
     ]
 

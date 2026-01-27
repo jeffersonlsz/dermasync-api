@@ -20,15 +20,14 @@ def test_create_relato_allowed_from_initial_state():
         relato_id="relato-456",
         owner_id="user-123",
         conteudo="Relato de teste",
-        imagens={"antes": [], "durante": [], "depois": []}
+        image_refs={"antes": [], "durante": [], "depois": []}
     )
-
+    
     decision = decide(command=command, actor=actor, current_state=None)
-
     assert decision.allowed is True
     assert decision.reason is None
     assert decision.previous_state is None
-    assert decision.next_state == RelatoStatus.DRAFT
+    assert decision.next_state == RelatoStatus.CREATED
     assert len(decision.effects) > 0  # Deve ter efeitos de persistência e upload
 
 
@@ -39,14 +38,14 @@ def test_create_relato_denied_when_already_exists():
         relato_id="relato-456",
         owner_id="user-123",
         conteudo="Relato de teste",
-        imagens={"antes": [], "durante": [], "depois": []}
+        image_refs={"antes": [], "durante": [], "depois": []}
     )
 
-    # Testa com estado DRAFT
-    decision = decide(command=command, actor=actor, current_state=RelatoStatus.DRAFT)
+    # Testa com estado CREATED
+    decision = decide(command=command, actor=actor, current_state=RelatoStatus.CREATED)
 
     assert decision.allowed is False
-    assert decision.previous_state == RelatoStatus.DRAFT
+    assert decision.previous_state == RelatoStatus.CREATED
     assert decision.next_state is None
     assert decision.effects == []  # Não deve ter efeitos quando negado
     assert decision.reason is not None  # Reason should not be None when denied
@@ -59,7 +58,7 @@ def test_create_relato_denied_from_any_existing_state():
         relato_id="relato-456",
         owner_id="user-123",
         conteudo="Relato de teste",
-        imagens={"antes": [], "durante": [], "depois": []}
+        image_refs={"antes": [], "durante": [], "depois": []}
     )
 
     # Testa com diferentes estados existentes
@@ -82,14 +81,14 @@ def test_create_relato_effects_structure():
         relato_id="relato-456",
         owner_id="user-123",
         conteudo="Relato de teste",
-        imagens={"antes": [{"filename": "img.jpg", "content": b"...", "content_type": "image/jpeg"}], 
-                 "durante": [], "depois": []}
+        image_refs={"antes": ["img.jpg"], 
+                     "durante": [], "depois": []}
     )
 
     decision = decide(command=command, actor=actor, current_state=None)
 
     assert decision.allowed is True
-    assert decision.next_state == RelatoStatus.DRAFT
+    assert decision.next_state == RelatoStatus.CREATED
     # Verifica que os efeitos contêm informações relevantes para persistência
     assert len(decision.effects) > 0
     # Os efeitos devem conter informações para persistir o relato e fazer uploads

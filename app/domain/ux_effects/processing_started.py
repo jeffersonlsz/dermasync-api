@@ -32,11 +32,11 @@ class ProcessingStartedUXEffect(UXEffect):
         message: str | None = None,
     ) -> "ProcessingStartedUXEffect":
         return cls(
-            type="processing_started",
-            relato_id=relato_id,
-            severity=UXSeverity.info,
-            channel=UXChannel.banner,
-            timing=UXTiming.after_processing,
+            type=cls.__name__,
+            severity=UXSeverity.INFO,
+            channel=UXChannel.BANNER,
+            timing=UXTiming.DEFERRED,
             message="Seu relato está sendo processado. Isso pode levar alguns instantes."
             or "Seu relato está sendo processado. Isso pode levar alguns instantes.",
+            metadata={"relato_id": relato_id},
         )

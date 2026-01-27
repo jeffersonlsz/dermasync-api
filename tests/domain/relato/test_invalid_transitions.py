@@ -56,18 +56,18 @@ def test_negar_submissao_estado_processado():
 
 
 def test_negar_aprovacao_estado_draft():
-    """Não é possível aprovar um relato em estado DRAFT."""
+    """Não é possível aprovar um relato em estado CREATED."""
     actor = Actor(id="admin-123", role=ActorRole.ADMIN)
     command = ApproveRelatoPublic(relato_id="relato-456")
 
     decision = decide(
         command=command,
         actor=actor,
-        current_state=RelatoStatus.DRAFT,
+        current_state=RelatoStatus.CREATED,
     )
 
     assert decision.allowed is False
-    assert decision.previous_state == RelatoStatus.DRAFT
+    assert decision.previous_state == RelatoStatus.CREATED
     assert decision.next_state is None
     assert decision.effects == []
     assert decision.reason is not None  # Reason should not be None when denied
@@ -92,18 +92,18 @@ def test_negar_aprovacao_estado_processing():
 
 
 def test_negar_rejeicao_estado_draft():
-    """Não é possível rejeitar um relato em estado DRAFT."""
+    """Não é possível rejeitar um relato em estado CREATED."""
     actor = Actor(id="admin-123", role=ActorRole.ADMIN)
     command = RejectRelato(relato_id="relato-456")
 
     decision = decide(
         command=command,
         actor=actor,
-        current_state=RelatoStatus.DRAFT,
+        current_state=RelatoStatus.CREATED,
     )
 
     assert decision.allowed is False
-    assert decision.previous_state == RelatoStatus.DRAFT
+    assert decision.previous_state == RelatoStatus.CREATED
     assert decision.next_state is None
     assert decision.effects == []
     assert decision.reason is not None  # Reason should not be None when denied
@@ -128,18 +128,18 @@ def test_negar_rejeicao_estado_processing():
 
 
 def test_negar_marcar_como_processado_estado_draft():
-    """Não é possível marcar um relato como processado a partir de DRAFT."""
+    """Não é possível marcar um relato como processado a partir de CREATED."""
     actor = Actor(id="system", role=ActorRole.SYSTEM)
     command = MarkRelatoAsProcessed(relato_id="relato-456")
 
     decision = decide(
         command=command,
         actor=actor,
-        current_state=RelatoStatus.DRAFT,
+        current_state=RelatoStatus.CREATED,
     )
 
     assert decision.allowed is False
-    assert decision.previous_state == RelatoStatus.DRAFT  # Previous state should reflect the state passed to decide
+    assert decision.previous_state == RelatoStatus.CREATED  # Previous state should reflect the state passed to decide
     assert decision.next_state is None
     assert decision.effects == []
     assert decision.reason is not None  # Reason should not be None when denied

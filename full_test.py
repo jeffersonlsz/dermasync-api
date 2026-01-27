@@ -9,12 +9,17 @@ with open('test_result.txt', 'w') as f:
         from app.services.effects.result import EffectResult
         
         # Create a mock EffectResult to test the rebuild function
-        mock_result = EffectResult(
+        mock_result = EffectResult.error(
             relato_id="test-123",
             effect_type="PERSIST_RELATO",
-            effect_ref="test-ref",
-            success=False,
-            metadata={'owner_id': 'owner123', 'status': None, 'conteudo': 'test content', 'imagens': {}}
+            error_message="Simulated error for test",
+            metadata={
+                'owner_id': 'owner123',
+                'status': None,
+                'conteudo': 'test content',
+                'imagens': {},
+                'effect_ref': 'test-ref'
+            }
         )
         
         # Test rebuilding an effect

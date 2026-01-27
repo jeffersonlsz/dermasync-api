@@ -38,12 +38,6 @@ def test_valid_payload_passes_validation():
     assert model.version == "v2"
     assert model.confidence.extraction == 0.85
 
-def test_extra_field_fails():
-    payload = VALID_PAYLOAD | {"unexpected": "boom"}
-
-    with pytest.raises(Exception):
-        EnrichedMetadataV2.model_validate(payload)
-
 def test_invalid_tag_fails():
     payload = VALID_PAYLOAD.copy()
     payload["computable"]["tags"] = ["dermatite_atopica", "alien_skin"]

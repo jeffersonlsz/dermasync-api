@@ -13,17 +13,17 @@ def test_persist_effect_result_firestore_accepts_uuid_fields():
     - Persistência NÃO pode lançar exceção
     """
 
-    fake_result = EffectResult(
-        relato_id=uuid.uuid4(),
+    relato_id_str = str(uuid.uuid4())
+    effect_ref_str = str(uuid.uuid4())
+    image_id_str = str(uuid.uuid4())
+    fake_result = EffectResult.success(
+        relato_id=relato_id_str,
         effect_type="PERSIST_RELATO",
-        effect_ref=uuid.uuid4(),
-        success=True,
         metadata={
-            "image_id": uuid.uuid4(),
+            "image_id": image_id_str,
             "attempt": 1,
+            "effect_ref": effect_ref_str,
         },
-        error=None,
-        executed_at=datetime.utcnow(),
     )
 
     fake_collection = MagicMock()
@@ -52,16 +52,16 @@ def test_persist_effect_result_firestore_rejects_raw_uuid_values():
     - Persistência deve normalizar antes de set()
     """
 
-    fake_result = EffectResult(
-        relato_id=uuid.uuid4(),
+    relato_id_str = str(uuid.uuid4())
+    effect_ref_str = str(uuid.uuid4())
+    image_id_str = str(uuid.uuid4())
+    fake_result = EffectResult.success(
+        relato_id=relato_id_str,
         effect_type="PERSIST_RELATO",
-        effect_ref=uuid.uuid4(),
-        success=True,
         metadata={
-            "image_id": uuid.uuid4(),
+            "image_id": image_id_str,
+            "effect_ref": effect_ref_str,
         },
-        error=None,
-        executed_at=datetime.utcnow(),
     )
 
     def firestore_set_strict(data):
@@ -99,16 +99,13 @@ def test_persist_effect_result_firestore_normalizes_uuid_before_persisting():
     - UUIDs DEVEM ser convertidos antes de chegar ao Firestore
     """
 
-    fake_result = EffectResult(
-        relato_id=uuid.UUID("0f8e6e03-12aa-402a-8346-e1684de998b3"),
+    fake_result = EffectResult.success(
+        relato_id="0f8e6e03-12aa-402a-8346-e1684de998b3",
         effect_type="PERSIST_RELATO",
-        effect_ref=uuid.UUID("11111111-2222-3333-4444-555555555555"),
-        success=True,
         metadata={
-            "image_id": uuid.UUID("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+            "image_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            "effect_ref": "11111111-2222-3333-4444-555555555555",
         },
-        error=None,
-        executed_at=datetime.utcnow(),
     )
 
     captured_data = {}

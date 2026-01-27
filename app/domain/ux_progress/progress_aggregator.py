@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional
+from app.services.effects.result import EffectResult, EffectStatus
 #from .progress_aggregator import UXProgress, UXStep
 
 
@@ -46,13 +47,7 @@ class UXProgress:
 # Contratos observáveis (vindos de fora do domínio UX)
 # ============================================================
 
-@dataclass
-class EffectResult:
-    type: str
-    success: bool
-    executed_at: datetime
-    error_message: Optional[str] 
-    metadata: Optional[Dict]
+
 
 
 @dataclass
@@ -88,7 +83,7 @@ def aggregate_progress(
     # --------------------------------------------------------
     effects_by_type: dict[str, list[EffectResult]] = {}
     for effect in effect_results:
-        effects_by_type.setdefault(effect.type, []).append(effect)
+        effects_by_type.setdefault(effect.effect_type, []).append(effect)
 
     steps: List[UXStep] = []
 
@@ -113,13 +108,13 @@ def aggregate_progress(
             continue
 
         # Separa sucesso e erro
-        success_effects = [e for e in related_effects if e.success]
-        error_effects = [e for e in related_effects if not e.success]
+        success_effects = [e for e in related_effects if e.status == EffectStatus.SUCCESS]
+        error_effects = [e for e in related_effects if e.status != EffectStatus.SUCCESS]
 
         # Caso 2 — Sucesso observado (DONE)
         if success_effects:
-            first_event = min(related_effects, key=lambda e: e.executed_at)
-            last_success = max(success_effects, key=lambda e: e.executed_at)
+            first_event = min(related_effects, key=lambda e: e.created_at)
+            last_success = max(success_effects, key=lambda e: e.created_at)
 
             steps.append(
                 UXStep(
@@ -127,23 +122,23 @@ def aggregate_progress(
                     label=definition.label,
                     weight=definition.weight,
                     state=StepState.DONE,
-                    started_at=first_event.executed_at,
-                    finished_at=last_success.executed_at,
+                    started_at=first_event.created_at,
+                    finished_at=last_success.created_at,
                 )
             )
             continue
 
         # Caso 3 — Houve tentativa, mas não sucesso (ACTIVE)
-        first_event = min(related_effects, key=lambda e: e.executed_at)
-        last_error = max(error_effects, key=lambda e: e.executed_at)
+        first_event = min(related_effects, key=lambda e: e.created_at)
+        last_error = max(error_effects, key=lambda e: e.created_at)
 
         steps.append(
             UXStep(
                 step_id=definition.step_id,
                 label=definition.label,
                 weight=definition.weight,
-                state=StepState.ACTIVE,
-                started_at=first_event.executed_at,
+                state=StepState.ERROR,
+                started_at=first_event.created_at,
                 error_message=last_error.error_message,
             )
         )

@@ -380,7 +380,7 @@ class RelatoEffectExecutor:
 
         elif effect_type == "EMIT_EVENT":
             effect = EmitDomainEventEffect(
-                event_name=effect_result.effect_ref,
+                event_name=effect_result.metadata.get("effect_ref"),
                 payload=effect_result.metadata.get("payload") if effect_result.metadata else None,
             )
 

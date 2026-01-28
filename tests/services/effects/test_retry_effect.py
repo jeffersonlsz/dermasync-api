@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import Mock, patch
 from datetime import datetime
 
+from app.services.effects.retry_engine import RetryEngine
 from app.services.effects.retry_executor import retry_effect
 from app.services.effects.registry import (
     register_effect_executor,
@@ -10,26 +11,19 @@ from app.services.effects.registry import (
 from app.services.effects.result import EffectResult, EffectStatus
 
 
-def test_retry_effect_success():
-    clear_registry()
+def test_retry_engine_success():
+    engine = RetryEngine()
 
-    mock_executor = Mock()
-    register_effect_executor("UPLOAD_IMAGE", mock_executor)
-
-    fake_result = EffectResult.error(
+    result = EffectResult.error(
         relato_id="r1",
         effect_type="UPLOAD_IMAGE",
-        error_message="fail",
-        metadata={"path": "x/y.jpg", "effect_ref": "img123"},
+        error_message=EffectStatus.ERROR.value,
+        metadata={"effect_ref": "img123"},
     )
+   
+    new_result = engine.decide(result)
 
-    with patch(
-        "app.services.effects.retry_engine.load_effect_result",
-        return_value=fake_result,
-    ), patch(
-        "app.services.effects.retry_engine.persist_effect_result_firestore"
-    ):
-        result = retry_effect("effect-id-1")
+    assert new_result.status == EffectStatus.RETRYING
+    assert new_result.metadata["attempt"] == 1
+    assert new_result.metadata["failure_type"] is not None
 
-    assert result.status == EffectStatus.SUCCESS
-    mock_executor.assert_called_once_with(fake_result.metadata)

@@ -29,7 +29,7 @@ def persist_relato_adapter(
     owner_id: str,
     conteudo: str,
     status: str,
-    images_refs: Dict[str, List[str]],
+    image_refs: Dict[str, List[str]],
 ) -> None:
     """
     Adapter de persistência de relato.
@@ -51,7 +51,7 @@ def persist_relato_adapter(
             "owner_id": str(owner_id),
             "conteudo": conteudo,
             "status": str(status),
-            "images_refs": images_refs or {},
+            "image_refs": image_refs or {},
             "created_at": datetime.now(timezone.utc),
         }
     )

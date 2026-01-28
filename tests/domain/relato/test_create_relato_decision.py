@@ -62,12 +62,18 @@ def test_create_relato_denied_from_any_existing_state():
     )
 
     # Testa com diferentes estados existentes
-    for state in [RelatoStatus.UPLOADING, RelatoStatus.UPLOADED, RelatoStatus.PROCESSING, 
-                  RelatoStatus.PROCESSED, RelatoStatus.APPROVED_PUBLIC, RelatoStatus.REJECTED, 
-                  RelatoStatus.ARCHIVED, RelatoStatus.ERROR]:
+    for state in [
+        RelatoStatus.CREATED,
+        RelatoStatus.PROCESSING,
+        RelatoStatus.PROCESSED,
+        RelatoStatus.APPROVED_PUBLIC,
+        RelatoStatus.REJECTED,
+        RelatoStatus.ARCHIVED,
+        RelatoStatus.ERROR,
+    ]:
         decision = decide(command=command, actor=actor, current_state=state)
 
-        assert decision.allowed is False, f"A criação deveria ser negada a partir do estado {state}"
+        assert decision.allowed is False
         assert decision.previous_state == state
         assert decision.next_state is None
         assert decision.effects == []  # Não deve ter efeitos quando negado

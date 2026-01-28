@@ -19,21 +19,22 @@ def test_multiple_ux_effects_preserve_order_and_contract():
 
     json.dumps(payload)
 
-    assert payload == {
-        "ux_effects": [
+    assert payload == [
             {
-                "type": "processing_started",
+                "type": "ProcessingStartedUXEffect",
                 "severity": "info",
                 "channel": "banner",
-                "timing": "after_processing",
+                "timing": "deferred",
                 "message": "Seu relato está sendo processado. Isso pode levar alguns instantes.",
+                "metadata": {"relato_id": "relato_123"}
             },
             {
-                "type": "retrying",
+                "type": "RetryUXEffect",
                 "severity": "info",
                 "channel": "banner",
                 "timing": "immediate",
                 "message": "2 ações estão sendo repetidas.",
+                "metadata": {"relato_id": "relato_123"},
+                "failed_effects_count": 2
             },
         ]
-    }

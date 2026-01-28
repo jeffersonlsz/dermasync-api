@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 from app.services.effects.result import EffectResult
 
+from app.core.errors import RetryErrorMessages
 from app.services.effects.idempotency import effect_already_succeeded
 class RelatoEffectExecutor:
     """
@@ -89,9 +90,9 @@ class RelatoEffectExecutor:
                         self._persist_relato(
                             relato_id=effect.relato_id,
                             owner_id=effect.owner_id,
-                            status=effect.status.value,
+                            status=str(effect.status),
                             conteudo=effect.conteudo,
-                            images_refs=effect.image_refs, # apenas refs
+                            image_refs=effect.image_refs, # apenas refs
                         )
 
                         result = build_effect_result(
@@ -100,10 +101,10 @@ class RelatoEffectExecutor:
                             effect_ref=effect.relato_id,
                             success=True,
                             metadata={
-                                "status": effect.status.value,
+                                "status": str(effect.status),
                                 "effect_data": {
                                     "owner_id": str(effect.owner_id),
-                                    "status": effect.status.value,
+                                    "status": str(effect.status),
                                     "conteudo": effect.conteudo,
                                 },
                             },
@@ -382,14 +383,12 @@ class RelatoEffectExecutor:
             effect = EmitDomainEventEffect(
                 event_name=effect_result.metadata.get("effect_ref"),
                 payload=effect_result.metadata.get("payload") if effect_result.metadata else None,
+                relato_id=relato_id,
             )
 
         elif effect_type == "UPLOAD_IMAGES":
             # TODO: suportar retry quando upload for idempotente (hash + versionamento)
-            raise ValueError(
-                "Retry automático de UPLOAD_IMAGES não é suportado. "
-                "Uploads não são idempotentes sem controle de storage."
-            )
+            raise ValueError(RetryErrorMessages.UPLOAD_IMAGES_NOT_SUPPORTED.value)
         else:
             raise ValueError(f"Retry não suportado para effect_type={effect_type}")
 

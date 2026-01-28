@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 from app.services.relato_effect_executor import RelatoEffectExecutor
 from app.services.effects.result import EffectResult
+from app.core.errors import RetryErrorMessages
 from app.domain.relato.effects import (
     PersistRelatoEffect,
     EnqueueProcessingEffect,
@@ -44,7 +45,7 @@ def test_retry_persist_relato(executor):
         "owner_id": "user-123",
         "status": "novo",
         "conteudo": "conteudo",
-        "imagens": {},
+        "image_refs": {},
     }
     result = EffectResult.retrying(
         relato_id="relato-123",
@@ -114,12 +115,8 @@ def test_retry_upload_images_success(executor):
         },
     )
 
-    executor.execute_by_result(effect_result=result, attempt=2)
-
-    executor._upload_images.assert_called_once_with(
-        "relato-999",
-        imagens,
-    )
+    with pytest.raises(ValueError, match=RetryErrorMessages.UPLOAD_IMAGES_NOT_SUPPORTED.value):
+        executor.execute_by_result(effect_result=result, attempt=2)
 
 
 def test_retry_upload_images_without_metadata_fails(executor):

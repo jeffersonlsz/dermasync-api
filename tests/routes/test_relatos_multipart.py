@@ -1,3 +1,4 @@
+from app.domain.relato.states import RelatoStatus
 from app.main import app
 from app.auth.schemas import User
 from app.auth.dependencies import get_current_user
@@ -65,8 +66,8 @@ def test_post_relatos_with_real_multipart_upload():
             assert response.status_code == 201
 
             body = response.json()
-            assert "relato_id" in body
-            assert body["status"] == "created"
+            assert body["data"]["relato_id"] is not None
+            assert body["data"]["status"] == RelatoStatus.CREATED.value
 
             # executor foi chamado → domínio permitiu
             exec_instance.execute.assert_called_once()
@@ -103,7 +104,7 @@ def test_upload_failure_triggers_rollback():
     )
 
     effects = [
-        UploadImagesEffect(relato_id="r1", imagens={})
+        UploadImagesEffect(relato_id="r1", image_refs={})
     ]
 
     try:

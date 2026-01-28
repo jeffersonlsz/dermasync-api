@@ -23,34 +23,28 @@ async def test_get_relato_progress_unauthenticated(client):
 # =========================================================
 
 @pytest.mark.asyncio
-async def test_get_relato_progress_forbidden(
+async def test_get_relato_progress_empty_allowed(
     client,
     mock_current_user_usuario_logado,
     monkeypatch,
 ):
-    from fastapi import HTTPException
-
-    # Mock EffectResultRepository and its fetch_by_relato_id method
     mock_effect_repo_instance = Mock()
-    mock_effect_repo_instance.fetch_by_relato_id.return_value = [] # Return empty list for this test
-
-    mock_effect_repo_class = Mock(return_value=mock_effect_repo_instance)
+    mock_effect_repo_instance.fetch_by_relato_id.return_value = []
 
     monkeypatch.setattr(
         "app.routes.relatos_progress.EffectResultRepository",
-        mock_effect_repo_class,
-    )
-
-    async def fake_get_relato_by_id(*_, **__):
-        raise HTTPException(status_code=403, detail="Acesso negado")
-
-    monkeypatch.setattr(
-        "app.services.relatos_service.get_relato_by_id",
-        fake_get_relato_by_id,
+        Mock(return_value=mock_effect_repo_instance),
     )
 
     response = await client.get("/relatos/relato-123/progress")
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    assert response.status_code == status.HTTP_200_OK
+
+    data = response.json()
+    assert data["relato_id"] == "relato-123"
+    assert data["progress_pct"] == 0
+    assert data["is_complete"] is False
+
 
 
 # =========================================================

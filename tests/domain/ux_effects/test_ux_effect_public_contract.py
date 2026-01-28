@@ -21,15 +21,14 @@ def test_ux_effect_public_contract_snapshot():
     json.dumps(payload)
 
     # Garantia 2: shape público estável
-    assert payload == {
-        "ux_effects": [
+    assert payload == [
             {
-                "type": "processing_started",
+                "type": "ProcessingStartedUXEffect",
                 "severity": "info",
                 "channel": "banner",
-                "timing": "after_processing",
+                "timing": "deferred",
                 "message": "Seu relato está sendo processado. Isso pode levar alguns instantes.",
+                "metadata": {"relato_id": "relato_123"}
             }
         ]
-    }
 

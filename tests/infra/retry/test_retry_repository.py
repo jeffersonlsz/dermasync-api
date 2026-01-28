@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 from datetime import datetime
 
 from app.infra.retry.retry_repository import load_failed_effect_results
-from app.services.effects.result import EffectResult
+from app.services.effects.result import EffectResult, EffectStatus
 
 
 def test_load_failed_effect_results_basic():
@@ -12,7 +12,7 @@ def test_load_failed_effect_results_basic():
         "relato_id": "rel-1",
         "effect_type": "PERSIST_RELATO",
         "effect_ref": "rel-1",
-        "success": False,
+        "status": "error",
         "metadata": {"attempt": 1},
         "error": "network error",
         "executed_at": datetime.utcnow(),
@@ -35,5 +35,5 @@ def test_load_failed_effect_results_basic():
 
     assert len(results) == 1
     assert isinstance(results[0], EffectResult)
-    assert results[0].success is False
+    assert results[0].status == EffectStatus.ERROR
     assert results[0].effect_type == "PERSIST_RELATO"

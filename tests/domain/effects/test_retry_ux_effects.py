@@ -43,7 +43,6 @@ def test_retry_executes_failed_effects(monkeypatch):
         effect_type="UPLOAD_IMAGES",
         error_message="fail",
         metadata={"effect_ref": "relato-123"},
-        created_at=datetime.now(timezone.utc),
     )
 
     monkeypatch.setattr(

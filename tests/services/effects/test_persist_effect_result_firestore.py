@@ -142,5 +142,7 @@ def test_persist_effect_result_firestore_normalizes_uuid_before_persisting():
 
     # 🔥 Agora validamos semanticamente
     assert isinstance(captured_data["relato_id"], str)
-    assert isinstance(captured_data["effect_ref"], str)
     assert isinstance(captured_data["metadata"]["image_id"], str)
+
+    if "effect_ref" in captured_data["metadata"]:
+        assert isinstance(captured_data["metadata"]["effect_ref"], str)

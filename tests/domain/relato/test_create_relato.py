@@ -90,8 +90,9 @@ def test_post_relatos_success_runs_domain_and_executes_effects():
             assert response.status_code == 201
 
             body = response.json()
-            assert "relato_id" in body
-            assert "status" in body
+            
+            assert body["data"]["relato_id"] is not None
+            assert body["data"]["status"] == RelatoStatus.CREATED.value
 
             # 🔥 garantia arquitetural
             mock_executor_instance.execute.assert_called_once()

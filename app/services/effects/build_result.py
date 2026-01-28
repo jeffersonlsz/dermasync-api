@@ -50,7 +50,7 @@ def build_effect_result(
                 relato_id=relato_id,
                 effect_type=effect_type,
                 metadata=_metadata,
-                retry_after=retry_decision.retry_interval, # This should be a timedelta
+                retry_after=retry_decision.delay_seconds, # This should be a timedelta
             )
         else:
             return EffectResult.error(

@@ -26,5 +26,5 @@ def test_processing_started_ux_effect_contract():
     assert data["type"] == "ProcessingStartedUXEffect"
     assert data["severity"] == "info"
     assert data["channel"] == "banner"
-    assert data["timing"] == "after_processing"
+    assert data["timing"] == "deferred"
     assert "processado" in data["message"].lower()

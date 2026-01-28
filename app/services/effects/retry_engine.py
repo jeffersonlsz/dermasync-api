@@ -27,6 +27,9 @@ class RetryEngine:
 
         if result.status == EffectStatus.RETRYING:
              return result
+         
+        if result.status != EffectStatus.ERROR:
+            return result # Unknown status, return as is
 
         failure_ctx = FailureContext(
             effect_type=result.effect_type,
@@ -51,13 +54,13 @@ class RetryEngine:
             # Add original error message to metadata for context in retrying effect
             new_metadata["original_error_message"] = result.error_message 
             new_metadata["failure_type"] = failure_type # Add failure_type for context
-            new_metadata["retry_interval"] = decision.retry_interval # Add retry_interval
+            new_metadata["retry_interval"] = decision.delay_seconds # Add retry_interval
             
             return EffectResult.retrying(
                 relato_id=result.relato_id,
                 effect_type=result.effect_type,
                 metadata=new_metadata,
-                retry_after=timedelta(seconds=decision.retry_interval)
+                retry_after=decision.delay_seconds,
             )
         else:
             # No retry, it's a final error

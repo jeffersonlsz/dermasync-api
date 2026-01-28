@@ -47,7 +47,7 @@ def test_executor_skips_effect_if_already_succeeded(monkeypatch):
     effects = [
         UploadImagesEffect(
             relato_id="relato-123",
-            imagens={"antes": [], "durante": [], "depois": []},
+            image_refs={"antes": [], "durante": [], "depois": []},
         )
     ]
 

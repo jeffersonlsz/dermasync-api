@@ -1,6 +1,7 @@
 """
 Mapeamento de mensagens de erro padronizadas para a API.
 """
+from enum import Enum
 
 # Mensagens de erro de autenticação e autorização
 AUTH_ERROR_MESSAGES = {
@@ -20,3 +21,8 @@ AUTH_ERROR_MESSAGES = {
 
 # Outras categorias de mensagens de erro podem ser adicionadas aqui
 # Ex: VALIDATION_ERROR_MESSAGES, DATABASE_ERROR_MESSAGES, etc.
+
+class RetryErrorMessages(str, Enum):
+    UPLOAD_IMAGES_NOT_IDEMPOTENT = ("Uploads não são idempotentes sem controle de storage.")
+    UPLOAD_IMAGES_NOT_SUPPORTED = "Retry automático de UPLOAD_IMAGES não é suportado."
+    UNSUPPORTED_EFFECT_TYPE = "Retry não suportado para effect_type"

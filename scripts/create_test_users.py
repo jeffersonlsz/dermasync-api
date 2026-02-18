@@ -89,9 +89,9 @@ def main():
             print("Aviso ao criar tabela (pode já existir):", e)
 
         # Criar usuários de teste
-        create_user(conn, "admin@test.local", "Senha123!", "admin")
-        create_user(conn, "colab@test.local", "Senha123!", "colaborador")
-        create_user(conn, "user@test.local", "Senha123!", "usuario")
+        #create_user(conn, "admin@test.local", "Senha123!", "admin")
+        #create_user(conn, "colab@test.local", "Senha123!", "colaborador")
+        create_user(conn, "user_test@test.local", "Senha123!", "usuario_logado")
 
 if __name__ == "__main__":
     main()

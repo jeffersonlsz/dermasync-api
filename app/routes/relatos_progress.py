@@ -7,7 +7,7 @@ from app.auth.schemas import User
 
 from app.repositories.effect_result_repository import EffectResultRepository
 from app.core.projections.progress_projector import project_progress
-from app.services.ux_adapters import effect_result_to_ux_effect
+from app.services.ux_adapter_core import effect_result_to_ux_effect
 
 
 router = APIRouter(

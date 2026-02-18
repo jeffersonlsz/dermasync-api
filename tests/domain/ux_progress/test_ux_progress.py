@@ -4,7 +4,15 @@ from datetime import datetime
 from app.domain.ux_progress.progress_aggregator import StepState, aggregate_progress, find_step
 from app.services.effects.result import EffectResult, EffectStatus
 from app.domain.ux_progress.step_definition import default_step_definitions
+from app.services.ux_adapters.galeria_explanation import GaleriaExplanationBuilder
 
+
+def test_progressive_exposure_summary():
+    builder = GaleriaExplanationBuilder()
+
+    effect = builder.build_progressive_exposure(similarity_score=0.6)
+
+    assert effect.details["stage"] == "summary"
 
 def test_progress_with_no_effects_returns_all_steps_pending():
     steps = default_step_definitions()

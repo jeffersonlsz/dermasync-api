@@ -21,3 +21,10 @@ class UXTiming(str, Enum):
     immediate = "immediate"
     delayed = "delayed"
     on_next_view = "on_next_view"
+    
+
+
+class ExposureStage(Enum):
+    SUMMARY = "summary"
+    PARTIAL = "partial"
+    FULL = "full"

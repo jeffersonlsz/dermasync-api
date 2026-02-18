@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# app/auth/dependencies.py
 """
 Dependências de autenticação e autorização.
 
@@ -258,10 +258,17 @@ def require_authenticated():
 
     return auth_checker
 
-from app.auth.dependencies import get_current_user
+#from app.auth.dependencies import get_current_user
 
-async def get_optional_user() -> User | None:
+async def get_optional_user(
+    request: Request,
+    creds: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: Session = Depends(get_db),
+) -> Optional[DBUser]:
     try:
-        return await get_current_user()
-    except Exception:
-        return None
+        return await get_current_user(request, creds, db)
+    except HTTPException as e:
+        if e.status_code == status.HTTP_401_UNAUTHORIZED:
+            return None
+        raise
+

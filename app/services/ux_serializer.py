@@ -1,6 +1,6 @@
 # app/services/ux_serializer.py
 from typing import List, Any
-from app.services.ux_adapters import domain_effect_to_ux_effect, UXEffect
+from app.services.ux_adapter_core import  UXEffect, domain_effect_to_ux_effect
 
 
 def serialize_ux_effects(effects: List[Any]) -> List[dict]:

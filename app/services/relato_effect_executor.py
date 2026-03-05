@@ -90,7 +90,7 @@ class RelatoEffectExecutor:
                         self._persist_relato(
                             relato_id=effect.relato_id,
                             owner_id=effect.owner_id,
-                            status=str(effect.status),
+                            status=effect.status.value,
                             conteudo=effect.conteudo,
                             image_refs=effect.image_refs, # apenas refs
                         )

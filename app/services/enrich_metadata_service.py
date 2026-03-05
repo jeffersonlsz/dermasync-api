@@ -13,7 +13,7 @@ from app.pipeline.llm_client.ollama_client import OllamaClient
 
 from app.services.llm.normalization import strip_code_fences
 from app.domain.enrichment.validation_mode import ValidationMode
-
+from app.services.effects.result import EffectResult
 import logging
 
 logger = logging.getLogger(__name__)
@@ -78,24 +78,50 @@ class EnrichMetadataService:
             )
             logger.debug(f"Enriquecimento salvo para relato {relato_id}")
             # 7. EffectResult de sucesso
+            
             self.effect_repository.register_success(
-                relato_id=relato_id,
-                effect_type=self.EFFECT_TYPE,
-                metadata={
-                    "version": self.ENRICHMENT_VERSION,
-                    "prompt_version": PROMPT_VERSION,
-                    "model": self.llm_client.model_name,
-                },
+                EffectResult.success(
+                    relato_id=relato_id,
+                    effect_type="ENRICH_METADATA",
+                    metadata={
+                        "version": self.ENRICHMENT_VERSION,
+                        "prompt_version": PROMPT_VERSION,
+                        "model": self.llm_client.model_name,
+                    },
+                )
             )
+            # TODO to be removed after monitoring: log detalhado do sucesso para análise
+            #self.effect_repository.register_success(
+            #    relato_id=relato_id,
+            #    effect_type=self.EFFECT_TYPE,
+            #    metadata={
+            #        "version": self.ENRICHMENT_VERSION,
+            #        "prompt_version": PROMPT_VERSION,
+            #        "model": self.llm_client.model_name,
+            #    },
+            #)
             logger.debug(f"EffectResult de sucesso registrado para relato {relato_id}")
         except Exception as exc:
             # Falha explícita (nada silencioso)
             self.effect_repository.register_failure(
-                relato_id=relato_id,
-                effect_type=self.EFFECT_TYPE,
-                error=str(exc),
-                retryable=self._is_retryable(exc),
+                EffectResult.error(
+                    relato_id=relato_id,
+                    effect_type="ENRICH_METADATA",
+                    error_message=str(exc),
+                    metadata={
+                        "version": self.ENRICHMENT_VERSION,
+                        "prompt_version": PROMPT_VERSION,
+                        "model": self.llm_client.model_name,
+                    },
+                )
             )
+            # TODO to be removed after monitoring: log detalhado da falha para análise (sem expor dados sensíveis)
+            #self.effect_repository.register_failure(
+            #    relato_id=relato_id,
+            #    effect_type=self.EFFECT_TYPE,
+            #    error=str(exc),
+            #    retryable=self._is_retryable(exc),
+            #)
             logger.error(f"Falha no enriquecimento para relato {relato_id}: {exc}")
             if self._is_retryable(exc):
                 raise

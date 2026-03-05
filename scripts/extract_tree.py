@@ -20,7 +20,7 @@ import fnmatch
 import sys
 from typing import List, Dict, Any, Optional, Tuple
 
-DEFAULT_EXCLUDES = ["node_modules", ".git", ".venv", "venv", "__pycache__", ".pytest_cache", ".idea", ".eggs", "postgres"]
+DEFAULT_EXCLUDES = ["dermasync-db", "storage", "htmlcov", "node_modules", ".git", ".venv", "venv", "__pycache__", ".pytest_cache", ".idea", ".eggs", "postgres"]
 
 def parse_args():
     p = argparse.ArgumentParser(description="Extrai estrutura de pastas (tree + json).")

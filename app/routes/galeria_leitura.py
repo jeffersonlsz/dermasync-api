@@ -49,7 +49,7 @@ image_projector = ImageExposureProjector()
 @router.get(
     "/galeria-publica/relatos/{relato_id}/leitura",
     summary="Leitura mediada de um relato",
-    tags=["Galeria"],
+    tags=["Galeria Pública"],
 )
 async def ler_relato(
     relato_id: str,
@@ -112,7 +112,7 @@ async def ler_relato(
     # ============================================================
     constraints = set()
 
-    if user_profile:
+    if not user_profile:
         constraints.add(VisibilityConstraint.REQUIRE_SIMILARITY)
 
     visibility_policy = RelatoVisibilityPolicy(
@@ -224,8 +224,8 @@ async def ler_relato(
 
     excerpt = relato.get("public_excerpt", {}).get("text") or ""
     full_text_raw = (
-        relato.get("conteudo_anonimizado")
-        or relato.get("conteudo_original")
+        relato.get("conteudo_original")
+        or relato.get(" conteudo_anonimizado")
         or ""
     )
 

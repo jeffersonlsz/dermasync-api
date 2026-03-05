@@ -80,7 +80,8 @@ def _generate_signed_url_sync(storage_path: str, expires_seconds: int = 3600) ->
     try:
         bucket = get_storage_bucket()
         blob = bucket.blob(storage_path)
-
+        logger.info(f"Gerando signed URL para {storage_path} com expiração de {expires_seconds} segundos.")
+        logger.info(f"Blob info: name={blob.name} bucket={blob.bucket.name} exists={blob.exists()}")
         url = blob.generate_signed_url(
             version="v4",
             expiration=timedelta(seconds=expires_seconds),

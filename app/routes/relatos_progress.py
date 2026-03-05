@@ -12,7 +12,7 @@ from app.services.ux_adapter_core import effect_result_to_ux_effect
 
 router = APIRouter(
     prefix="/relatos",
-    tags=["Relatos - Progress"],
+    tags=["Relatos"],
 )
 
 logger = logging.getLogger(__name__)
@@ -89,7 +89,7 @@ def get_relato_progress(
     except HTTPException as he:
         raise he
     except Exception as exc:
-        logger.exception("Error projecting relato progress")
+        logger.exception("Error projecting relato progress for relato_id=%s: %s", relato_id, exc)
         raise HTTPException(
             status_code=500,
             detail="Erro ao calcular progresso do relato.",
@@ -98,7 +98,7 @@ def get_relato_progress(
     # 4️⃣ Serialização explícita (contrato público)
     return {
         "relato_id": progress.relato_id,
-        "progress_pct": progress.progress_pct * 100, # Multiplied by 100
+        "progress_pct": progress.progress_pct, # Multiplied by 100
         "is_complete": progress.is_complete,
         "has_error": progress.has_error,
         "failed": 1 if progress.has_error else 0, # Added this line

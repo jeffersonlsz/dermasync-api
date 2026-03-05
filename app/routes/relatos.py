@@ -13,6 +13,7 @@ from app.auth.dependencies import get_current_user, get_optional_user
 from app.auth.schemas import User
 from app.domain.relato.contracts import Actor, CreateRelato, SubmitRelato
 from app.domain.relato.orchestrator import decide
+from app.repositories.effect_result_repository import EffectResultRepository
 from app.schema.relato import RelatoCompletoInput, RelatoStatusOutput
 from app.schema.relato_draft import RelatoDraftInput
 from app.services.relato_adapters import (
@@ -28,6 +29,9 @@ from app.services.relatos_service import get_relato_by_id, process_and_save_rela
 from app.services.retry_relato import retry_failed_effects
 from app.services.uploads_service import salvar_uploads_e_retornar_refs
 from app.services.ux_serializer import serialize_ux_effects
+from app.repositories.effect_result_repository import EffectResultRepository
+from app.services.ux_adapter_core import effect_result_to_ux_effect
+from app.core.projections.progress_projector import project_progress
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -37,6 +41,7 @@ logger = logging.getLogger(__name__)
     "/",
     status_code=status.HTTP_201_CREATED,
     summary="Enviar relato (rota canônica baseada em domínio)",
+    tags=["Relatos"],
 )
 async def criar_e_enviar_relato(
     *,
@@ -49,7 +54,7 @@ async def criar_e_enviar_relato(
     # =========================
     # Pré-validação
     # =========================
-
+    logger.debug("/relatos Recebido payload: %s", payload)
     draft = parse_payload_json(payload)
 
     if not draft.consentimento:
@@ -62,7 +67,7 @@ async def criar_e_enviar_relato(
 
     actor = Actor(
         id=str(current_user.id),
-        role="user",
+        role=current_user.role,
     )
 
     # =========================
@@ -137,6 +142,7 @@ async def criar_e_enviar_relato(
     "/{relato_id}/submit",
     status_code=status.HTTP_202_ACCEPTED,
     summary="Submeter relato para processamento",
+    tags=["Relatos"],
 )
 async def submit_relato(
     relato_id: str,
@@ -191,36 +197,63 @@ async def submit_relato(
 
 
 
+
+
 @router.get("/{relato_id}/status", response_model=RelatoStatusOutput)
 async def relato_status(
     relato_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """
-    Endpoint para verificar o status de processamento de um relato.
-    """
-    relato = await get_relato_by_id(relato_id=relato_id, requesting_user=current_user)
-    
-    status = relato.status
-    
-    progress = None
-    if relato.processing and isinstance(relato.processing, dict):
-        progress = relato.processing.get("progress")
+    Retorna o estado atual de processamento de um relato.
 
-    last_error = relato.last_error
+    O status é DERIVADO da projeção dos efeitos registrados
+    no sistema (EffectResult → UXEffect → ProgressProjection).
+    """
+
+    # garante que o usuário pode acessar o relato
+    await get_relato_by_id(relato_id=relato_id, requesting_user=current_user)
+
+    # busca os efeitos registrados no pipeline
+    effect_repo = EffectResultRepository()
+    effect_results = effect_repo.fetch_by_relato_id(relato_id)
+
+    # adapta resultados para UXEffectRecords
+    ux_records = [
+        effect_result_to_ux_effect(effect, relato_id)
+        for effect in effect_results
+    ]
+
+    # remove efeitos ignorados
+    ux_records = [e for e in ux_records if e is not None]
+
+    # projeta o estado atual do pipeline
+    projection = project_progress(relato_id, ux_records)
+
+    # converte progresso para porcentagem
+    progress = round(projection.progress_pct, 2)
+
+    # status derivado da projeção
+    if projection.has_error:
+        status = "error"
+    elif projection.is_complete:
+        status = "completed"
+    else:
+        status = "processing"
 
     return {
         "relato_id": relato_id,
         "status": status,
         "progress": progress,
-        "last_error": last_error
+        "last_error": projection.summary if projection.has_error else None,
     }
 
 
 @router.get("/{relato_id}")
 async def get_relato(
     relato_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    tags=["Relatos"],
 ):
     """
     Endpoint para obter um relato pelo ID.
@@ -232,8 +265,8 @@ async def get_relato(
 @router.post(
     "/{relato_id}/moderate/{action}",
     summary="Modera um relato (aprova, rejeita, arquiva)",
-    tags=["Admin", "Relatos"],
     status_code=status.HTTP_200_OK,
+    tags=["Relatos"],
 )
 async def moderate_relato_route(
     relato_id: str,
@@ -292,6 +325,7 @@ async def get_imagens_relato(
 @router.post(
     "/{relato_id}/retry",
     status_code=status.HTTP_202_ACCEPTED,
+    tags=["Relatos"],
 )
 async def retry_relato_endpoint(relato_id: str):
     result = retry_failed_effects(relato_id=relato_id)

@@ -121,7 +121,7 @@ def _calculate_progress_pct(steps: List[StepProgress]) -> float:
     if total_weight == 0:
         return 0.0
 
-    return completed_weight / total_weight
+    return round((completed_weight / total_weight) * 100, 2)
 
 
 def _build_summary(effects: List[UXEffectRecord], steps: List[StepProgress]) -> str:

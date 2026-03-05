@@ -150,7 +150,7 @@ async def get_relato_by_id(relato_id: str, requesting_user: User) -> Union[Relat
 
     # --- Fim da Camada de Mapeamento ---
 
-    is_owner = mapped_data["owner_user_id"] == requesting_user.id
+    is_owner = mapped_data["owner_user_id"] == str(requesting_user.id)
     is_admin_or_colab = requesting_user.role in ["admin", "colaborador"]
     is_public = mapped_data["status"] == "approved_public"
 

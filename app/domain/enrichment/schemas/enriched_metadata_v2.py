@@ -57,7 +57,7 @@ class ComputableMetadata(BaseModel):
     temporal_markers: List[str]
 
     # 🔒 CONTROLE DE RIGOR
-    validation_mode: ValidationMode = ValidationMode.STRICT
+    validation_mode: ValidationMode = ValidationMode.RELAXED
 
     # -------------------------
     # VALIDADORES SEMÂNTICOS
@@ -66,25 +66,29 @@ class ComputableMetadata(BaseModel):
     @field_validator("tags")
     @classmethod
     def _validate_tags(cls, v, info):
-        mode = info.data.get("validation_mode", ValidationMode.STRICT)
+        mode = info.data.get("validation_mode", ValidationMode.RELAXED)
         return validate_tags(v, mode)
 
     @field_validator("body_regions")
     @classmethod
     def _validate_body_regions(cls, v, info):
-        mode = info.data.get("validation_mode", ValidationMode.STRICT)
+        mode = info.data.get("validation_mode", ValidationMode.RELAXED)
         return validate_body_regions(v, mode)
 
     @field_validator("temporal_markers")
     @classmethod
     def _validate_temporal_markers(cls, v, info):
-        mode = info.data.get("validation_mode", ValidationMode.STRICT)
+        mode = info.data.get("validation_mode", ValidationMode.RELAXED)
         return validate_temporal_markers(v, mode)
 
     
     
     @model_validator(mode="after")
     def validate_vocabularies(self):
+
+        if self.validation_mode == ValidationMode.RELAXED:
+            return self
+
         for tag in self.tags:
             if tag not in ALLOWED_TAGS:
                 raise ValueError(f"Invalid tag: {tag}")
@@ -114,7 +118,7 @@ class EnrichedMetadataV2(BaseModel):
     confidence: Confidence
 
     # 🔒 MODO GLOBAL (default STRICT)
-    validation_mode: ValidationMode = ValidationMode.STRICT
+    validation_mode: ValidationMode = ValidationMode.RELAXED
 
     @field_validator("computable")
     @classmethod
@@ -123,7 +127,7 @@ class EnrichedMetadataV2(BaseModel):
         Propaga o validation_mode do enrichment
         para o bloco computable.
         """
-        mode = info.data.get("validation_mode", ValidationMode.STRICT)
+        mode = info.data.get("validation_mode", ValidationMode.RELAXED)
         v.validation_mode = mode
         return v
 

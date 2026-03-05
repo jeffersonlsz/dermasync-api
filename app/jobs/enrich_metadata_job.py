@@ -7,12 +7,17 @@ from app.repositories.effect_result_repository import EffectResultRepository
 from app.repositories.enriched_metadata_repository import EnrichedMetadataRepository
 
 from app.llm.enrich_metadata_runner import run_enrich_metadata_llm
+from app.services.effects.result import EffectResult
 
 
 logger = logging.getLogger(__name__)
 
 
 class EnrichMetadataJob:
+    EFFECT_TYPE = "EXTRACT_COMPUTABLE_METADATA"
+    ENRICHMENT_VERSION = "v2"
+    MODEL_USED = "poc-gemma-gaia:latest"
+    PROMPT_VERSION = "extract_computable_metadata_v1_relaxed"
     def __init__(
         self,
         relato_repo: RelatoRepository,
@@ -49,13 +54,26 @@ class EnrichMetadataJob:
         # -------------------------------------------------
         # Isso NÃO significa sucesso do enrich.
         # Significa: "job iniciou".
+        
         self.effect_repo.register_success(
-            relato_id=relato_id,
-            effect_type="ENRICH_METADATA_STARTED",
-            metadata={
-                "message": "Analisando o relato enviado...",
-            },
-        )
+                EffectResult.success(
+                    relato_id=relato_id,
+                    effect_type="ENRICH_METADATA_STARTED",
+                    metadata={
+                        "version": self.ENRICHMENT_VERSION,
+                        "prompt_version": self.PROMPT_VERSION,
+                        "model": self.MODEL_USED
+                    },
+                )
+            )
+        
+        #self.effect_repo.register_success(
+        #    relato_id=relato_id,
+        #    effect_type="ENRICH_METADATA_STARTED",
+        #    metadata={
+        #        "message": "Analisando o relato enviado...",
+        #    },
+        #)
 
         try:
             # -------------------------------------------------
@@ -80,13 +98,27 @@ class EnrichMetadataJob:
             # -------------------------------------------------
             # 5️⃣ Emitir PROCESSING_COMPLETED
             # -------------------------------------------------
+            
             self.effect_repo.register_success(
-                relato_id=relato_id,
-                effect_type="ENRICH_METADATA",
-                metadata={
-                    "fields": list(enriched_data.keys()),
-                },
+                EffectResult.success(
+                    relato_id=relato_id,
+                    effect_type="ENRICH_METADATA_COMPLETED",
+                    metadata={
+                        "version": self.ENRICHMENT_VERSION,
+                        "prompt_version": self.PROMPT_VERSION,
+                        "model": self.MODEL_USED,
+                        "fields": list(enriched_data.keys()),
+                    },
+                )
             )
+            
+            #self.effect_repo.register_success(
+            #    relato_id=relato_id,
+            #    effect_type="ENRICH_METADATA",
+            #    metadata={
+            #        "fields": list(enriched_data.keys()),
+            #    },
+            #)
 
             logger.info(
                 "[enrich_metadata_job] completed | relato_id=%s",
@@ -103,14 +135,30 @@ class EnrichMetadataJob:
             # -------------------------------------------------
             # 6️⃣ Emitir PROCESSING_FAILED
             # -------------------------------------------------
-            self.effect_repo.register_failure(
-                relato_id=relato_id,
-                effect_type="ENRICH_METADATA",
-                error=str(exc),
-                metadata={
-                    "message": "Falha ao enriquecer metadados do relato.",
-                    "exception_type": type(exc).__name__,
-                    "exception_args": exc.args or None,
-                    "error_str": str(exc),
-                },
+            
+            self.effect_repository.register_failure(
+                EffectResult.error(
+                    relato_id=relato_id,
+                    effect_type="ENRICH_METADATA",
+                    error_message=str(exc),
+                    metadata={
+                        "message": "Falha ao enriquecer metadados do relato.",
+                        "exception_type": type(exc).__name__,
+                        "exception_args": exc.args or None,
+                        "error_str": str(exc),
+                    },
+                )
             )
+            
+            
+            #self.effect_repo.register_failure(
+            #    relato_id=relato_id,
+            #    effect_type="ENRICH_METADATA",
+            #    error=str(exc),
+            #    metadata={
+            #        "message": "Falha ao enriquecer metadados do relato.",
+            #        "exception_type": type(exc).__name__,
+            #        "exception_args": exc.args or None,
+            #        "error_str": str(exc),
+            #    },
+            #)

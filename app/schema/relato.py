@@ -26,7 +26,7 @@ class FormularioMeta(BaseModel):
 class RelatoStatusOutput(BaseModel):
     relato_id: str
     status: str
-    progress: Optional[int] = None
+    progress: Optional[float] = None
     last_error: Optional[str] = None
     
 class RelatoPublicoOutput(BaseModel):

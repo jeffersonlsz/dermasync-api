@@ -32,18 +32,23 @@ class UXEffectRecord:
 PIPELINE_STEPS = [
     {
         "step_id": "persist_relato",
-        "label": "Enviando relato para processamento...",
+        "label": "Relato recebido.",
         "weight": 1,
     },
     {
         "step_id": "upload_images",
-        "label": "Processando imagens...",
-        "weight": 3,
+        "label": "Enviando imagens...",
+        "weight": 2,
+    },
+    {
+        "step_id": "enqueue_processing",
+        "label": "Preparando análise...",
+        "weight": 1,
     },
     {
         "step_id": "enrich_metadata",
-        "label": "Analisando o relato enviado...",
-        "weight": 3,
+        "label": "Analisando o relato...",
+        "weight": 4,
     },
 ]
 

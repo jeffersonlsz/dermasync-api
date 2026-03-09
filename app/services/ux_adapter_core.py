@@ -1,4 +1,4 @@
-# app/services/ux_adapters.py
+# app/services/ux_adapter_core.py
 """
 Módulo central para adaptar diferentes tipos de efeitos (de domínio, de resultado)
 para o contrato canônico de UXEffect.
@@ -78,36 +78,47 @@ def domain_effect_to_ux_effect(effect) -> UXEffect | None:
 # =========================================================
 
 EFFECT_RESULT_TYPE_TO_SUBTYPE = {
-    "PERSIST_RELATO": "persist_relato",
+    "UPDATE_STATUS": "persist_relato",
     "UPLOAD_IMAGES": "upload_images",
+    "ENQUEUE_PROCESSING": "enqueue_processing",
     "ENRICH_METADATA": "enrich_metadata",
-    "ENRICH_METADATA_STARTED": "enrich_metadata",
 }
 
 def _default_message_for_result(subtype: str) -> str:
     return {
         "persist_relato": "Relato recebido com sucesso.",
-        "upload_images": "Imagens processadas.",
+        "enqueue_processing": "Relato enviado para processamento.",
         "enrich_metadata": "Análise do relato concluída.",
     }.get(subtype, "Processamento concluído.")
 
 def effect_result_to_ux_effect(effect: EffectResult, relato_id: str) -> UXEffectRecord | None:
-    """Adapta um resultado de efeito (do banco de dados) para um UXEffectRecord."""
+
     subtype = EFFECT_RESULT_TYPE_TO_SUBTYPE.get(effect.effect_type)
 
     if not subtype:
-        logger.debug("Ignoring non-UX effect result | type=%s relato=%s", effect.effect_type, relato_id)
+        logger.debug(
+            "Ignoring non-UX effect result | type=%s relato=%s",
+            effect.effect_type,
+            relato_id,
+        )
         return None
 
-    if effect.status == EffectStatus.SUCCESS:
+    if effect.status == EffectStatus.STARTED:
+        ux_type = "processing_started"
+        severity = UXSeverity.INFO
+        message = f"Iniciando {subtype}..."
+
+    elif effect.status == EffectStatus.SUCCESS:
         ux_type = "processing_completed"
         severity = UXSeverity.INFO
         message = _default_message_for_result(subtype)
+
     elif effect.status == EffectStatus.RETRYING:
-        ux_type = "processing_retrying"
+        ux_type = "processing_started"
         severity = UXSeverity.WARNING
-        message = f"Retentando processamento. Tentativa {effect.metadata.get('attempt', 'N/A')} de {effect.metadata.get('max_attempts', 'N/A')}."
-    else: # EffectStatus.ERROR
+        message = "Reiniciando processamento..."
+
+    else:
         ux_type = "processing_failed"
         severity = UXSeverity.ERROR
         message = effect.error_message or "Erro no processamento."

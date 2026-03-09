@@ -35,9 +35,8 @@ class EffectResultRepository:
 
     def fetch_by_relato_id(self, relato_id: str) -> List[EffectResult]:
         """
-        Retorna todos os EffectResult associados a um relato.
+        Busca todos os EffectResults associados a um relato.
         """
-
         query = (
             self._db.collection("effect_results")
             .where("relato_id", "==", relato_id)
@@ -50,57 +49,37 @@ class EffectResultRepository:
             data = doc.to_dict()
 
             _metadata = data.get("metadata", {}) or {}
+
             if "executed_at" in data:
                 _metadata["old_executed_at"] = self._parse_datetime(data["executed_at"])
+
             if "effect_ref" in data:
                 _metadata["effect_ref"] = data["effect_ref"]
+
             if "failure_type" in data:
                 _metadata["failure_type"] = data["failure_type"]
+
             if "retry_decision" in data:
                 _metadata["old_retry_decision"] = data["retry_decision"]
+
             if "retryable" in data:
-                _metadata["old_retryable"] = data["retryable"] # Capture legacy retryable field
+                _metadata["old_retryable"] = data["retryable"]
 
+            # status moderno ou legado
+            status = EffectStatus(data["status"]) if "status" in data else (
+                EffectStatus.SUCCESS if bool(data.get("success", False)) else EffectStatus.ERROR
+            )
 
-            # Handle legacy 'success' field if 'status' is not present
-            if "status" not in data:
-                if bool(data.get("success", False)):
-                    status = EffectStatus.SUCCESS
-                else:
-                    status = EffectStatus.ERROR # Default to ERROR for old failed effects
-            else:
-                status = EffectStatus(data["status"])
-
-            if status == EffectStatus.SUCCESS:
-                results.append(
-                    EffectResult.success(
-                        relato_id=data["relato_id"],
-                        effect_type=data["effect_type"],
-                        metadata=_metadata,
-                    )
+            results.append(
+                EffectResult(
+                    relato_id=data["relato_id"],
+                    effect_type=data["effect_type"],
+                    status=status,
+                    metadata=_metadata,
+                    error_message=data.get("error_message", data.get("error")),
+                    created_at=data.get("created_at"),
                 )
-            elif status == EffectStatus.ERROR:
-                results.append(
-                    EffectResult.error(
-                        relato_id=data["relato_id"],
-                        effect_type=data["effect_type"],
-                        error_message=data.get("error_message", data.get("error", "Unknown error")),
-                        metadata=_metadata,
-                    )
-                )
-            elif status == EffectStatus.RETRYING:
-                # Firestore stores timedelta as seconds, convert back to timedelta
-                retry_after_seconds = data.get("retry_after_seconds")
-                retry_after_timedelta = timedelta(seconds=retry_after_seconds) if retry_after_seconds is not None else None
-                results.append(
-                    EffectResult.retrying(
-                        relato_id=data["relato_id"],
-                        effect_type=data["effect_type"],
-                        retry_after=retry_after_timedelta,
-                        metadata=_metadata,
-                    )
-                )
-
+            )
 
         return results
 

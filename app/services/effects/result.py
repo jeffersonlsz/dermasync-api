@@ -11,6 +11,7 @@ class EffectStatus(Enum):
     SUCCESS = "success"
     ERROR = "error"
     RETRYING = "retrying"
+    STARTED = "started"
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,20 @@ class EffectResult:
     # =========================
     # Factories (API pública)
     # =========================
+    @classmethod
+    def started(
+        cls,
+        relato_id: str,
+        effect_type: str,
+        metadata: dict | None = None,
+    ):
+        return cls(
+            relato_id=relato_id,
+            effect_type=effect_type,
+            status=EffectStatus.STARTED,
+            metadata=metadata or {},
+        )
+
 
     @classmethod
     def success(
@@ -82,18 +97,15 @@ class EffectResult:
     @classmethod
     def retrying(
         cls,
-        *,
         relato_id: str,
         effect_type: str,
-        metadata: Optional[Dict] = None,
-        retry_after: Optional[timedelta] = None,
-    ) -> "EffectResult":
+        metadata: dict | None = None,
+    ):
         return cls(
             relato_id=relato_id,
             effect_type=effect_type,
             status=EffectStatus.RETRYING,
             metadata=metadata or {},
-            retry_after=retry_after,
         )
 
     # =========================

@@ -3,11 +3,12 @@ import json
 import os
 import platform
 import subprocess
+import sys
 import webbrowser
 
 
 def limpar_relatorios_antigos():
-    print("🧹 Limpando relatórios anteriores...")
+    print("Limpando relatórios anteriores...")
 
     paths = ["htmlcov", "report.json", "logs_testes.jsonl"]
 
@@ -21,10 +22,12 @@ def limpar_relatorios_antigos():
 
 
 def rodar_pytest():
-    print("✅ Rodando Pytest com cobertura e relatório JSON...\n")
+    print("Rodando Pytest com cobertura e relatório JSON...\\n")
 
     result = subprocess.run(
         [
+            sys.executable,
+            "-m",
             "pytest",
             "--cov=app",
             "--cov-report=html",
@@ -40,16 +43,16 @@ def rodar_pytest():
 
 def abrir_htmlcov():
     index_path = os.path.abspath("htmlcov/index.html")
-    print(f"\n📂 Abrindo relatório de cobertura: {index_path}")
+    print(f"\\nAbrindo relatório de cobertura: {index_path}")
     try:
         webbrowser.open(f"file://{index_path}")
     except Exception as e:
-        print(f"⚠️ Erro ao abrir navegador: {e}")
+        print(f"Erro ao abrir navegador: {e}")
 
 
 def mostrar_resumo_teste():
     if not os.path.exists("report.json"):
-        print("⚠️ Arquivo report.json não encontrado.")
+        print("Arquivo report.json não encontrado.")
         return
 
     try:
@@ -57,18 +60,18 @@ def mostrar_resumo_teste():
             data = json.load(f)
 
         summary = data.get("summary", {})
-        print("\n📊 Resumo dos testes:")
-        print(f"   ✅ Passaram: {summary.get('passed', 0)}")
-        print(f"   ❌ Falharam: {summary.get('failed', 0)}")
-        print(f"   🧪 Total:     {summary.get('total', 0)}")
+        print("\\nResumo dos testes:")
+        print(f"   Passaram: {summary.get('passed', 0)}")
+        print(f"   Falharam: {summary.get('failed', 0)}")
+        print(f"   Total:     {summary.get('total', 0)}")
 
         if summary.get("failed", 0) > 0:
             print(
-                "\n🚨 Alguns testes falharam. Verifique detalhes no report.json e logs_testes.jsonl"
+                "\\nAlguns testes falharam. Verifique detalhes no report.json e logs_testes.jsonl"
             )
 
     except Exception as e:
-        print(f"⚠️ Erro ao ler report.json: {e}")
+        print(f"Erro ao ler report.json: {e}")
 
 
 def main():
@@ -80,12 +83,12 @@ def main():
     abrir_htmlcov()
 
     if os.path.exists("logs_testes.jsonl"):
-        print("\n🗃️  Logs dos testes salvos em: logs_testes.jsonl")
+        print("\\nLogs dos testes salvos em: logs_testes.jsonl")
 
     if exit_code != 0:
-        print("\n❌ Execução finalizada com falhas.")
+        print("\\nExecução finalizada com falhas.")
     else:
-        print("\n✅ Execução finalizada com sucesso.")
+        print("\\nExecução finalizada com sucesso.")
 
 
 if __name__ == "__main__":

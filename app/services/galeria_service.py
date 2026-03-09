@@ -184,14 +184,16 @@ async def listar_galeria_publica_v3(
                 similarity_score=similarity_score_value
             )
         )
+        from app.services.ux_serializer import serialize_ux_effects
 
+       
         # ----------------------------------------------------
         # Payload final
         # ----------------------------------------------------
         dados.append({
             "id": relato_id,
             "excerpt": (relato.get("public_excerpt", {}).get("text") or "")[:120],
-            "tags": relato.get("tags_extraidas") or [],
+            "tags": relato.get("tags_extraidas") or ['sem tags'],
             "created_at": created_at,
 
             "thumbnail": thumbs,
@@ -200,7 +202,7 @@ async def listar_galeria_publica_v3(
 
             # 🔹 NOVO: orientação cognitiva explícita
             "ux_effects": [
-                effect.serialize() for effect in ux_effects
+                 effect.__dict__ for effect in ux_effects
             ],
         })
 

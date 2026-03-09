@@ -14,9 +14,9 @@ class CognitiveExplanationEffect(UXEffect):
     ) -> "CognitiveExplanationEffect":
         return cls(
             type="cognitive_explanation",
-            severity=UXSeverity.INFO,
-            channel=UXChannel.INLINE,
-            timing=UXTiming.AFTER_LOAD,
+            severity=UXSeverity.info,
+            channel=UXChannel.inline,
+            timing=UXTiming.after_load,
             message=message,
-            details=details or {},
+            metadata=details or {},
         )

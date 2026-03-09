@@ -41,7 +41,6 @@ def test_valid_payload_passes_validation():
 def test_invalid_tag_fails():
     payload = VALID_PAYLOAD.copy()
     payload["computable"]["tags"] = ["dermatite_atopica", "alien_skin"]
-
     with pytest.raises(Exception):
         EnrichedMetadataV2.model_validate(payload)
 
@@ -49,14 +48,12 @@ def test_invalid_tag_fails():
 def test_invalid_signal_fails():
     payload = VALID_PAYLOAD.copy()
     payload["computable"]["signals"][0]["signal"] = "telepatia"
-
     with pytest.raises(Exception):
         EnrichedMetadataV2.model_validate(payload)
 
 def test_invalid_body_region_fails():
     payload = VALID_PAYLOAD.copy()
     payload["computable"]["body_regions"] = ["joelho_direito"]
-
     with pytest.raises(Exception):
         EnrichedMetadataV2.model_validate(payload)
 

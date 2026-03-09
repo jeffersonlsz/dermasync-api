@@ -21,6 +21,7 @@ class UXTiming(str, Enum):
     immediate = "immediate"
     delayed = "delayed"
     on_next_view = "on_next_view"
+    after_load = "after_load"
     
 
 

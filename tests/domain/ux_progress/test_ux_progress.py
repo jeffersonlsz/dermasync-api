@@ -12,7 +12,7 @@ def test_progressive_exposure_summary():
 
     effect = builder.build_progressive_exposure(similarity_score=0.6)
 
-    assert effect.details["stage"] == "summary"
+    assert effect.metadata["stage"] == "summary"
 
 def test_progress_with_no_effects_returns_all_steps_pending():
     steps = default_step_definitions()

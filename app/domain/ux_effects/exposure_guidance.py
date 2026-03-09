@@ -14,9 +14,9 @@ class ExposureGuidanceEffect(UXEffect):
     ) -> "ExposureGuidanceEffect":
         return cls(
             type="exposure_guidance",
-            severity=UXSeverity.INFO,
-            channel=UXChannel.INLINE,
-            timing=UXTiming.AFTER_LOAD,
+            severity=UXSeverity.info,
+            channel=UXChannel.inline,
+            timing=UXTiming.after_load,
             message=message,
-            details={"stage": stage.value},
+            metadata={"stage": stage.value},
         )

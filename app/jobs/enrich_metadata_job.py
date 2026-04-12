@@ -76,6 +76,7 @@ class EnrichMetadataJob:
                     "version": self.ENRICHMENT_VERSION,
                     "prompt_version": self.PROMPT_VERSION,
                     "model": self.MODEL_USED,
+                    
                 },
             )
         )
@@ -89,8 +90,8 @@ class EnrichMetadataJob:
                 try:
                     
                     # TESTE: força falha nas duas primeiras tentativas
-                    if attempt < 3:
-                        raise RuntimeError("Simulated LLM failure")
+                    #if attempt < 3:
+                    #    raise RuntimeError("Simulated LLM failure")
                     
                     enriched_data = run_enrich_metadata_llm(
                         relato_text=relato.text,
@@ -116,6 +117,7 @@ class EnrichMetadataJob:
                             metadata={
                                 "attempt": attempt,
                                 "max_attempts": self.MAX_ATTEMPTS,
+                                "error": str(exc),
                             },
                         )
                     )

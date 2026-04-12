@@ -15,7 +15,7 @@ import os
 
 # ========= CONFIG =========
 
-RELATO_ID = "01qIN1QpujNPG4uyMJQ8"
+RELATO_ID = "1swUbMvjhtnF5zRzwseU"
 FIREBASE_KEY_PATH = "dermasync-key.json"
 THUMB_SIZE = 256
 THUMB_PREFIX = "thumb_256_"

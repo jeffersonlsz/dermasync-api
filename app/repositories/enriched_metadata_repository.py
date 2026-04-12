@@ -38,7 +38,7 @@ class EnrichedMetadataRepository:
             "version": version,
             "validation_mode": validation_mode,
             "data": data,
-            "created_at": datetime.utcnow(),
+            "created_at": created_at or datetime.utcnow(),
         }
 
         if model_used:

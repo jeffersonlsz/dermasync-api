@@ -1,3 +1,4 @@
+# app/schema/relato.py
 from typing import List, Optional, Dict, Literal
 from datetime import datetime
 from pydantic import BaseModel, Field
@@ -38,15 +39,15 @@ class RelatoPublicoOutput(BaseModel):
     
 class RelatoFullOutput(BaseModel):
     id: str = Field(..., description="ID único do relato no sistema.")
-    id_relato_cliente: str = Field(..., description="Nome base para identificar esse relato")
-    owner_user_id: str = Field(..., description="ID do usuário proprietário do relato.")
-    timestamp: datetime = Field(..., description="Data de envio do relato.")
+    #id_relato_cliente: str = Field(..., description="Nome base para identificar esse relato")
+    owner_id: str = Field(..., description="ID do usuário proprietário do relato.")
+    created_at: datetime = Field(..., description="Data de envio do relato.")
     conteudo_original: str = Field(..., description="Texto original enviado pelo usuário.")
     classificacao_etaria: Optional[str] = None
     idade: Optional[str] = None
     genero: Optional[str] = None
     sintomas: List[str] = []
-    imagens_ids: dict = Field(..., description="IDs das imagens associadas ao relato.")
+    images_refs: dict = Field(..., description="IDs das imagens associadas ao relato.")
     regioes_afetadas: List[str] = []
     status: str = Field(..., description="Status do ciclo de vida do relato.")
     micro_depoimento: Optional[str] = Field(None, description="Breve resumo do relato gerado por LLM.")
@@ -104,10 +105,10 @@ class ImagePreviewsDTO(BaseModel):
     URLs de imagens de preview (thumbnails).
     Nunca devem apontar para imagens originais.
     """
-    before: Optional[str] = Field(
+    antes: Optional[str] = Field(
         None, description="URL da miniatura 'antes' (preview)"
     )
-    after: Optional[str] = Field(
+    depois: Optional[str] = Field(
         None, description="URL da miniatura 'depois' (preview)"
     )
 

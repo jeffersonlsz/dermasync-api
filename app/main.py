@@ -25,6 +25,7 @@ from app.routes import relatos
 from app.routes import me
 from app.routes import galeria
 from app.routes import galeria_leitura
+from app.routes import feed as feed_router
 from app.routes.relatos_progress import router as relatos_progress_router
 from contextlib import asynccontextmanager
 from app.services.effects.register_effects import register_all_effect_executors
@@ -114,6 +115,7 @@ app.include_router(galeria.router)
 app.include_router(me.router)
 app.include_router(relatos_progress_router)
 app.include_router(relato_progress_stream_router)
+app.include_router(feed_router.router)
 app.include_router(galeria_leitura.router)
 # Rotas DEV (somente em ambiente de desenvolvimento)
 if os.getenv("ENVIRONMENT") == "development":

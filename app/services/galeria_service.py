@@ -188,21 +188,23 @@ async def listar_galeria_publica_v3(
 
        
         # ----------------------------------------------------
-        # Payload final
+        # Payload final (formatado para o frontend Vue)
         # ----------------------------------------------------
+        excerpt = (relato.get("public_excerpt", {}).get("text") or "")[:120]
+
         dados.append({
             "id": relato_id,
-            "excerpt": (relato.get("public_excerpt", {}).get("text") or "")[:120],
-            "tags": relato.get("tags_extraidas") or ['sem tags'],
+            "tituloRelato": "Relato de tratamento",
+            "imgAntes": thumbs.get("antes"),
+            "imgDepois": thumbs.get("depois") or thumbs.get("antes"),
+            "microdepoimento": excerpt,
+            "solucao": excerpt,
+            "tags": relato.get("tags_extraidas") or relato.get("tags") or [],
             "created_at": created_at,
-
-            "thumbnail": thumbs,
-            "thumbnail_url": thumbnail_url,
             "has_images": bool(imagens),
-
-            # 🔹 NOVO: orientação cognitiva explícita
             "ux_effects": [
-                 effect.__dict__ for effect in ux_effects
+                 effect.serialize() if hasattr(effect, "serialize") else effect.__dict__
+                 for effect in ux_effects
             ],
         })
 

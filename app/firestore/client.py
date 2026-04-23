@@ -4,88 +4,84 @@ import os
 from functools import lru_cache
 import json
 
-
-logger = logging.getLogger(__name__)
-
-
 import firebase_admin
 from firebase_admin import credentials, firestore
 from firebase_admin import storage as fb_storage
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-
-logger = logging.getLogger(__name__)
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
 
-def get_storage_bucket():
-    _initialize_firebase_app()
+def _get_mode():
+    return os.getenv("FIREBASE_MODE", "prod").lower()
+
+@lru_cache()
+def _initialize_firebase_app():
+    if firebase_admin._apps:
+        return firebase_admin.get_app()
+    mode = _get_mode()
     storage_bucket_name = os.getenv("FIREBASE_STORAGE_BUCKET")
-    if not storage_bucket_name:
-        logger.error("FIREBASE_STORAGE_BUCKET environment variable is not set.")
-        raise ValueError("Storage bucket name not specified in environment.")
 
-    logger.info(
-        f"Obtendo o bucket de armazenamento do Firebase ... ${storage_bucket_name}"
-    )
-    return fb_storage.bucket(name=storage_bucket_name)
+    logger.info(f"[Firebase] Inicializando modo: {mode}")
+
+    # 🔥 MODO LOCAL (EMULATOR)
+    if mode == "local":
+        project_id = os.getenv("GOOGLE_CLOUD_PROJECT", "dermasync-local")
+        os.environ["FIRESTORE_EMULATOR_HOST"] = "127.0.0.1:8080"
+        os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
+
+        logger.info("[Firebase] Usando Firestore Emulator")
+
+        firebase_admin.initialize_app(options={
+            "projectId": "dermasync-local",
+            "storageBucket": storage_bucket_name
+        })
+        return firebase_admin.get_app()
+
+    # ☁️ MODO PRODUÇÃO
+    cred_path = os.getenv("FIREBASE_CREDENTIALS")
+    if cred_path and os.path.exists(cred_path):
+        logger.info(f"[Firebase] Usando credenciais do arquivo: {cred_path}")
+        cred = credentials.Certificate(cred_path)
+        firebase_admin.initialize_app(cred, {
+            "storageBucket": storage_bucket_name
+        })
+        return firebase_admin.get_app()
+
+    cred_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
+    if cred_json:
+        try:
+            cred_obj = json.loads(cred_json)
+            logger.info("[Firebase] Usando credenciais via JSON (env)")
+            cred = credentials.Certificate(cred_obj)
+            firebase_admin.initialize_app(cred, {
+                "storageBucket": storage_bucket_name
+            })
+            return firebase_admin.get_app()
+        except Exception as e:
+            logger.exception("Erro no FIREBASE_CREDENTIALS_JSON")
+
+    # fallback
+    logger.info("[Firebase] Usando credenciais implícitas")
+    firebase_admin.initialize_app({
+        "storageBucket": storage_bucket_name
+    })
+    return firebase_admin.get_app()
 
 
-@lru_cache
+@lru_cache()
 def get_firestore_client():
     _initialize_firebase_app()
     return firestore.client()
 
 
-@lru_cache()
-def _initialize_firebase_app():
-    """
-    Inicializa firebase_admin com 3 opções, em ordem:
-      1) FIREBASE_CREDENTIALS -> caminho para arquivo JSON (local dev)
-      2) FIREBASE_CREDENTIALS_JSON -> conteúdo do JSON (CI/secret)
-      3) credenciais implícitas do ambiente (Cloud Run / GCE)
-    Também respeita FIREBASE_STORAGE_BUCKET (opcional).
-    """
-    if firebase_admin._apps:
-        return firebase_admin.get_app()
+def get_storage_bucket():
+    _initialize_firebase_app()
+    bucket_name = os.getenv("FIREBASE_STORAGE_BUCKET")
 
-    storage_bucket_name = os.getenv("FIREBASE_STORAGE_BUCKET")
-    # 1) arquivo apontado por FIREBASE_CREDENTIALS
-    cred_path = os.getenv("FIREBASE_CREDENTIALS")
-    if cred_path and os.path.exists(cred_path):
-        logger.info("Inicializando Firebase com credenciais do arquivo: %s", cred_path)
-        cred = credentials.Certificate(cred_path)
-        opts = {"storageBucket": storage_bucket_name} if storage_bucket_name else {}
-        firebase_admin.initialize_app(cred, options=opts)
-        return firebase_admin.get_app()
+    if not bucket_name:
+        raise ValueError("FIREBASE_STORAGE_BUCKET não definido")
 
-    # 2) conteúdo do JSON na var de ambiente FIREBASE_CREDENTIALS_JSON
-    cred_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
-    if cred_json:
-        try:
-            cred_obj = json.loads(cred_json)
-            logger.info("Inicializando Firebase com credenciais via FIREBASE_CREDENTIALS_JSON (env).")
-            cred = credentials.Certificate(cred_obj)
-            opts = {"storageBucket": storage_bucket_name} if storage_bucket_name else {}
-            firebase_admin.initialize_app(cred, options=opts)
-            return firebase_admin.get_app()
-        except Exception as e:
-            logger.exception("FIREBASE_CREDENTIALS_JSON inválido: %s", e)
-            # continue para tentativa implícita
-
-    # 3) credenciais implícitas (metadata service / Workload Identity)
-    try:
-        logger.info("Tentando inicializar Firebase com credenciais implícitas do ambiente.")
-        opts = {"storageBucket": storage_bucket_name} if storage_bucket_name else {}
-        firebase_admin.initialize_app(options=opts)
-        logger.info("Firebase inicializado com credenciais implícitas.")
-        return firebase_admin.get_app()
-    except Exception as e:
-        logger.exception("Falha ao inicializar Firebase com credenciais implícitas: %s", e)
-        raise RuntimeError("Não foi possível inicializar Firebase Admin SDK. Verifique credenciais.")
+    return fb_storage.bucket(name=bucket_name)

@@ -112,7 +112,12 @@ class FeedService:
 
         score = 0.0
 
-        user_areas = user.principais_areas_pele or []
+        user_areas = []
+        try:
+            user_areas = user.regioes_afetadas or []
+        except:
+            pass
+        
         relato_areas = relato.regioes_afetadas or []
 
         if user_areas and relato_areas:

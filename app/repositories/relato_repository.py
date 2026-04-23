@@ -3,8 +3,6 @@
 from typing import Optional, List, Dict
 from datetime import datetime
 
-from sympy import limit
-
 from app.firestore.client import get_firestore_client
 
 

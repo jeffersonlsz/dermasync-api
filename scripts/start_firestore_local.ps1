@@ -1,0 +1,1 @@
+firebase emulators:start --only firestore,storage --project dermasync-local --import=./emulator-data --export-on-exit

@@ -1,16 +1,33 @@
-# Experimento: [Nome do Experimento]
+# Experimento: Firestore local
 
-**Data:** YYYY-MM-DD
-**Responsável:** [Seu Nome]
-**Status:** [Em andamento | Concluído]
+**Data:** 2026-04-12
+**Responsável:** Jefferson
+**Status:** Em andamento
 
 ## 1. Hipótese
-O que acreditamos que vai acontecer? 
+Firestore rodando locamente.
 
 ## 2. Metodologia (Setup)
-- **Modelo usado:** [Ex: gemini-1.5-pro]
-- **Métricas de sucesso:** [Ex: % de respostas corretas num set de 20 perguntas base]
-- **Variáveis alteradas:** [O que mudou em relação ao baseline?]
+criação do firestore.json local (versao inicial)
+
+{
+  "emulators": {
+    "firestore": {
+      "host": "127.0.0.1",
+      "port": 8080
+    }
+  }
+}
+
+modificacao no client.py para nova mudança.
+
+Ordem do teste:
+
+subir emulador
+firebase emulators:start --only firestore --project dermasync-local
+
+rodar teste
+python .\test_local_firestore.py
 
 ## 3. Resultados
 | Métrica | Baseline | Variante A |

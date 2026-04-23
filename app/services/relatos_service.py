@@ -134,23 +134,24 @@ async def get_relato_by_id(relato_id: str, requesting_user: User) -> Union[Relat
     mapped_data = {
         "id": relato_data.get("id", doc.id),
         "id_relato_cliente": relato_data.get("id_relato_cliente", relato_data.get("id", doc.id)),
-        "owner_user_id": str(relato_data.get("owner_id", relato_data.get("owner_user_id", ""))),
+        "owner_id": str(relato_data.get("owner_id", relato_data.get("owner_user_id", ""))),
         "timestamp": timestamp_dt,
         "conteudo_original": relato_data.get("meta", {}).get("descricao", relato_data.get("conteudo_original", "")),
         "classificacao_etaria": relato_data.get("classificacao_etaria"),
         "idade": relato_data.get("idade") or relato_data.get("meta", {}).get("idade"),
         "genero": relato_data.get("genero") or relato_data.get("meta", {}).get("sexo"),
         "sintomas": relato_data.get("sintomas", []),
-        "imagens_ids": relato_data.get("images", relato_data.get("imagens_ids", {})),
+        "images_refs": relato_data.get("images", relato_data.get("imagens_ids", {})),
         "regioes_afetadas": relato_data.get("regioes_afetadas", []),
         "status": relato_data.get("status", "unknown"),
         "micro_depoimento": relato_data.get("micro_depoimento"),
         "solucao_encontrada": relato_data.get("solucao_encontrada"),
+        "created_at": relato_data.get("created_at") or timestamp_dt,
     }
 
     # --- Fim da Camada de Mapeamento ---
 
-    is_owner = mapped_data["owner_user_id"] == str(requesting_user.id)
+    is_owner = mapped_data["owner_id"] == str(requesting_user.id)
     is_admin_or_colab = requesting_user.role in ["admin", "colaborador"]
     is_public = mapped_data["status"] == "approved_public"
 

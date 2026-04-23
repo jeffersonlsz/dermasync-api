@@ -92,10 +92,6 @@ def decode_token(token: str) -> dict:
         raise _unauthorized("TOKEN_INVALID")
 
 
-
-
-
-# substitua a função get_current_user existente por esta
 async def get_current_user(
     request: Request,
     creds: Optional[HTTPAuthorizationCredentials] = Depends(security),
@@ -258,7 +254,6 @@ def require_authenticated():
 
     return auth_checker
 
-#from app.auth.dependencies import get_current_user
 
 async def get_optional_user(
     request: Request,

@@ -49,7 +49,7 @@ def persist_relato_adapter(
     doc_ref.set(
         {
             "owner_id": str(owner_id),
-            "conteudo": conteudo,
+            "conteudo_original": conteudo,
             "status": str(status),
             "image_refs": image_refs or {},
             "created_at": datetime.now(timezone.utc),

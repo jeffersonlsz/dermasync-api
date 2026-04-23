@@ -97,15 +97,22 @@ class EffectResult:
     @classmethod
     def retrying(
         cls,
+        *,
         relato_id: str,
         effect_type: str,
         metadata: dict | None = None,
+        retry_after: timedelta | int | float | None = None,
     ):
+        normalized_retry_after = retry_after
+        if isinstance(retry_after, (int, float)):
+            normalized_retry_after = timedelta(seconds=retry_after)
+
         return cls(
             relato_id=relato_id,
             effect_type=effect_type,
             status=EffectStatus.RETRYING,
             metadata=metadata or {},
+            retry_after=normalized_retry_after,
         )
 
     # =========================
@@ -131,3 +138,5 @@ class EffectResult:
         if self.status == EffectStatus.RETRYING:
             if self.error_message is not None:
                 raise ValueError("RETRYING must not have error_message")
+            if self.retry_after is not None and not isinstance(self.retry_after, timedelta):
+                raise ValueError("RETRYING retry_after must be timedelta")

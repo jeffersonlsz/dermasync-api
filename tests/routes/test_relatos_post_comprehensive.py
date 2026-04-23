@@ -58,6 +58,15 @@ def make_test_user(
     )
 
 
+@pytest.fixture
+def stub_relato_executor():
+    """Isola efeitos e Firestore dos testes de contrato HTTP."""
+    with patch("app.routes.relatos.RelatoEffectExecutor") as MockExecutor:
+        mock_instance = MagicMock()
+        MockExecutor.return_value = mock_instance
+        yield mock_instance
+
+
 # =============================================================================
 # Success Scenarios (201 Created)
 # =============================================================================
@@ -65,7 +74,7 @@ def make_test_user(
 class TestPostRelatosSuccess:
     """Tests for successful relato creation via HTTP."""
 
-    def test_post_relatos_returns_201_when_domain_allows(self):
+    def test_post_relatos_returns_201_when_domain_allows(self, stub_relato_executor):
         """
         Business rule: Successful creation returns HTTP 201.
         
@@ -87,7 +96,7 @@ class TestPostRelatosSuccess:
         finally:
             app.dependency_overrides.clear()
 
-    def test_post_relatos_returns_relato_id_in_response(self):
+    def test_post_relatos_returns_relato_id_in_response(self, stub_relato_executor):
         """
         Business rule: Response must include the created relato ID.
         
@@ -112,7 +121,7 @@ class TestPostRelatosSuccess:
         finally:
             app.dependency_overrides.clear()
 
-    def test_post_relatos_returns_status_in_response(self):
+    def test_post_relatos_returns_status_in_response(self, stub_relato_executor):
         """
         Business rule: Response must include the relato status.
         
@@ -137,7 +146,7 @@ class TestPostRelatosSuccess:
         finally:
             app.dependency_overrides.clear()
 
-    def test_post_relatos_user_can_create(self):
+    def test_post_relatos_user_can_create(self, stub_relato_executor):
         """
         Business rule: Users with 'usuario_logado' role can create relatos.
         
@@ -159,7 +168,7 @@ class TestPostRelatosSuccess:
         finally:
             app.dependency_overrides.clear()
 
-    def test_post_relatos_admin_can_create(self):
+    def test_post_relatos_admin_can_create(self, stub_relato_executor):
         """
         Business rule: Admins can create relatos.
         
@@ -181,7 +190,7 @@ class TestPostRelatosSuccess:
         finally:
             app.dependency_overrides.clear()
 
-    def test_post_relatos_collaborator_can_create(self):
+    def test_post_relatos_collaborator_can_create(self, stub_relato_executor):
         """
         Business rule: Collaborators can create relatos.
         

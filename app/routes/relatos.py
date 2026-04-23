@@ -9,13 +9,16 @@ from typing import Optional, List
 
 from fastapi import APIRouter, Depends, Form, File, Query, UploadFile, HTTPException, status, BackgroundTasks
 
+from app.adapters.firebase_storage_adapter import FirebaseStorageAdapter
 from app.auth.dependencies import get_current_user, get_optional_user
 from app.auth.schemas import User
 from app.domain.relato.contracts import Actor, CreateRelato, SubmitRelato
 from app.domain.relato.orchestrator import decide
+from app.ports.storage_port import StoragePort
 from app.repositories.effect_result_repository import EffectResultRepository
 from app.schema.relato import RelatoCompletoInput, RelatoStatusOutput
 from app.schema.relato_draft import RelatoDraftInput
+from app.services.moderation_query_service import ModerationQueryService
 from app.services.relato_adapters import (
     persist_relato_adapter,
     enqueue_processing_adapter,
@@ -37,6 +40,10 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+def get_storage_port() -> StoragePort:
+    return FirebaseStorageAdapter()
+
+
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
@@ -49,6 +56,7 @@ async def criar_e_enviar_relato(
     imagens_antes: Optional[List[UploadFile]] = File(default=None),
     imagens_durante: Optional[List[UploadFile]] = File(default=None),
     imagens_depois: Optional[List[UploadFile]] = File(default=None),
+    storage: StoragePort = Depends(get_storage_port),
     current_user=Depends(get_current_user),
 ):
     # =========================
@@ -79,16 +87,19 @@ async def criar_e_enviar_relato(
             imagens_antes or [],
             relato_id=relato_id,
             stage="antes",
+            storage=storage,
         ),
         "durante": await salvar_uploads_e_retornar_refs(
             imagens_durante or [],
             relato_id=relato_id,
             stage="durante",
+            storage=storage,
         ),
         "depois": await salvar_uploads_e_retornar_refs(
             imagens_depois or [],
             relato_id=relato_id,
             stage="depois",
+            storage=storage,
         ),
     }
 
@@ -151,7 +162,7 @@ async def submit_relato(
 ):
     actor = Actor(
         id=str(current_user.id),
-        role="user",
+        role=str(current_user.role),
     )
 
     # 🔹 Buscar estado atual (fonte da verdade)
@@ -296,6 +307,30 @@ async def moderate_relato_route(
         current_user=current_user
     )
     return result
+
+@router.get(
+    "/moderation/pending",
+    summary="Lista relatos pendentes de moderação",
+    tags=["Relatos"]
+)
+async def list_pending_moderation(
+    limit: int = Query(20),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role not in ["admin", "colaborador"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Acesso negado"
+        )
+
+    service = ModerationQueryService()
+    relatos = service.list_pending(limit=limit)
+
+    return {
+        "data": relatos,
+        "count": len(relatos)
+    }
+
 
 @router.get(
     "/{relato_id}/imagens",

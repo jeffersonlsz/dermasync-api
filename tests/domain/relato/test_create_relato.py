@@ -108,6 +108,7 @@ def test_post_relatos_admin_is_allowed_by_domain():
     from app.auth.schemas import User
     from app.auth.dependencies import get_current_user
     from fastapi.testclient import TestClient
+    from unittest.mock import MagicMock, patch
     import json
 
     mock_user = User(
@@ -126,12 +127,17 @@ def test_post_relatos_admin_is_allowed_by_domain():
     }
 
     try:
-        response = client.post(
-            "/relatos/",
-            data={"payload": json.dumps(payload)}
-        )
+        with patch("app.routes.relatos.RelatoEffectExecutor") as mock_exec:
+            instance = MagicMock()
+            mock_exec.return_value = instance
+
+            response = client.post(
+                "/relatos/",
+                data={"payload": json.dumps(payload)}
+            )
 
         assert response.status_code == 201
+        instance.execute.assert_called_once()
     finally:
         app.dependency_overrides.clear()
 

@@ -1,0 +1,184 @@
+Você é um Principal Engineer / Staff Architect contratado para auditar tecnicamente meu projeto.
+
+Quero uma análise brutalmente honesta, pragmática e orientada a execução.
+
+# CONTEXTO DO PRODUTO
+
+Nome: DermaSync
+
+Missão:
+Plataforma focada em relatos reais e inteligência aplicada à dermatite atópica e problemas dermatológicos, usando IA para ajudar usuários a encontrar casos semelhantes, aprendizados coletivos e conteúdo útil.
+
+# STACK ATUAL
+
+Frontend:
+- Vue.js
+- JavaScript
+- Mobile First
+
+Backend:
+- FastAPI (Python)
+
+Infra:
+- Firebase Authentication
+- Firestore
+- Firebase Storage
+
+IA:
+- Pipeline de processamento de relatos
+- Enriquecimento via LLM
+- RAG
+- ChromaDB / base vetorial
+
+# DIRETRIZES IMPORTANTES
+
+- Frontend deve falar apenas com API
+- Nada de acesso direto ao banco pelo frontend em produção
+- Sistema precisa escalar
+- Projeto começou como MVP e está evoluindo
+- Quero reduzir bagunça estrutural antes de crescer
+
+# SUA MISSÃO
+
+Analise TODO o repositório e me entregue:
+
+## 1. Diagnóstico Arquitetural Geral
+
+Classifique de 0 a 10:
+
+- Organização do código
+- Separação de responsabilidades
+- Escalabilidade
+- Segurança
+- Clareza estrutural
+- Manutenibilidade
+- Prontidão para produção
+
+Seja duro e honesto.
+
+---
+
+## 2. Principais Problemas Encontrados
+
+Liste os 20 maiores problemas atuais.
+
+Para cada um:
+
+- gravidade (baixa/média/alta/crítica)
+- impacto futuro
+- como corrigir
+- tempo estimado
+
+---
+
+## 3. Acoplamentos Perigosos
+
+Detecte onde há mistura entre:
+
+- UI e regra de negócio
+- backend e infra
+- pipeline e domínio
+- models inconsistentes
+- dependências frágeis
+
+---
+
+## 4. Redundâncias e Código Desnecessário
+
+Procure:
+
+- funções repetidas
+- componentes duplicados
+- validações repetidas
+- services redundantes
+- arquivos mortos
+- patterns inúteis
+
+---
+
+## 5. Arquitetura Alvo Recomendada
+
+Sugira estrutura ideal para os próximos 12 meses.
+
+Exemplo:
+
+frontend/
+backend/
+domain/
+application/
+infra/
+workers/
+rag/
+tests/
+
+Explique por que.
+
+---
+
+## 6. Plano de Refatoração em Fases
+
+Monte roadmap realista:
+
+### Fase 1 (1 semana)
+Maior ROI imediato
+
+### Fase 2 (2 semanas)
+Estabilização
+
+### Fase 3 (30 dias)
+Escalabilidade
+
+### Fase 4 (90 dias)
+Arquitetura madura
+
+---
+
+## 7. Riscos de Founder Técnico Solo
+
+Considere que sou desenvolvedor solo.
+
+Quais decisões técnicas parecem sofisticadas demais para o estágio atual?
+
+O que devo simplificar agora?
+
+---
+
+## 8. Oportunidades Inteligentes
+
+Onde IA/Codex pode acelerar:
+
+- testes
+- refatoração
+- documentação
+- auditoria
+- geração de schemas
+- observabilidade
+
+---
+
+## 9. Nota Final Sincera
+
+Se esse projeto fosse apresentado a uma vaga top-tier ou investidor técnico:
+
+- impressão geral
+- nível do fundador
+- sinais positivos
+- sinais de alerta
+
+---
+
+# FORMATO DE RESPOSTA
+
+Seja objetivo, técnico e sem bajulação.
+
+Prefiro verdade dura a elogio vazio.
+
+Quando criticar, proponha solução.
+
+Quando elogiar, justifique.
+
+# IMPORTANTE
+
+Leia o código de verdade.
+Não invente problemas genéricos.
+Baseie tudo no repositório real.

@@ -1,185 +1,144 @@
-# app/auth/service.py
 """
-Serviços de autenticação e emissão/validação de tokens.
+Serviços de autenticação centrados em Firebase Auth + Firestore.
 """
-import os
-from datetime import datetime, timedelta, timezone
+from __future__ import annotations
 
-import firebase_admin
-import jwt
-from firebase_admin import auth, credentials
+from datetime import datetime, timezone
+from typing import Any
+
 from fastapi import HTTPException, status
+from firebase_admin import auth
 
 from app.auth.schemas import User
-from app.firestore.client import get_firestore_client
 from app.core.errors import AUTH_ERROR_MESSAGES
+from app.firestore.client import get_firestore_client
+
 db = get_firestore_client()
-from app.config import (
-    APP_JWT_SECRET,
-    API_TOKEN_EXPIRE_SECONDS,
-    REFRESH_TOKEN_EXPIRE_DAYS,
-)
-
-# Inicializar Firebase Admin (se aplicável)
-try:
-    if not firebase_admin._apps:
-        cred = credentials.ApplicationDefault()
-        firebase_admin.initialize_app(cred)
-except Exception as e:
-    # Não falhar peremptoriamente ao inicializar o SDK durante testes locais
-    print(f"Aviso: erro ao inicializar Firebase Admin SDK (continuando): {e}")
 
 
-def verify_firebase_token(provider_token: str) -> dict:
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def verify_firebase_token(provider_token: str) -> dict[str, Any]:
     """
-    Valida o token do Firebase e extrai as informações do usuário.
+    Valida o Firebase ID token e retorna apenas os campos necessários.
     """
+    if not provider_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=AUTH_ERROR_MESSAGES["NO_FIREBASE_TOKEN"],
+        )
+
     try:
         decoded_token = auth.verify_id_token(provider_token)
-        return {
-            "firebase_uid": decoded_token["uid"],
-            "email": decoded_token.get("email"),
-            "display_name": decoded_token.get("name"),
-            "avatar_url": decoded_token.get("picture"),
-        }
-    except auth.InvalidIdTokenError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MESSAGES["FIREBASE_TOKEN_INVALID"])
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=AUTH_ERROR_MESSAGES["FIREBASE_VERIFICATION_ERROR"])
+    except auth.ExpiredIdTokenError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=AUTH_ERROR_MESSAGES["TOKEN_EXPIRED"],
+        ) from exc
+    except auth.InvalidIdTokenError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=AUTH_ERROR_MESSAGES["FIREBASE_TOKEN_INVALID"],
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=AUTH_ERROR_MESSAGES["FIREBASE_VERIFICATION_ERROR"],
+        ) from exc
+
+    firebase_uid = decoded_token.get("uid")
+    if not firebase_uid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=AUTH_ERROR_MESSAGES["FIREBASE_TOKEN_INVALID"],
+        )
+
+    return {
+        "firebase_uid": firebase_uid,
+        "email": decoded_token.get("email"),
+        "display_name": decoded_token.get("name"),
+        "avatar_url": decoded_token.get("picture"),
+    }
 
 
-async def get_or_create_internal_user(firebase_data: dict) -> User:
+def _build_user(uid: str, raw: dict[str, Any]) -> User:
+    return User(
+        id=raw.get("id") or uid,
+        firebase_uid=uid,
+        email=raw.get("email"),
+        display_name=raw.get("display_name"),
+        avatar_url=raw.get("avatar_url"),
+        role=raw.get("role") or "usuario_logado",
+        is_active=bool(raw.get("is_active", True)),
+        idade_aprox=raw.get("idade_aprox"),
+        principais_areas_pele=raw.get("principais_areas_pele"),
+        created_at=raw.get("created_at"),
+        updated_at=raw.get("updated_at"),
+    )
+
+
+async def get_or_create_internal_user(firebase_data: dict[str, Any]) -> User:
     """
-    Busca um usuário pelo firebase_uid ou cria um novo se não existir.
-    Trabalha com Firestore; os IDs aqui são strings (não UUIDs).
+    Resolve o perfil do usuário em Firestore usando o uid do Firebase como chave.
+    Se o documento não existir, cria um perfil mínimo com role padrão.
     """
-    users_ref = db.collection("users")
-    query = users_ref.where("firebase_uid", "==", firebase_data["firebase_uid"]).limit(1)
-    docs = list(query.stream())
+    uid = firebase_data["firebase_uid"]
+    user_ref = db.collection("users").document(uid)
+    user_doc = user_ref.get()
 
-    if docs:
-        user_doc = docs[0]
-        user_data = user_doc.to_dict()
+    now = _utcnow()
+    base_data = {
+        "id": uid,
+        "firebase_uid": uid,
+        "email": firebase_data.get("email"),
+        "display_name": firebase_data.get("display_name"),
+        "avatar_url": firebase_data.get("avatar_url"),
+        "updated_at": now,
+    }
 
-        if not user_data.get("is_active", True):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=AUTH_ERROR_MESSAGES["USER_INACTIVE"])
-
-        update_data = {
-            "display_name": firebase_data["display_name"],
-            "avatar_url": firebase_data["avatar_url"],
-            "email": firebase_data["email"],
-            "updated_at": datetime.now(timezone.utc),
-        }
-        user_doc.reference.update(update_data)
-        user_data.update(update_data)
-        return User(**user_data)
+    if user_doc.exists:
+        user_data = user_doc.to_dict() or {}
+        merged = {**user_data, **base_data}
+        if "created_at" not in merged or merged["created_at"] is None:
+            merged["created_at"] = now
+        if "role" not in merged or not merged["role"]:
+            merged["role"] = "usuario_logado"
+        if "is_active" not in merged:
+            merged["is_active"] = True
+        user_ref.set(merged, merge=True)
+        user = _build_user(uid, merged)
     else:
-        new_user_id = f"usr_{firebase_data['firebase_uid'][:12]}"
-        new_user_data = {
-            "id": new_user_id,
-            "firebase_uid": firebase_data["firebase_uid"],
-            "email": firebase_data["email"],
-            "display_name": firebase_data["display_name"],
-            "avatar_url": firebase_data["avatar_url"],
+        created = {
+            **base_data,
             "role": "usuario_logado",
             "is_active": True,
-            "created_at": datetime.now(timezone.utc),
-            "updated_at": datetime.now(timezone.utc),
+            "created_at": now,
         }
-        new_user = User(**new_user_data)
-        db.collection("users").document(new_user.id).set(new_user.model_dump())
-        return new_user
+        user_ref.set(created)
+        user = _build_user(uid, created)
 
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=AUTH_ERROR_MESSAGES["USER_INACTIVE"],
+        )
 
-def issue_api_jwt(user: User) -> str:
-    """
-    Gera um JWT de acesso (access token) para uso interno (API).
-    """
-    now = datetime.now(timezone.utc)
-    payload = {
-        "sub": user.id,
-        "role": user.role,
-        "type": "access",
-        "iat": now,
-        "exp": now + timedelta(seconds=API_TOKEN_EXPIRE_SECONDS),
-    }
-    return jwt.encode(payload, APP_JWT_SECRET, algorithm="HS256")
-
-
-def issue_refresh_token(user: User) -> str:
-    now = datetime.now(timezone.utc)
-    payload = {
-        "sub": user.id,
-        "type": "refresh",
-        "iat": now,
-        "exp": now + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
-    }
-    return jwt.encode(payload, APP_JWT_SECRET, algorithm="HS256")
+    return user
 
 
 async def get_user_from_db(user_id: str) -> User:
     """
-    Busca um usuário no Firestore pelo seu ID (string).
-    Retorna 401 quando não encontrado (semântica de autenticação).
+    Mantido por compatibilidade de import; agora busca no Firestore.
     """
     user_ref = db.collection("users").document(user_id)
     user_doc = user_ref.get()
 
     if not user_doc.exists:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MESSAGES["USER_NOT_FOUND"])
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=AUTH_ERROR_MESSAGES["USER_NOT_FOUND"],
+        )
 
-    return User(**user_doc.to_dict())
-
-
-async def decode_and_validate_api_jwt(token: str) -> User:
-    """
-    Decodifica e valida o JWT de acesso e compara o role do token com o role do DB.
-    """
-    try:
-        payload = jwt.decode(token, APP_JWT_SECRET, algorithms=["HS256"])
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MESSAGES["TOKEN_EXPIRED"])
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MESSAGES["TOKEN_INVALID"])
-
-    if payload.get("type") != "access":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MESSAGES["TOKEN_INVALID"])
-
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MESSAGES["TOKEN_INVALID"])
-
-    db_user = await get_user_from_db(user_id)
-
-    # Comparar o role do token com o role do DB
-    if payload.get("role") != db_user.role:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MESSAGES["ROLE_MISMATCH"])
-
-    return db_user
-
-
-async def refresh_api_token(refresh_token: str) -> tuple[str, User]:
-    """
-    Valida um refresh token e emite um novo access token.
-    """
-    try:
-        payload = jwt.decode(refresh_token, APP_JWT_SECRET, algorithms=["HS256"])
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MESSAGES["TOKEN_EXPIRED"])
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MESSAGES["TOKEN_INVALID"])
-
-    if payload.get("type") != "refresh":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MESSAGES["TOKEN_INVALID"])
-
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MESSAGES["TOKEN_INVALID"])
-
-    db_user = await get_user_from_db(user_id)
-
-    if not db_user.is_active:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=AUTH_ERROR_MESSAGES["USER_INACTIVE"])
-
-    # Emite um novo access token e retorna junto com o usuário
-    return issue_api_jwt(db_user), db_user
+    return _build_user(user_id, user_doc.to_dict() or {})

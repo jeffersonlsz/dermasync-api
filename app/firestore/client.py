@@ -30,6 +30,8 @@ def _initialize_firebase_app():
     if mode == "local":
         project_id = os.getenv("GOOGLE_CLOUD_PROJECT", "dermasync-local")
         os.environ["FIRESTORE_EMULATOR_HOST"] = "127.0.0.1:8080"
+        os.environ["FIREBASE_AUTH_EMULATOR_HOST"] = os.getenv("FIREBASE_AUTH_EMULATOR_HOST", "127.0.0.1:9099")
+        os.environ["FIREBASE_STORAGE_EMULATOR_HOST"] = os.getenv("FIREBASE_STORAGE_EMULATOR_HOST", "127.0.0.1:9199")
         os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
 
         logger.info("[Firebase] Usando Firestore Emulator")

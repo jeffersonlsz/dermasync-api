@@ -3,111 +3,97 @@
 """
 Main entry point for the DermaSync API backend.
 """
-import os
+from __future__ import annotations
+
 import logging
+import os
 import time
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
 
-# Middleware de logging
 from app.archlog_sync.middleware import LogRequestMiddleware
-
-# Conexão com o banco
-from app.db.connection import Base, engine
-
-# Routers existentes
 from app.routes import auth as auth_routes
-from app.routes import health
-from app.routes import imagens
-from app.routes import relatos
-from app.routes import me
 from app.routes import galeria
 from app.routes import galeria_leitura
+from app.routes import health
+from app.routes import imagens
+from app.routes import me
+from app.routes import relatos
 from app.routes import feed as feed_router
-from app.routes.relatos_progress import router as relatos_progress_router
-from contextlib import asynccontextmanager
-from app.services.effects.register_effects import register_all_effect_executors
 from app.routes.dev_effects import router as dev_effects_router
 from app.routes.dev_enrich import router as dev_enrich_router
 from app.routes.relato_progress_stream import router as relato_progress_stream_router
+from app.routes.relatos_progress import router as relatos_progress_router
+from app.services.effects.register_effects import register_all_effect_executors
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # on startup
     register_all_effect_executors()
     yield
-    # on shutdown
-    # (nenhuma ação necessária por enquanto)
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         start = time.time()
-        request_body = None
+        request_body = b""
         try:
             request_body = await request.body()
         except Exception:
             request_body = b"[could not read body]"
+
         try:
             response = await call_next(request)
-            status = response.status_code
             duration = (time.time() - start) * 1000
-            logging.info("%s %s %s -> %d (%.1fms) body_len=%d",
-                         request.method, request.url.path, request.client.host if request.client else "-",
-                         status, duration, len(request_body or b""))
+            logging.info(
+                "%s %s %s -> %d (%.1fms) body_len=%d",
+                request.method,
+                request.url.path,
+                request.client.host if request.client else "-",
+                response.status_code,
+                duration,
+                len(request_body),
+            )
             return response
-        except Exception as e:
+        except Exception as exc:
             duration = (time.time() - start) * 1000
-            logging.exception("Unhandled exception for %s %s (%.1fms): %s", request.method, request.url.path, duration, e)
+            logging.exception(
+                "Unhandled exception for %s %s (%.1fms): %s",
+                request.method,
+                request.url.path,
+                duration,
+                exc,
+            )
             raise
 
-
-# ============================================================
-# Inicialização do FastAPI
-# ============================================================
 
 app = FastAPI(
     title="DermaSync API - Backend",
     version="1.0.0",
-    description="Backend moderno do DermaSync com Postgres, SQLAlchemy e autenticação JWT.",
-    lifespan=lifespan
+    description="Backend do DermaSync com Firebase Auth, Firestore e FastAPI.",
+    lifespan=lifespan,
 )
 
-# ============================================================
-# CORS — CONFIGURE AQUI IMEDIATAMENTE (antes de outros middlewares)
-# ============================================================
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",
-    # "https://seu-dominio.com"  # produção: coloque aqui
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,        # se usar cookies / Authorization credentials
+    allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# ============================================================
-# Banco de dados — Criar tabelas (apenas ambiente dev)
-# ============================================================
-Base.metadata.create_all(bind=engine)
-
-# ============================================================
-# Middlewares (custom) — depois do CORS
-# ============================================================
 app.add_middleware(LogRequestMiddleware)
 app.add_middleware(LoggingMiddleware)
 
-
-# ============================================================
-# Rotas — incluir routers
-# ============================================================
 app.include_router(auth_routes.router)
 app.include_router(imagens.router)
 app.include_router(relatos.router, prefix="/relatos")
@@ -117,14 +103,13 @@ app.include_router(relatos_progress_router)
 app.include_router(relato_progress_stream_router)
 app.include_router(feed_router.router)
 app.include_router(galeria_leitura.router)
-# Rotas DEV (somente em ambiente de desenvolvimento)
+
 if os.getenv("ENVIRONMENT") == "development":
     app.include_router(dev_effects_router)
     app.include_router(dev_enrich_router)
     app.include_router(health.router)
-# ============================================================
-# Endpoints básicos
-# ============================================================
+
+
 @app.get("/")
 def home():
     return {"mensagem": "API online."}

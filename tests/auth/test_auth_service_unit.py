@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from fastapi import HTTPException, status
 from app.auth.service import verify_firebase_token, get_or_create_internal_user
+from app.auth.schemas import UserRole
 from app.core.errors import AUTH_ERROR_MESSAGES
 from firebase_admin import auth
 
@@ -34,8 +35,11 @@ async def test_verify_firebase_token_invalido():
 
 @pytest.mark.asyncio
 async def test_get_or_create_internal_user_novo_usuario():
-    # Mock do Firestore
-    with patch("app.auth.service.db") as mock_db:
+    # Mock do Firestore via get_firestore_client
+    with patch("app.auth.service.get_firestore_client") as mock_get_db:
+        mock_db = MagicMock()
+        mock_get_db.return_value = mock_db
+        
         mock_user_ref = MagicMock()
         mock_user_doc = MagicMock()
         mock_user_doc.exists = False
@@ -53,23 +57,26 @@ async def test_get_or_create_internal_user_novo_usuario():
         user = await get_or_create_internal_user(firebase_data)
         
         assert user.firebase_uid == "new_uid"
-        assert user.role == "usuario_logado"
+        assert user.role == UserRole.USUARIO_LOGADO
         # Verifica se o set foi chamado no Firestore
         mock_user_ref.set.assert_called_once()
         args, _ = mock_user_ref.set.call_args
         assert args[0]["email"] == "new@example.com"
-        assert args[0]["role"] == "usuario_logado"
+        assert args[0]["role"] == UserRole.USUARIO_LOGADO
 
 @pytest.mark.asyncio
 async def test_get_or_create_internal_user_usuario_existente():
-    with patch("app.auth.service.db") as mock_db:
+    with patch("app.auth.service.get_firestore_client") as mock_get_db:
+        mock_db = MagicMock()
+        mock_get_db.return_value = mock_db
+        
         mock_user_ref = MagicMock()
         mock_user_doc = MagicMock()
         mock_user_doc.exists = True
         mock_user_doc.to_dict.return_value = {
             "id": "existing_uid",
             "firebase_uid": "existing_uid",
-            "role": "admin",
+            "role": UserRole.ADMIN,
             "is_active": True,
             "created_at": None
         }
@@ -85,7 +92,7 @@ async def test_get_or_create_internal_user_usuario_existente():
         
         user = await get_or_create_internal_user(firebase_data)
         
-        assert user.role == "admin"
+        assert user.role == UserRole.ADMIN
         assert user.display_name == "Updated Name"
         # Verifica se o merge foi feito
         mock_user_ref.set.assert_called_once()

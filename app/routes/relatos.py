@@ -362,7 +362,10 @@ async def get_imagens_relato(
     status_code=status.HTTP_202_ACCEPTED,
     tags=["Relatos"],
 )
-async def retry_relato_endpoint(relato_id: str):
+async def retry_relato_endpoint(
+    relato_id: str,
+    current_user: User = Depends(get_current_user)
+):
     result = retry_failed_effects(relato_id=relato_id)
 
     return {

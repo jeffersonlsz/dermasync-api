@@ -1,6 +1,6 @@
 import pytest
 from httpx import AsyncClient
-from app.auth.service import db
+from app.firestore.client import get_firestore_client
 import os
 
 @pytest.mark.asyncio
@@ -30,6 +30,7 @@ async def test_fluxo_session_real_com_emuladores(client: AsyncClient, firebase_a
         assert data["session"]["authenticated"] is True
         
         # 4. Validação no Firestore: O perfil foi criado automaticamente?
+        db = get_firestore_client()
         user_doc = db.collection("users").document(firebase_uid).get()
         assert user_doc.exists is True
         assert user_doc.to_dict()["email"] == email

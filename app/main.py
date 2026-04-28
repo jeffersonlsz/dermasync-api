@@ -75,7 +75,7 @@ app.include_router(feed.router)
 app.include_router(galeria_leitura.router)
 app.include_router(health.router)
 
-if ENVIRONMENT == "development":
+if ENVIRONMENT in ["development", "testing"]:
     app.include_router(dev_effects.router)
     app.include_router(dev_enrich.router)
 

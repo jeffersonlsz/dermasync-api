@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Query
 from fastapi.responses import JSONResponse
 
 from app.auth.dependencies import get_current_user, require_roles
-from app.auth.schemas import User
+from app.auth.schemas import User, UserRole
 from app.schema.imagem import (
     ImageListResponse,
     ImagemMetadata,
@@ -104,7 +104,7 @@ def _serialize_image_meta_for_response(meta: Dict[str, Any]) -> Dict[str, Any]:
 # ============================================================
 # 🔍 DEBUG CLIENT — sem prefixo duplicado e sem colisão!
 # ============================================================
-@router.get("/_debug_client")
+@router.get("/_debug_client", dependencies=[Depends(require_roles([UserRole.ADMIN]))])
 async def imagens_debug_client():
     """
     Retorna:

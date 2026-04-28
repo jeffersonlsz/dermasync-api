@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.auth.dependencies import get_current_user
-from app.auth.schemas import User
+from app.auth.dependencies import get_current_user, require_roles
+from app.auth.schemas import User, UserRole
 from app.services.dev_effect_injector_service import DevEffectInjectorService
 
 router = APIRouter(
     prefix="/dev",
     tags=["DEV - Effects"],
+    dependencies=[Depends(require_roles([UserRole.ADMIN]))]
 )
 
 
@@ -23,14 +24,8 @@ def create_mock_effect(
     """
     Cria um EffectResult mockado diretamente no Firestore.
 
-    Uso típico:
-    - effect_type=ENRICH_METADATA
-    - success=true
+    Acesso restrito a administradores.
     """
-
-    # ⚠️ IMPORTANTE
-    # Aqui você pode (opcionalmente) restringir:
-    # if user.role != "admin": raise HTTPException(403)
 
     try:
         service = DevEffectInjectorService()

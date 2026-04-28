@@ -126,19 +126,3 @@ async def get_or_create_internal_user(firebase_data: dict[str, Any]) -> User:
         )
 
     return user
-
-
-async def get_user_from_db(user_id: str) -> User:
-    """
-    Mantido por compatibilidade de import; agora busca no Firestore.
-    """
-    user_ref = db.collection("users").document(user_id)
-    user_doc = user_ref.get()
-
-    if not user_doc.exists:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=AUTH_ERROR_MESSAGES["USER_NOT_FOUND"],
-        )
-
-    return _build_user(user_id, user_doc.to_dict() or {})

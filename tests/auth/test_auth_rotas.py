@@ -9,7 +9,7 @@ from app.core.errors import AUTH_ERROR_MESSAGES
 
 
 @pytest.mark.asyncio
-async def test_external_login_sucesso(client: AsyncClient, mocker):
+async def test_create_session_sucesso(client: AsyncClient, mocker):
     user = User(
         id="usr_test_123",
         firebase_uid="test_firebase_uid",
@@ -34,8 +34,8 @@ async def test_external_login_sucesso(client: AsyncClient, mocker):
     mocker.patch("app.routes.auth.get_or_create_internal_user", return_value=user)
 
     response = await client.post(
-        "/auth/external-login",
-        json={"provider_token": "fake_firebase_token"},
+        "/auth/session",
+        json={"firebase_id_token": "fake_firebase_token"},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -79,7 +79,7 @@ async def test_get_me_com_token_invalido(client: AsyncClient, mocker):
 
 
 @pytest.mark.asyncio
-async def test_external_login_usuario_inativo(client: AsyncClient, mocker):
+async def test_create_session_usuario_inativo(client: AsyncClient, mocker):
     inactive_user = User(
         id="usr_inactive_123",
         firebase_uid="test_firebase_uid_inactive",
@@ -104,15 +104,15 @@ async def test_external_login_usuario_inativo(client: AsyncClient, mocker):
     mocker.patch("app.routes.auth.get_or_create_internal_user", return_value=inactive_user)
 
     response = await client.post(
-        "/auth/external-login",
-        json={"provider_token": "fake_firebase_token_inactive"},
+        "/auth/session",
+        json={"firebase_id_token": "fake_firebase_token_inactive"},
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert response.json() == {"detail": AUTH_ERROR_MESSAGES["USER_INACTIVE"]}
+    assert response.json() == {"detail": "Usuário inativo."}
 
 
 @pytest.mark.asyncio
-async def test_external_login_sem_provider_token(client: AsyncClient):
-    response = await client.post("/auth/external-login", json={})
+async def test_create_session_sem_token(client: AsyncClient):
+    response = await client.post("/auth/session", json={})
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

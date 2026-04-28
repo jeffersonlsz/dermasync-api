@@ -1,5 +1,11 @@
-Auth oficial: Firebase Authentication
-Identity token oficial: Firebase ID Token
-Roles oficiais: Firestore profile.role
-Banco relacional legado: removido em abril/2026
-JWT próprio: descontinuado
+## Auth Oficial
+Firebase Authentication
+
+## Authorization
+Backend via token validation + role profile
+
+## Banco relacional legado
+Removido
+
+## Fonte principal de dados
+Firestore

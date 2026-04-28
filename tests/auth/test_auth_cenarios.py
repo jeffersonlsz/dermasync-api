@@ -59,7 +59,7 @@ async def test_get_me_usuario_desativado_apos_login(client: AsyncClient, mocker)
 
 
 @pytest.mark.asyncio
-async def test_external_login_com_usuario_inativo(client: AsyncClient, mocker):
+async def test_session_com_usuario_inativo(client: AsyncClient, mocker):
     mocker.patch(
         "app.routes.auth.verify_firebase_token",
         return_value={
@@ -78,7 +78,7 @@ async def test_external_login_com_usuario_inativo(client: AsyncClient, mocker):
     )
 
     response = await client.post(
-        "/auth/external-login", json={"provider_token": "fake-firebase-token"}
+        "/auth/session", json={"firebase_id_token": "fake-firebase-token"}
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -4,7 +4,7 @@ from app.auth.service import db
 import os
 
 @pytest.mark.asyncio
-async def test_fluxo_login_real_com_emuladores(client: AsyncClient, firebase_auth_client):
+async def test_fluxo_session_real_com_emuladores(client: AsyncClient, firebase_auth_client):
     """
     Testa o fluxo de ponta a ponta usando os emuladores reais (Auth + Firestore).
     """
@@ -16,10 +16,10 @@ async def test_fluxo_login_real_com_emuladores(client: AsyncClient, firebase_aut
         id_token = auth_data["id_token"]
         firebase_uid = auth_data["local_id"]
 
-        # 2. Chama o endpoint de login da sua API
+        # 2. Chama o endpoint de session da sua API
         response = await client.post(
-            "/auth/external-login",
-            json={"provider_token": id_token}
+            "/auth/session",
+            json={"firebase_id_token": id_token}
         )
 
         # 3. Validações da resposta
@@ -28,6 +28,7 @@ async def test_fluxo_login_real_com_emuladores(client: AsyncClient, firebase_aut
         assert data["user"]["email"] == email
         assert data["user"]["user_id"] == firebase_uid
         assert data["session"]["authenticated"] is True
+        
         # 4. Validação no Firestore: O perfil foi criado automaticamente?
         user_doc = db.collection("users").document(firebase_uid).get()
         assert user_doc.exists is True

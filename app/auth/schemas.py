@@ -51,11 +51,3 @@ class SessionState(BaseModel):
 class SessionResponse(BaseModel):
     user: UserPublicProfile
     session: SessionState
-
-
-class ExternalLoginRequest(BaseModel):
-    """
-    Corpo da requisição para o endpoint de login externo.
-    """
-
-    provider_token: str

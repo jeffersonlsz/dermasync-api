@@ -21,7 +21,7 @@ def firebase_auth_client():
         
         # 2. Faz login via REST API do Emulador para obter o ID Token
         host = os.getenv('FIREBASE_AUTH_EMULATOR_HOST', '127.0.0.1:9099')
-        project_id = os.getenv('GOOGLE_CLOUD_PROJECT') or os.getenv('FIREBASE_PROJECT_ID') or 'dermasync-local'
+        project_id = os.getenv('GOOGLE_CLOUD_PROJECT') or os.getenv('FIREBASE_PROJECT_ID')
         url = f"http://{host}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-key"
 
         async with httpx.AsyncClient() as client:

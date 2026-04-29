@@ -210,56 +210,6 @@ async def submit_relato(
 
 
 
-@router.get("/{relato_id}/status", response_model=RelatoStatusOutput)
-async def relato_status(
-    relato_id: str,
-    current_user: User = Depends(get_current_user),
-):
-    """
-    Retorna o estado atual de processamento de um relato.
-
-    O status é DERIVADO da projeção dos efeitos registrados
-    no sistema (EffectResult → UXEffect → ProgressProjection).
-    """
-
-    # garante que o usuário pode acessar o relato
-    await get_relato_by_id(relato_id=relato_id, requesting_user=current_user)
-
-    # busca os efeitos registrados no pipeline
-    effect_repo = EffectResultRepository()
-    effect_results = effect_repo.fetch_by_relato_id(relato_id)
-
-    # adapta resultados para UXEffectRecords
-    ux_records = [
-        effect_result_to_ux_effect(effect, relato_id)
-        for effect in effect_results
-    ]
-
-    # remove efeitos ignorados
-    ux_records = [e for e in ux_records if e is not None]
-
-    # projeta o estado atual do pipeline
-    projection = project_progress(relato_id, ux_records)
-
-    # converte progresso para porcentagem
-    progress = round(projection.progress_pct, 2)
-
-    # status derivado da projeção
-    if projection.has_error:
-        status = "error"
-    elif projection.is_complete:
-        status = "completed"
-    else:
-        status = "processing"
-
-    return {
-        "relato_id": relato_id,
-        "status": status,
-        "progress": progress,
-        "last_error": projection.summary if projection.has_error else None,
-    }
-
-
 @router.get("/{relato_id}")
 async def get_relato(
     relato_id: str,

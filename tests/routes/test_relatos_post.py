@@ -26,6 +26,7 @@ from app.main import app  # Assuming the FastAPI app is in main.py
 def test_post_relatos_success():
     mock_user = User(
         id="user-123",
+        firebase_uid="fb-user-123",
         email="test@example.com",
         role="usuario_logado"
     )
@@ -82,7 +83,12 @@ def test_post_relatos_success():
 def test_post_relatos_denied_by_domain():
     """Testa que a rota retorna 403 quando o domínio nega a criação."""
     # Mock dependencies
-    mock_user = User(id="user-123", email="test@example.com", role="usuario_logado")
+    mock_user = User(
+        id="user-123", 
+        firebase_uid="fb-user-123",
+        email="test@example.com", 
+        role="usuario_logado"
+    )
 
     # Mock the domain decision (denied)
     mock_decision = Decision(
@@ -126,7 +132,12 @@ def test_post_relatos_denied_by_domain():
 def test_post_relatos_missing_consentimento():
     """Testa que a rota retorna 400 quando consentimento não é informado."""
     # Mock dependencies
-    mock_user = User(id="user-123", email="test@example.com", role="usuario_logado")
+    mock_user = User(
+        id="user-123", 
+        firebase_uid="fb-user-123",
+        email="test@example.com", 
+        role="usuario_logado"
+    )
 
     # Create a test client
     client = TestClient(app)
@@ -158,7 +169,12 @@ def test_post_relatos_missing_consentimento():
 def test_post_relatos_no_consentimento_field():
     """Testa que a rota retorna 400 quando campo consentimento está ausente."""
     # Mock dependencies
-    mock_user = User(id="user-123", email="test@example.com", role="usuario_logado")
+    mock_user = User(
+        id="user-123", 
+        firebase_uid="fb-user-123",
+        email="test@example.com", 
+        role="usuario_logado"
+    )
 
     # Create a test client
     client = TestClient(app)
@@ -189,7 +205,12 @@ def test_post_relatos_no_consentimento_field():
 def test_post_relatos_executor_not_called_when_denied():
     """Testa que o executor de efeitos NÃO é chamado quando decision.allowed == False."""
     # Mock dependencies
-    mock_user = User(id="user-123", email="test@example.com", role="usuario_logado")
+    mock_user = User(
+        id="user-123", 
+        firebase_uid="fb-user-123",
+        email="test@example.com", 
+        role="usuario_logado"
+    )
 
     # Mock the domain decision (denied)
     mock_decision = Decision(

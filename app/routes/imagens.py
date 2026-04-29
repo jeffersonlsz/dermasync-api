@@ -102,40 +102,6 @@ def _serialize_image_meta_for_response(meta: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # ============================================================
-# 🔍 DEBUG CLIENT — sem prefixo duplicado e sem colisão!
-# ============================================================
-@router.get("/_debug_client", dependencies=[Depends(require_roles([UserRole.ADMIN]))])
-async def imagens_debug_client():
-    """
-    Retorna:
-      - Project ID usado pelo Firestore Client.
-      - Quantidade de documentos na collection 'imagens'.
-      - IDs de amostra.
-    """
-    db = get_firestore_client()
-
-    try:
-        project = getattr(db, "project", None)
-    except Exception:
-        project = None
-
-    def _count_sync():
-        coll = db.collection("imagens")
-        docs = list(coll.stream())
-        return [d.id for d in docs]
-
-    doc_ids = await asyncio.to_thread(_count_sync)
-
-    return JSONResponse(
-        content={
-            "project": project,
-            "imagens_count": len(doc_ids),
-            "ids_sample": doc_ids[:10],
-        }
-    )
-
-
-# ============================================================
 # 📤 UPLOAD
 # ============================================================
 @router.post("/upload", response_model=UploadSuccessResponse)

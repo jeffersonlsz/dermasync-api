@@ -13,14 +13,6 @@ async def test_auditoria_dev_routes_acesso_negado_usuario_comum(client: AsyncCli
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 @pytest.mark.asyncio
-async def test_auditoria_debug_client_publico_falha(client: AsyncClient):
-    """
-    AUDITORIA: /imagens/_debug_client NÃO deve ser público. (FIXED)
-    """
-    response = await client.get("/imagens/_debug_client")
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-@pytest.mark.asyncio
 async def test_auditoria_relato_retry_publico_falha(client: AsyncClient):
     """
     AUDITORIA: /relatos/{id}/retry NÃO deve ser público. (FIXED)
@@ -47,7 +39,7 @@ async def test_auditoria_admin_route_nega_usuario_comum(client: AsyncClient, moc
 @pytest.mark.asyncio
 async def test_auditoria_token_invalido_retorna_401(client: AsyncClient, mocker):
     """
-    AUDITORIA: Token malformado deve retornar 401.
+    AUDITORIA: Token malformado deve retornar 401 em rotas protegidas (ex: /auth/me). (FIXED)
     """
-    response = await client.get("/me/profile", headers={"Authorization": "Bearer invalid-token"})
+    response = await client.get("/auth/me", headers={"Authorization": "Bearer invalid-token"})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED

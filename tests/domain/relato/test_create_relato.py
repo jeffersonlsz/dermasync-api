@@ -59,6 +59,7 @@ def test_post_relatos_success_runs_domain_and_executes_effects():
 
     mock_user = User(
         id="user-123",
+        firebase_uid="fb-user-123",
         email="test@example.com",
         role="usuario_logado"
     )
@@ -113,6 +114,7 @@ def test_post_relatos_admin_is_allowed_by_domain():
 
     mock_user = User(
         id="admin-123",
+        firebase_uid="fb-admin-123",
         email="admin@example.com",
         role="admin"
     )
@@ -152,6 +154,7 @@ def test_executor_called_when_admin_creates_relato():
 
     mock_user = User(
         id="admin-123",
+        firebase_uid="fb-admin-123",
         email="admin@example.com",
         role="admin"
     )

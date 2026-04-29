@@ -53,10 +53,10 @@ def make_test_user(
     """Helper to create a test user."""
     return User(
         id=user_id,
+        firebase_uid="fb-" + user_id,
         email=email,
         role=role,
     )
-
 
 @pytest.fixture
 def stub_relato_executor():

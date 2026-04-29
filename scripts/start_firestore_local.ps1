@@ -1,1 +1,2 @@
+firebase init emulators
 firebase emulators:start --only firestore,storage,auth --project dermasync-3d14a --import=./emulator-data --export-on-exit

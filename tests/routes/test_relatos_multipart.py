@@ -17,10 +17,12 @@ def test_post_relatos_with_real_multipart_upload():
     # Auth override (correto)
     # -----------------------------------
     mock_user = User(
-        id="user-123",
-        email="user@test.com",
+        id="user-123", 
+        firebase_uid="fb-user-123",
+        email="test@example.com", 
         role="usuario_logado"
     )
+
 
     app.dependency_overrides[get_current_user] = lambda: mock_user
     client = TestClient(app)

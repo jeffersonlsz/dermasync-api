@@ -21,8 +21,8 @@ from app.services.effects.register_effects import register_all_effect_executors
 # Import de rotas (agora seguro, pois o env já está carregado)
 from app.routes import (
     auth, galeria, galeria_leitura, health, 
-    imagens, me, relatos, feed, 
-    relato_progress_stream, relatos_progress,
+    imagens, relatos, feed, 
+    relatos_progress,
     dev_effects, dev_enrich
 )
 
@@ -68,9 +68,7 @@ app.include_router(auth.router)
 app.include_router(imagens.router)
 app.include_router(relatos.router, prefix="/relatos")
 app.include_router(galeria.router)
-app.include_router(me.router)
 app.include_router(relatos_progress.router)
-app.include_router(relato_progress_stream.router)
 app.include_router(feed.router)
 app.include_router(galeria_leitura.router)
 app.include_router(health.router)

@@ -1,4 +1,4 @@
-# app/services/galeria_service.py
+﻿# app/services/galeria_service.py
 import asyncio
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
@@ -18,12 +18,12 @@ from google.cloud.firestore import FieldFilter
 
 
 # ============================================================
-# 🔹 Seleção de thumbnails (ANTES / DEPOIS)
+# ðŸ”¹ SeleÃ§Ã£o de thumbnails (ANTES / DEPOIS)
 # ============================================================
 
 def _pick_thumbnails(imagens: List[dict]) -> Dict[str, str | None]:
     """
-    Retorna thumbnails separadas por papel clínico.
+    Retorna thumbnails separadas por papel clÃ­nico.
     Prioridade:
       - ANTES
       - DEPOIS
@@ -49,7 +49,7 @@ def _pick_thumbnails(imagens: List[dict]) -> Dict[str, str | None]:
     return thumbs
 
 # ============================================================
-# 🧠 Serviços Cognitivos (legacy-safe)
+# ðŸ§  ServiÃ§os Cognitivos (legacy-safe)
 # ============================================================
 
 _eligibility_service = RelatoEligibilityService()
@@ -57,7 +57,7 @@ _similarity_calculator = SimilarityCalculator()
 _explanation_builder = GaleriaExplanationBuilder()
 
 # ============================================================
-# 🌍 Galeria Pública v3 (batch, otimizado)
+# ðŸŒ Galeria PÃºblica v3 (batch, otimizado)
 # ============================================================
 
 async def listar_galeria_publica_v3(
@@ -69,7 +69,7 @@ async def listar_galeria_publica_v3(
     db = get_firestore_client()
 
     # ============================================================
-    # 🧠 Serviços Cognitivos (legacy-safe)
+    # ðŸ§  ServiÃ§os Cognitivos (legacy-safe)
     # ============================================================
     from app.domain.galeria.eligibility_service import RelatoEligibilityService
     from app.domain.galeria.visibility_policy import (
@@ -84,7 +84,7 @@ async def listar_galeria_publica_v3(
     explanation_builder = GaleriaExplanationBuilder()
 
     # --------------------------------------------------------
-    # 1️⃣ Buscar relatos públicos
+    # 1ï¸âƒ£ Buscar relatos pÃºblicos
     # --------------------------------------------------------
     relatos_query = (
         db.collection_group("relatos")
@@ -111,7 +111,7 @@ async def listar_galeria_publica_v3(
     relato_ids = [relato_id for relato_id, _ in relatos]
 
     # --------------------------------------------------------
-    # 2️⃣ Buscar imagens em batch
+    # 2ï¸âƒ£ Buscar imagens em batch
     # --------------------------------------------------------
     imagens_query = (
         db.collection("imagens")
@@ -129,7 +129,7 @@ async def listar_galeria_publica_v3(
         imagens_por_relato.setdefault(img["relato_id"], []).append(img)
 
     # --------------------------------------------------------
-    # 3️⃣ Montar resposta final (D2 ATIVO)
+    # 3ï¸âƒ£ Montar resposta final (D2 ATIVO)
     # --------------------------------------------------------
     dados: List[Dict[str, Any]] = []
 
@@ -151,26 +151,26 @@ async def listar_galeria_publica_v3(
             created_at = datetime.now(timezone.utc).isoformat()
 
         # =====================================================
-        # 🧠 PIPELINE COGNITIVO — D2 (exposição progressiva)
+        # ðŸ§  PIPELINE COGNITIVO â€” D2 (exposiÃ§Ã£o progressiva)
         # =====================================================
 
-        # Política mínima (não muda comportamento)
+        # PolÃ­tica mÃ­nima (nÃ£o muda comportamento)
         visibility_policy = RelatoVisibilityPolicy(
             status=RelatoStatus.APPROVED,
             constraints=set(),
         )
 
         eligibility_decision = eligibility_service.decide(
-            user=None,  # galeria pública
+            user=None,  # galeria pÃºblica
             relato_policy=visibility_policy,
         )
 
-        # 🔹 Similaridade neutra (placeholder controlado)
+        # ðŸ”¹ Similaridade neutra (placeholder controlado)
         similarity_score_value = 0.65
 
         ux_effects = []
 
-        # explicação base (D)
+        # explicaÃ§Ã£o base (D)
         ux_effects.extend(
             explanation_builder.build_for_relato(
                 eligibility=eligibility_decision,
@@ -178,7 +178,7 @@ async def listar_galeria_publica_v3(
             )
         )
 
-        # exposição progressiva (D2)
+        # exposiÃ§Ã£o progressiva (D2)
         ux_effects.append(
             explanation_builder.build_progressive_exposure(
                 similarity_score=similarity_score_value
@@ -227,7 +227,7 @@ async def listar_galeria_contextual(
     db = get_firestore_client()
 
     # ============================================================
-    # 🧠 Serviços Cognitivos
+    # ðŸ§  ServiÃ§os Cognitivos
     # ============================================================
     from app.domain.galeria.user_profile import (
         UserCognitiveProfile,
@@ -251,10 +251,10 @@ async def listar_galeria_contextual(
     explanation_builder = GaleriaExplanationBuilder()
 
     # ============================================================
-    # 1️⃣ Resolver perfil cognitivo do usuário
+    # 1ï¸âƒ£ Resolver perfil cognitivo do usuÃ¡rio
     # ============================================================
 
-    # 🔹 STUB CONTROLADO (v1)
+    # ðŸ”¹ STUB CONTROLADO (v1)
     # Futuro: buscar do Firestore / users / relatos
     user_profile = UserCognitiveProfile(
         user_id=user_id,
@@ -264,7 +264,7 @@ async def listar_galeria_contextual(
     )
 
     # ============================================================
-    # 2️⃣ Buscar relatos candidatos (públicos)
+    # 2ï¸âƒ£ Buscar relatos candidatos (pÃºblicos)
     # ============================================================
 
     relatos_query = (
@@ -290,14 +290,14 @@ async def listar_galeria_contextual(
         }
 
     # ============================================================
-    # 3️⃣ Avaliação cognitiva por relato
+    # 3ï¸âƒ£ AvaliaÃ§Ã£o cognitiva por relato
     # ============================================================
 
     scored_relatos = []
 
     for relato_id, relato in relatos:
 
-        # Política mínima do relato
+        # PolÃ­tica mÃ­nima do relato
         visibility_policy = RelatoVisibilityPolicy(
             status=RelatoStatus.APPROVED,
             constraints={VisibilityConstraint.REQUIRE_SIMILARITY},
@@ -312,12 +312,12 @@ async def listar_galeria_contextual(
             continue
 
         # --------------------------------------------------------
-        # 🔹 Similaridade v1 (simples e honesta)
+        # ðŸ”¹ Similaridade v1 (simples e honesta)
         # --------------------------------------------------------
 
         # STUB: partial scores simples
         partial_scores = {
-            # exemplos: substituir depois por lógica real
+            # exemplos: substituir depois por lÃ³gica real
             # SimilarityAxis.SYMPTOMS: 0.7,
             # SimilarityAxis.BODY_REGION: 0.6,
         }
@@ -336,7 +336,7 @@ async def listar_galeria_contextual(
         )
 
     # ============================================================
-    # 4️⃣ Ordenar por similaridade
+    # 4ï¸âƒ£ Ordenar por similaridade
     # ============================================================
 
     scored_relatos.sort(
@@ -347,7 +347,7 @@ async def listar_galeria_contextual(
     scored_relatos = scored_relatos[:limit]
 
     # ============================================================
-    # 5️⃣ Montar resposta + D2
+    # 5ï¸âƒ£ Montar resposta + D2
     # ============================================================
 
     dados = []
@@ -409,15 +409,15 @@ async def resolve_relato_base_for_user(
     user_id: str,
 ) -> Optional[Dict[str, Any]]:
     """
-    Resolve o relato-base cognitivo do usuário.
+    Resolve o relato-base cognitivo do usuÃ¡rio.
 
-    Política v1 (congelada):
+    PolÃ­tica v1 (congelada):
     - relato mais recente
     - status aprovado
     - com tags_extraidas
-    - usado como âncora de similaridade
+    - usado como Ã¢ncora de similaridade
 
-    Retorna apenas os campos necessários para o pipeline cognitivo.
+    Retorna apenas os campos necessÃ¡rios para o pipeline cognitivo.
     """
 
     db = get_firestore_client()
@@ -446,7 +446,7 @@ async def resolve_relato_base_for_user(
     tags = relato.get("tags_extraidas") or []
     if not tags:
         return None
-    # TODO revisar se isso está correto depois. 
+    # TODO revisar se isso estÃ¡ correto depois. 
     public_excerpt_field = relato.get("public_excerpt")
 
     if isinstance(public_excerpt_field, dict):

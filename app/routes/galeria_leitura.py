@@ -1,5 +1,5 @@
-# app/routes/galeria_leitura.py
-# Endpoint de leitura mediada de relatos na galeria pública.
+﻿# app/routes/galeria_leitura.py
+# Endpoint de leitura mediada de relatos na galeria pÃºblica.
 
 import logging
 from typing import Optional, Dict, Any
@@ -49,7 +49,7 @@ image_projector = ImageExposureProjector()
 @router.get(
     "/galeria-publica/relatos/{relato_id}/leitura",
     summary="Leitura mediada de um relato",
-    tags=["Galeria Pública"],
+    tags=["Galeria PÃºblica"],
 )
 async def ler_relato(
     relato_id: str,
@@ -64,7 +64,7 @@ async def ler_relato(
     explanation_builder = GaleriaExplanationBuilder()
 
     # ============================================================
-    # 1️⃣ Resolver leitor
+    # 1ï¸âƒ£ Resolver leitor
     # ============================================================
     user_profile: Optional[UserCognitiveProfile] = None
     relato_base: Optional[Dict[str, Any]] = None
@@ -77,7 +77,7 @@ async def ler_relato(
         if not relato_base:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Para ler relatos semelhantes, é necessário que você tenha enviado um relato.",
+                detail="Para ler relatos semelhantes, Ã© necessÃ¡rio que vocÃª tenha enviado um relato.",
             )
 
         user_profile = UserCognitiveProfile(
@@ -88,7 +88,7 @@ async def ler_relato(
         )
 
     # ============================================================
-    # 2️⃣ Carregar relato alvo
+    # 2ï¸âƒ£ Carregar relato alvo
     # ============================================================
     relato_ref = (
         db.collection_group("relatos")
@@ -101,14 +101,14 @@ async def ler_relato(
     if not docs:
         raise HTTPException(
             status_code=404,
-            detail="Relato não encontrado",
+            detail="Relato nÃ£o encontrado",
         )
 
     relato = docs[0].to_dict()
     relato = normalize_relato_document(relato)
 
     # ============================================================
-    # 3️⃣ Elegibilidade
+    # 3ï¸âƒ£ Elegibilidade
     # ============================================================
     constraints = set()
 
@@ -149,7 +149,7 @@ async def ler_relato(
         }
 
     # ============================================================
-    # 4️⃣ Similaridade
+    # 4ï¸âƒ£ Similaridade
     # ============================================================
     similarity_score = None
     similarity_context = None
@@ -188,7 +188,7 @@ async def ler_relato(
         }
 
      # ============================================================
-    # 5️⃣ Resolver ExposureStage (controla o que será exibido)
+    # 5ï¸âƒ£ Resolver ExposureStage (controla o que serÃ¡ exibido)
     # ============================================================
 
     if similarity_score and eligibility.similarity_required:
@@ -203,7 +203,7 @@ async def ler_relato(
         can_request_more = False
 
     # ============================================================
-    # 🔓 Intent: expand (liberação explícita do usuário)
+    # ðŸ”“ Intent: expand (liberaÃ§Ã£o explÃ­cita do usuÃ¡rio)
     # ============================================================
 
     if intent == "expand" and exposure_stage == "partial" and can_request_more:
@@ -213,13 +213,13 @@ async def ler_relato(
         expand_effect = {
             "type": "content_expanded",
             "severity": "info",
-            "message": "Conteúdo completo liberado para visualização."
+            "message": "ConteÃºdo completo liberado para visualizaÃ§Ã£o."
         }
     else:
         expand_effect = None
 
     # ============================================================
-    # 6️⃣ Projetar conteúdo conforme stage
+    # 6ï¸âƒ£ Projetar conteÃºdo conforme stage
     # ============================================================
 
     excerpt = relato.get("public_excerpt", {}).get("text") or ""
@@ -229,7 +229,7 @@ async def ler_relato(
         or ""
     )
 
-    # 🔹 Texto
+    # ðŸ”¹ Texto
     if exposure_stage == "summary":
         full_text = None
         visible_length = 0
@@ -242,20 +242,20 @@ async def ler_relato(
         full_text = full_text_raw
         visible_length = len(full_text_raw)
 
-    # 🔹 Imagens (já estruturadas como dict com type + path)
-    images_refs = relato.get("images_refs") or []
-    total_images = len(images_refs)
+    # ðŸ”¹ Imagens (jÃ¡ estruturadas como dict com type + path)
+    image_refs = relato.get("image_refs") or []
+    total_images = len(image_refs)
 
     if exposure_stage == "summary":
         visible_images = []
 
     elif exposure_stage == "partial":
-        visible_images = images_refs[:1]
+        visible_images = image_refs[:1]
 
     else:
-        visible_images = images_refs
+        visible_images = image_refs
 
-    # gerar signed URLs apenas para visíveis
+    # gerar signed URLs apenas para visÃ­veis
     from app.services.imagens_service import _generate_signed_url_sync
 
     images = []
@@ -266,7 +266,7 @@ async def ler_relato(
         })
 
     # ============================================================
-    # 7️⃣ Montar resposta final
+    # 7ï¸âƒ£ Montar resposta final
     # ============================================================
 
     response = {

@@ -1,11 +1,11 @@
-"""
-Testes para decisões de criação de relato no domínio.
+﻿"""
+Testes para decisÃµes de criaÃ§Ã£o de relato no domÃ­nio.
 
-Este arquivo testa as decisões de criação de relato, verificando:
-- Criação permitida quando estado inicial é None
-- Criação negada quando relato já existe (estado não é None)
+Este arquivo testa as decisÃµes de criaÃ§Ã£o de relato, verificando:
+- CriaÃ§Ã£o permitida quando estado inicial Ã© None
+- CriaÃ§Ã£o negada quando relato jÃ¡ existe (estado nÃ£o Ã© None)
 - Estados resultantes corretos
-- Efeitos retornados pela decisão
+- Efeitos retornados pela decisÃ£o
 """
 
 from app.domain.relato.orchestrator import decide
@@ -14,7 +14,7 @@ from app.domain.relato.states import RelatoStatus
 
 
 def test_create_relato_allowed_from_initial_state():
-    """Testa que a criação de relato é permitida a partir do estado inicial (None)."""
+    """Testa que a criaÃ§Ã£o de relato Ã© permitida a partir do estado inicial (None)."""
     actor = Actor(id="user-123", role=ActorRole.USER)
     command = CreateRelato(
         relato_id="relato-456",
@@ -28,11 +28,11 @@ def test_create_relato_allowed_from_initial_state():
     assert decision.reason is None
     assert decision.previous_state is None
     assert decision.next_state == RelatoStatus.CREATED
-    assert len(decision.effects) > 0  # Deve ter efeitos de persistência e upload
+    assert len(decision.effects) > 0  # Deve ter efeitos de persistÃªncia e upload
 
 
 def test_create_relato_denied_when_already_exists():
-    """Testa que a criação de relato é negada quando o relato já existe (estado não é None)."""
+    """Testa que a criaÃ§Ã£o de relato Ã© negada quando o relato jÃ¡ existe (estado nÃ£o Ã© None)."""
     actor = Actor(id="user-123", role=ActorRole.USER)
     command = CreateRelato(
         relato_id="relato-456",
@@ -47,12 +47,12 @@ def test_create_relato_denied_when_already_exists():
     assert decision.allowed is False
     assert decision.previous_state == RelatoStatus.CREATED
     assert decision.next_state is None
-    assert decision.effects == []  # Não deve ter efeitos quando negado
+    assert decision.effects == []  # NÃ£o deve ter efeitos quando negado
     assert decision.reason is not None  # Reason should not be None when denied
 
 
 def test_create_relato_denied_from_any_existing_state():
-    """Testa que a criação de relato é negada a partir de qualquer estado existente."""
+    """Testa que a criaÃ§Ã£o de relato Ã© negada a partir de qualquer estado existente."""
     actor = Actor(id="user-123", role=ActorRole.USER)
     command = CreateRelato(
         relato_id="relato-456",
@@ -76,12 +76,12 @@ def test_create_relato_denied_from_any_existing_state():
         assert decision.allowed is False
         assert decision.previous_state == state
         assert decision.next_state is None
-        assert decision.effects == []  # Não deve ter efeitos quando negado
+        assert decision.effects == []  # NÃ£o deve ter efeitos quando negado
         assert decision.reason is not None  # Reason should not be None when denied
 
 
 def test_create_relato_effects_structure():
-    """Testa que a decisão de criação retorna efeitos com a estrutura esperada."""
+    """Testa que a decisÃ£o de criaÃ§Ã£o retorna efeitos com a estrutura esperada."""
     actor = Actor(id="user-123", role=ActorRole.USER)
     command = CreateRelato(
         relato_id="relato-456",
@@ -95,6 +95,6 @@ def test_create_relato_effects_structure():
 
     assert decision.allowed is True
     assert decision.next_state == RelatoStatus.CREATED
-    # Verifica que os efeitos contêm informações relevantes para persistência
+    # Verifica que os efeitos contÃªm informaÃ§Ãµes relevantes para persistÃªncia
     assert len(decision.effects) > 0
-    # Os efeitos devem conter informações para persistir o relato e fazer uploads
+    # Os efeitos devem conter informaÃ§Ãµes para persistir o relato e fazer uploads

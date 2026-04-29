@@ -1,4 +1,4 @@
-from app.services.effects.registry import get_effect_executor, clear_registry
+﻿from app.services.effects.registry import get_effect_executor, clear_registry
 from app.services.effects.register_effects import register_all_effect_executors
 
 

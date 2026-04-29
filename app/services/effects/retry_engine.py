@@ -1,4 +1,4 @@
-# app/services/effects/retry_engine.py
+﻿# app/services/effects/retry_engine.py
 from app.services.effects.failure_context import FailureContext
 from app.services.effects.retry_classifier import RetryClassifier, DefaultRetryClassifier
 from app.services.effects.retry_policy import RetryPolicy, DefaultRetryPolicy
@@ -18,8 +18,8 @@ class RetryEngine:
 
     def decide(self, result: EffectResult) -> EffectResult:
         """
-        Calcula a decisão de retry para o EffectResult dado e retorna um novo EffectResult
-        refletindo essa decisão (ERROR ou RETRYING).
+        Calcula a decisÃ£o de retry para o EffectResult dado e retorna um novo EffectResult
+        refletindo essa decisÃ£o (ERROR ou RETRYING).
         """
 
         if result.status == EffectStatus.SUCCESS:

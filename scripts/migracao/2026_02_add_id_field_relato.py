@@ -1,17 +1,17 @@
-# scripts/migracao/2026_02_add_id_field_relato.py
+﻿# scripts/migracao/2026_02_add_id_field_relato.py
 
 import sys
 from typing import List
 import os
-# Adiciona o diretório raiz do projeto ao sys.path
-# para que os módulos da 'app' possam ser encontrados.
+# Adiciona o diretÃ³rio raiz do projeto ao sys.path
+# para que os mÃ³dulos da 'app' possam ser encontrados.
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.insert(0, project_root)
 from app.firestore.client import get_firestore_client
 
 
 COLLECTION_NAME = "relatos"
-DRY_RUN = False  # 🔴 TROQUE PARA False PARA EXECUTAR DE VERDADE
+DRY_RUN = False  # ðŸ”´ TROQUE PARA False PARA EXECUTAR DE VERDADE
 BATCH_LIMIT = 400
 
 
@@ -31,7 +31,7 @@ def migrar_ids():
         data = doc.to_dict()
 
         if "id" in data:
-            print(f"[SKIP] {doc_id} já possui campo id.")
+            print(f"[SKIP] {doc_id} jÃ¡ possui campo id.")
             total_skipped += 1
             continue
 

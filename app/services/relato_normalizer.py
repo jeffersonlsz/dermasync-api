@@ -1,28 +1,28 @@
-# app/services/relato_normalizer.py
+﻿# app/services/relato_normalizer.py
 
 from typing import Dict, Any, List
 
 
 def normalize_relato_document(raw: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Garante que o documento respeite o schema esperado pelo domínio.
-    Corrige divergências legadas do Firestore.
-    Retorna sempre uma estrutura canônica estável.
+    Garante que o documento respeite o schema esperado pelo domÃ­nio.
+    Corrige divergÃªncias legadas do Firestore.
+    Retorna sempre uma estrutura canÃ´nica estÃ¡vel.
     """
 
     # ---------------------------------------------------------
-    # Cópia defensiva
+    # CÃ³pia defensiva
     # ---------------------------------------------------------
     doc = dict(raw or {})
 
     # ---------------------------------------------------------
-    # id → sempre string
+    # id â†’ sempre string
     # ---------------------------------------------------------
     if not isinstance(doc.get("id"), str):
         doc["id"] = str(doc.get("id") or "")
 
     # ---------------------------------------------------------
-    # public_excerpt → sempre objeto { text: str }
+    # public_excerpt â†’ sempre objeto { text: str }
     # ---------------------------------------------------------
     public_excerpt = doc.get("public_excerpt")
 
@@ -39,7 +39,7 @@ def normalize_relato_document(raw: Dict[str, Any]) -> Dict[str, Any]:
         doc["public_excerpt"] = {"text": ""}
 
     # ---------------------------------------------------------
-    # tags_extraidas → sempre lista[str]
+    # tags_extraidas â†’ sempre lista[str]
     # ---------------------------------------------------------
     tags = doc.get("tags_extraidas")
 
@@ -51,21 +51,21 @@ def normalize_relato_document(raw: Dict[str, Any]) -> Dict[str, Any]:
         doc["tags_extraidas"] = []
 
     # ---------------------------------------------------------
-    # conteudo_original → sempre string
+    # conteudo_original â†’ sempre string
     # ---------------------------------------------------------
     if not isinstance(doc.get("conteudo_original"), str):
         doc["conteudo_original"] = ""
 
     # ---------------------------------------------------------
-    # conteudo_anonimizado → sempre string
+    # conteudo_anonimizado â†’ sempre string
     # ---------------------------------------------------------
     if not isinstance(doc.get("conteudo_anonimizado"), str):
         doc["conteudo_anonimizado"] = ""
 
     # ---------------------------------------------------------
-    # images_refs → sempre lista[{type: str, path: str}]
+    # image_refs â†’ sempre lista[{type: str, path: str}]
     # ---------------------------------------------------------
-    images_raw = doc.get("images_refs")
+    images_raw = doc.get("image_refs")
     normalized_images: List[Dict[str, str]] = []
 
     if isinstance(images_raw, dict):
@@ -92,5 +92,5 @@ def normalize_relato_document(raw: Dict[str, Any]) -> Dict[str, Any]:
                         "path": img_path
                     })
 
-    doc["images_refs"] = normalized_images
+    doc["image_refs"] = normalized_images
     return doc

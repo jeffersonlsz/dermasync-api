@@ -1,13 +1,13 @@
-# app/domain/galeria/similarity/scorers/narrative_tone.py
+﻿# app/domain/galeria/similarity/scorers/narrative_tone.py
 
 def narrative_tone_similarity(
     text_a: str,
     text_b: str,
 ) -> float:
     """
-    Heurística v1:
+    HeurÃ­stica v1:
     - tamanho parecido
-    - presença de palavras de progresso
+    - presenÃ§a de palavras de progresso
     """
     if not text_a or not text_b:
         return 0.0
@@ -17,9 +17,9 @@ def narrative_tone_similarity(
     positive_markers = [
         "melhora",
         "controle",
-        "evolução",
+        "evoluÃ§Ã£o",
         "resultado",
-        "alívio",
+        "alÃ­vio",
     ]
 
     def score_markers(text: str) -> int:

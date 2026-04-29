@@ -1,4 +1,4 @@
-# app/domain/enrichment/prompts/extract_computable_metadata_v1.py
+﻿# app/domain/enrichment/prompts/extract_computable_metadata_v1.py
 
 from app.domain.enrichment.vocabularies.tags_v1 import ALLOWED_TAGS
 from app.domain.enrichment.vocabularies.signals_v1 import (
@@ -21,12 +21,12 @@ PROMPT_VERSION = "extract_computable_metadata_v1_hardened"
 
 def build_prompt(relato_text: str) -> str:
     """
-    Prompt fechado e endurecido para extração computável.
+    Prompt fechado e endurecido para extraÃ§Ã£o computÃ¡vel.
 
-    Estratégias usadas:
-    - JSON forcing explícito
-    - Proibição direta de markdown / fences
-    - Exemplo único (few-shot minimal)
+    EstratÃ©gias usadas:
+    - JSON forcing explÃ­cito
+    - ProibiÃ§Ã£o direta de markdown / fences
+    - Exemplo Ãºnico (few-shot minimal)
     - Skeleton estrutural claro
     """
 

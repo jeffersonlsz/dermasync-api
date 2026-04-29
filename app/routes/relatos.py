@@ -1,6 +1,6 @@
-# app/routes/relatos.py
+﻿# app/routes/relatos.py
 """
-Routes para relatos (depoimentos de tratamento de dermatite atópica).
+Routes para relatos (depoimentos de tratamento de dermatite atÃ³pica).
 """
 import logging
 import uuid
@@ -47,7 +47,7 @@ def get_storage_port() -> StoragePort:
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
-    summary="Enviar relato (rota canônica baseada em domínio)",
+    summary="Enviar relato (rota canÃ´nica baseada em domÃ­nio)",
     tags=["Relatos"],
 )
 async def criar_e_enviar_relato(
@@ -60,7 +60,7 @@ async def criar_e_enviar_relato(
     current_user=Depends(get_current_user),
 ):
     # =========================
-    # Pré-validação
+    # PrÃ©-validaÃ§Ã£o
     # =========================
     logger.debug("/relatos Recebido payload: %s", payload)
     draft = parse_payload_json(payload)
@@ -68,7 +68,7 @@ async def criar_e_enviar_relato(
     if not draft.consentimento:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Consentimento é obrigatório",
+            detail="Consentimento Ã© obrigatÃ³rio",
         )
 
     relato_id = uuid.uuid4().hex
@@ -79,7 +79,7 @@ async def criar_e_enviar_relato(
     )
 
     # =========================
-    # Upload → image_refs
+    # Upload â†’ image_refs
     # =========================
 
     image_refs = {
@@ -104,7 +104,7 @@ async def criar_e_enviar_relato(
     }
 
     # =========================
-    # Command (DOMÍNIO PURO)
+    # Command (DOMÃNIO PURO)
     # =========================
 
     command = CreateRelato(
@@ -123,7 +123,7 @@ async def criar_e_enviar_relato(
     if not decision.allowed:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=decision.reason or "Criação do relato não permitida",
+            detail=decision.reason or "CriaÃ§Ã£o do relato nÃ£o permitida",
         )
 
     # =========================
@@ -165,13 +165,13 @@ async def submit_relato(
         role=str(current_user.role),
     )
 
-    # 🔹 Buscar estado atual (fonte da verdade)
+    # ðŸ”¹ Buscar estado atual (fonte da verdade)
     relato = await get_relato_by_id(
         relato_id=relato_id,
         requesting_user=current_user,
     )
 
-    # 🔹 Command explícito
+    # ðŸ”¹ Command explÃ­cito
     command = SubmitRelato(
         relato_id=relato_id,
     )
@@ -185,7 +185,7 @@ async def submit_relato(
     if not decision.allowed:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=decision.reason or "Submissão não permitida",
+            detail=decision.reason or "SubmissÃ£o nÃ£o permitida",
         )
 
     executor = RelatoEffectExecutor(
@@ -235,16 +235,16 @@ async def moderate_relato_route(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Executa uma ação de moderação em um relato, delegando a lógica para o domínio.
+    Executa uma aÃ§Ã£o de moderaÃ§Ã£o em um relato, delegando a lÃ³gica para o domÃ­nio.
 
-    - **action**: A ação a ser executada (`approve`, `reject`, `archive`).
+    - **action**: A aÃ§Ã£o a ser executada (`approve`, `reject`, `archive`).
     
-    Apenas usuários com as roles 'admin' ou 'colaborador' podem executar esta ação.
-    A lógica de negócio real (ex: um relato só pode ser aprovado se estiver no estado 'processed')
-    é garantida pela camada de domínio.
+    Apenas usuÃ¡rios com as roles 'admin' ou 'colaborador' podem executar esta aÃ§Ã£o.
+    A lÃ³gica de negÃ³cio real (ex: um relato sÃ³ pode ser aprovado se estiver no estado 'processed')
+    Ã© garantida pela camada de domÃ­nio.
     """
-    # A verificação de role na rota é uma primeira barreira (defense-in-depth),
-    # mas a verdadeira autorização acontece no domínio.
+    # A verificaÃ§Ã£o de role na rota Ã© uma primeira barreira (defense-in-depth),
+    # mas a verdadeira autorizaÃ§Ã£o acontece no domÃ­nio.
     if current_user.role not in ["admin", "colaborador"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -260,7 +260,7 @@ async def moderate_relato_route(
 
 @router.get(
     "/moderation/pending",
-    summary="Lista relatos pendentes de moderação",
+    summary="Lista relatos pendentes de moderaÃ§Ã£o",
     tags=["Relatos"]
 )
 async def list_pending_moderation(
@@ -284,7 +284,7 @@ async def list_pending_moderation(
 
 @router.get(
     "/{relato_id}/imagens",
-    summary="Imagens associadas ao relato (contrato canônico)",
+    summary="Imagens associadas ao relato (contrato canÃ´nico)",
     tags=["Relatos"]
 )
 async def get_imagens_relato(
@@ -292,7 +292,7 @@ async def get_imagens_relato(
     current_user: Optional[User] = Depends(get_optional_user)
 ):
     """
-    Endpoint canônico para consumo de imagens pelo front-end.
+    Endpoint canÃ´nico para consumo de imagens pelo front-end.
     """
 
     from app.services.imagens_service import get_imagens_por_relato

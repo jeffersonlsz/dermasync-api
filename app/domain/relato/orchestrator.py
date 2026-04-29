@@ -1,4 +1,4 @@
-# app/domain/relato/orchestrator.py
+﻿# app/domain/relato/orchestrator.py
 
 from app.domain.relato.contracts import (
     Actor,
@@ -26,7 +26,7 @@ from app.domain.relato.transitions import resolve_transition
 
 
 # =========================
-# Command → Intent mapping
+# Command â†’ Intent mapping
 # =========================
 
 def command_to_intent(command: Command) -> RelatoIntent | None:
@@ -60,8 +60,8 @@ def decide(
     current_state: RelatoStatus | None = None,
 ) -> Decision:
     """
-    Cérebro do domínio.
-    Puro, determinístico e governado por dados semânticos.
+    CÃ©rebro do domÃ­nio.
+    Puro, determinÃ­stico e governado por dados semÃ¢nticos.
     """
 
     intent = command_to_intent(command)
@@ -77,12 +77,12 @@ def decide(
         if actor.role not in {ActorRole.ADMIN, ActorRole.COLLABORATOR}:
             return Decision(
                 allowed=False,
-                reason="Ação permitida apenas para administradores ou colaboradores.",
+                reason="AÃ§Ã£o permitida apenas para administradores ou colaboradores.",
                 previous_state=current_state,
             )
 
     # -------------------------
-    # Resolver transição
+    # Resolver transiÃ§Ã£o
     # -------------------------
 
     next_state = resolve_transition(current_state, intent)
@@ -90,7 +90,7 @@ def decide(
     if next_state is None:
         return Decision(
             allowed=False,
-            reason=f"Transição inválida: {intent} a partir de {current_state}.",
+            reason=f"TransiÃ§Ã£o invÃ¡lida: {intent} a partir de {current_state}.",
             previous_state=current_state,
         )
 

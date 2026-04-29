@@ -1,17 +1,17 @@
-# app/domain/enrichment/vocabularies/temporal_markers_v1.py
+﻿# app/domain/enrichment/vocabularies/temporal_markers_v1.py
 
 """
-Vocabulário controlado de marcadores temporais relativos.
+VocabulÃ¡rio controlado de marcadores temporais relativos.
 
 Objetivo:
-- Capturar noção de tempo sem datas absolutas
+- Capturar noÃ§Ã£o de tempo sem datas absolutas
 - Preservar anonimato
-- Permitir análise longitudinal qualitativa
+- Permitir anÃ¡lise longitudinal qualitativa
 
 Regras:
 - Apenas tempo relativo
 - Sem datas
-- Sem idades numéricas
+- Sem idades numÃ©ricas
 """
 
 ALLOWED_TEMPORAL_MARKERS: set[str] = {

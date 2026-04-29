@@ -1,19 +1,19 @@
-# app/domain/enrichment/vocabularies/signals_v1.py
+﻿# app/domain/enrichment/vocabularies/signals_v1.py
 
 """
-Vocabulário controlado de sinais observáveis relatados pelo usuário.
+VocabulÃ¡rio controlado de sinais observÃ¡veis relatados pelo usuÃ¡rio.
 
-Signals representam manifestações percebidas diretamente,
-não inferências médicas ou diagnósticas.
+Signals representam manifestaÃ§Ãµes percebidas diretamente,
+nÃ£o inferÃªncias mÃ©dicas ou diagnÃ³sticas.
 
 Regras:
-- Baseado na percepção do usuário
-- Computável e estruturável
-- Sem interpretação clínica
+- Baseado na percepÃ§Ã£o do usuÃ¡rio
+- ComputÃ¡vel e estruturÃ¡vel
+- Sem interpretaÃ§Ã£o clÃ­nica
 """
 
 # -----------------------------
-# Sinais observáveis
+# Sinais observÃ¡veis
 # -----------------------------
 
 ALLOWED_SIGNALS: set[str] = {
@@ -40,7 +40,7 @@ ALLOWED_INTENSITIES: set[str] = {
 }
 
 # -----------------------------
-# Frequência percebida
+# FrequÃªncia percebida
 # -----------------------------
 
 ALLOWED_FREQUENCIES: set[str] = {

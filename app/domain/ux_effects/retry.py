@@ -1,4 +1,4 @@
-# app/domain/ux_effects/retry.py
+﻿# app/domain/ux_effects/retry.py
 
 from dataclasses import dataclass
 from app.domain.ux_effects.base import (
@@ -21,7 +21,7 @@ class RetryUXEffect(UXEffect):
             severity=UXSeverity.INFO,
             channel=UXChannel.BANNER,
             timing=UXTiming.IMMEDIATE,
-            message="Nenhuma ação precisou ser repetida.",
+            message="Nenhuma aÃ§Ã£o precisou ser repetida.",
             metadata={"relato_id": relato_id},
         )
 
@@ -33,7 +33,7 @@ class RetryUXEffect(UXEffect):
             severity=UXSeverity.INFO,
             channel=UXChannel.BANNER,
             timing=UXTiming.IMMEDIATE,
-            message=f"{count} ações estão sendo repetidas.",
+            message=f"{count} aÃ§Ãµes estÃ£o sendo repetidas.",
             metadata={"relato_id": relato_id},
         )
 
@@ -45,6 +45,6 @@ class RetryUXEffect(UXEffect):
             severity=UXSeverity.ERROR,
             channel=UXChannel.BANNER,
             timing=UXTiming.IMMEDIATE,
-            message="Não foi possível concluir agora",
+            message="NÃ£o foi possÃ­vel concluir agora",
             metadata={"relato_id": relato_id},
         )

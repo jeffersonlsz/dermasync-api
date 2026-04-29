@@ -1,7 +1,7 @@
-# tests/conftest.py
+﻿# tests/conftest.py
 import os
 
-# Configurações para os emuladores Firebase
+# ConfiguraÃ§Ãµes para os emuladores Firebase
 os.environ["ENVIRONMENT"] = "testing"
 os.environ["FIREBASE_MODE"] = "local"
 os.environ["GOOGLE_CLOUD_PROJECT"] = "dermasync-local"
@@ -68,7 +68,7 @@ def mock_current_user_usuario_logado(app: FastAPI):
         id="user_123",
         firebase_uid="fb_user_123",
         email="user@test.com",
-        display_name="Usuário de Teste",
+        display_name="UsuÃ¡rio de Teste",
         role="usuario_logado",
         is_active=True,
         created_at=datetime.now(timezone.utc),

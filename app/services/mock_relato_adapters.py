@@ -1,4 +1,4 @@
-# app/services/mock_relato_adapters.py
+﻿# app/services/mock_relato_adapters.py
 import logging
 
 logger = logging.getLogger(__name__)

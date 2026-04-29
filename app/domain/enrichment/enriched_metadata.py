@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+﻿from dataclasses import dataclass
 from typing import List, Dict
 from datetime import datetime
 
@@ -8,9 +8,9 @@ class EnrichedMetadata:
     """
     Resultado estruturado do ENRICH_METADATA.
 
-    - Não é diagnóstico
-    - Não é recomendação
-    - É organização semântica
+    - NÃ£o Ã© diagnÃ³stico
+    - NÃ£o Ã© recomendaÃ§Ã£o
+    - Ã‰ organizaÃ§Ã£o semÃ¢ntica
     """
 
     relato_id: str

@@ -1,4 +1,4 @@
-import json
+﻿import json
 import logging
 import os
 import tempfile
@@ -9,7 +9,7 @@ import pytest
 from jsonschema import ValidationError, validate
 
 
-@pytest.mark.xfail(reason="pipeline não estabilizado")
+@pytest.mark.xfail(reason="pipeline nÃ£o estabilizado")
 @pytest.mark.asyncio
 async def test_integracao_fase_01_e_02():
     from jsonschema import validate
@@ -20,7 +20,7 @@ async def test_integracao_fase_01_e_02():
         processar_relato
 
     schema_path = Path("./app/schema/relato_schema.json")
-    assert schema_path.exists(), "Schema JSON não encontrado."
+    assert schema_path.exists(), "Schema JSON nÃ£o encontrado."
     with open(schema_path, "r", encoding="utf-8") as f:
         schema = json.load(f)
 
@@ -43,10 +43,10 @@ async def test_integracao_fase_01_e_02():
             output_path=output_jsonl,
         )
 
-        assert output_jsonl.exists(), "Arquivo JSONL bruto não foi gerado."
+        assert output_jsonl.exists(), "Arquivo JSONL bruto nÃ£o foi gerado."
 
         linhas = output_jsonl.read_text().splitlines()
-        assert len(linhas) == 1, "Deveria conter um único relato gerado."
+        assert len(linhas) == 1, "Deveria conter um Ãºnico relato gerado."
 
         relato_bruto = json.loads(linhas[0])
         assert isinstance(relato_bruto, dict)
@@ -55,7 +55,7 @@ async def test_integracao_fase_01_e_02():
         enriquecido = processar_relato(relato_bruto)
         assert isinstance(enriquecido, dict)
 
-        # === Checa campos esperados após enriquecimento ===
+        # === Checa campos esperados apÃ³s enriquecimento ===
         for campo in [
             "idade",
             "genero",
@@ -63,10 +63,10 @@ async def test_integracao_fase_01_e_02():
             "llm_processamento",
             "status_llm",
         ]:
-            assert campo in enriquecido, f"Campo {campo} ausente após enriquecimento."
+            assert campo in enriquecido, f"Campo {campo} ausente apÃ³s enriquecimento."
 
-        # === Validação contra o schema ===
+        # === ValidaÃ§Ã£o contra o schema ===
         try:
             validate(instance=enriquecido, schema=schema)
         except ValidationError as e:
-            pytest.fail(f"Erro na validação do schema enriquecido: {e.message}")
+            pytest.fail(f"Erro na validaÃ§Ã£o do schema enriquecido: {e.message}")

@@ -1,33 +1,33 @@
-# app/llm/prompts/enrich_metadata_prompt.py
+﻿# app/llm/prompts/enrich_metadata_prompt.py
 
 def build_enrich_metadata_prompt(relato_text: str) -> str:
     """
-    Constrói o prompt canônico para enriquecimento semântico de um relato.
+    ConstrÃ³i o prompt canÃ´nico para enriquecimento semÃ¢ntico de um relato.
 
     Responsabilidade:
     - Receber texto humano bruto
-    - Retornar prompt determinístico
-    - NÃO chamar LLM
-    - NÃO parsear resposta
+    - Retornar prompt determinÃ­stico
+    - NÃƒO chamar LLM
+    - NÃƒO parsear resposta
     """
 
     if not relato_text or not relato_text.strip():
-        raise ValueError("Relato vazio ou inválido para enriquecimento.")
+        raise ValueError("Relato vazio ou invÃ¡lido para enriquecimento.")
 
     return f"""
-Você é um sistema de extração semântica.
+VocÃª Ã© um sistema de extraÃ§Ã£o semÃ¢ntica.
 
-Seu objetivo é analisar o relato abaixo e extrair informações
+Seu objetivo Ã© analisar o relato abaixo e extrair informaÃ§Ãµes
 estruturadas em formato JSON.
 
-⚠️ Regras obrigatórias:
-- Retorne APENAS JSON válido
-- Não use markdown
-- Não inclua explicações
-- Use null quando a informação não estiver presente
+âš ï¸ Regras obrigatÃ³rias:
+- Retorne APENAS JSON vÃ¡lido
+- NÃ£o use markdown
+- NÃ£o inclua explicaÃ§Ãµes
+- Use null quando a informaÃ§Ã£o nÃ£o estiver presente
 
 Campos esperados:
-- idade: número inteiro ou null
+- idade: nÃºmero inteiro ou null
 - genero: "masculino", "feminino", "outro" ou null
 - sintomas: lista de strings (pode ser vazia)
 - tratamentos_mencionados: lista de strings (pode ser vazia)

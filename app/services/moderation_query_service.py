@@ -1,4 +1,4 @@
-from typing import List
+﻿from typing import List
 from app.firestore.client import get_firestore_client
 
 class ModerationQueryService:

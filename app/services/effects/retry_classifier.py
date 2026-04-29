@@ -1,4 +1,4 @@
-from enum import Enum
+﻿from enum import Enum
 from abc import ABC, abstractmethod
 
 from app.services.effects.failure_context import FailureContext

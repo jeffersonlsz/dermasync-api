@@ -1,6 +1,6 @@
-"""
-Atualiza automaticamente seções do README.md
-a partir de artefatos gerados pelo código (Mermaid, tabelas, etc).
+﻿"""
+Atualiza automaticamente seÃ§Ãµes do README.md
+a partir de artefatos gerados pelo cÃ³digo (Mermaid, tabelas, etc).
 
 Nunca sobrescreve o README inteiro.
 Opera apenas dentro de blocos AUTO:*.
@@ -22,12 +22,12 @@ INTENTS_TABLE_PATH = ROOT / "docs" / "auto" / "relato_intents_table.md"
 
 
 # -------------------------------------------------
-# Utilidades básicas
+# Utilidades bÃ¡sicas
 # -------------------------------------------------
 
 def read_file(path: Path) -> str:
     if not path.exists():
-        raise FileNotFoundError(f"Arquivo não encontrado: {path}")
+        raise FileNotFoundError(f"Arquivo nÃ£o encontrado: {path}")
     return path.read_text(encoding="utf-8")
 
 
@@ -43,12 +43,12 @@ def replace_auto_block(
     wrap_in_mermaid: bool = False,
 ) -> str:
     """
-    Substitui o conteúdo entre:
+    Substitui o conteÃºdo entre:
 
     <!-- AUTO:NAME:START -->
     <!-- AUTO:NAME:END -->
 
-    Se wrap_in_mermaid=True, envolve o conteúdo em ```mermaid```
+    Se wrap_in_mermaid=True, envolve o conteÃºdo em ```mermaid```
     """
 
     pattern = re.compile(
@@ -57,7 +57,7 @@ def replace_auto_block(
     )
 
     if not pattern.search(readme):
-        raise RuntimeError(f"Bloco AUTO:{block_name} não encontrado no README")
+        raise RuntimeError(f"Bloco AUTO:{block_name} nÃ£o encontrado no README")
 
     if wrap_in_mermaid:
         replacement_body = f"\n```mermaid\n{new_content.strip()}\n```\n"
@@ -70,11 +70,11 @@ def replace_auto_block(
 
 
 # -------------------------------------------------
-# Etapas de geração
+# Etapas de geraÃ§Ã£o
 # -------------------------------------------------
 
 def generate_state_machine():
-    print("🧠 Gerando state machine Mermaid...")
+    print("ðŸ§  Gerando state machine Mermaid...")
     subprocess.run(
         ["python", "scripts/docs/generate_state_machine_mermaid.py"],
         cwd=ROOT,
@@ -83,7 +83,7 @@ def generate_state_machine():
 
 
 def generate_intents_table():
-    print("📊 Gerando tabela de intents...")
+    print("ðŸ“Š Gerando tabela de intents...")
     subprocess.run(
         ["python", "scripts/docs/generate_intents_table.py"],
         cwd=ROOT,
@@ -92,11 +92,11 @@ def generate_intents_table():
 
 
 # -------------------------------------------------
-# Atualização do README
+# AtualizaÃ§Ã£o do README
 # -------------------------------------------------
 
 def update_readme():
-    print("📝 Atualizando README.md...")
+    print("ðŸ“ Atualizando README.md...")
 
     readme = read_file(README_PATH)
 
@@ -119,7 +119,7 @@ def update_readme():
     )
 
     write_file(README_PATH, readme)
-    print("✅ README.md atualizado com sucesso.")
+    print("âœ… README.md atualizado com sucesso.")
 
 
 # -------------------------------------------------

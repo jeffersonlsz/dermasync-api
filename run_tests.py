@@ -1,4 +1,4 @@
-# run_tests.py
+﻿# run_tests.py
 import importlib.util
 import json
 import os
@@ -9,7 +9,7 @@ import webbrowser
 
 
 def limpar_relatorios_antigos():
-    print("Limpando relatórios anteriores...")
+    print("Limpando relatÃ³rios anteriores...")
     for path in ["htmlcov", "report.json", "logs_testes.jsonl"]:
         if os.path.isdir(path):
             shutil.rmtree(path)
@@ -30,12 +30,12 @@ def _build_pytest_command():
     if has_cov:
         cmd.extend(["--cov=app", "--cov-report=html"])
     else:
-        print("Aviso: plugin pytest-cov não encontrado. Cobertura HTML será ignorada.")
+        print("Aviso: plugin pytest-cov nÃ£o encontrado. Cobertura HTML serÃ¡ ignorada.")
 
     if has_json_report:
         cmd.extend(["--json-report", "--json-report-file=report.json"])
     else:
-        print("Aviso: plugin pytest-json-report não encontrado. report.json não será gerado.")
+        print("Aviso: plugin pytest-json-report nÃ£o encontrado. report.json nÃ£o serÃ¡ gerado.")
 
     return cmd
 
@@ -51,10 +51,10 @@ def rodar_pytest():
 def abrir_htmlcov():
     index_path = os.path.abspath("htmlcov/index.html")
     if not os.path.exists(index_path):
-        print("\nRelatório de cobertura HTML não foi gerado.")
+        print("\nRelatÃ³rio de cobertura HTML nÃ£o foi gerado.")
         return
 
-    print(f"\nAbrindo relatório de cobertura: {index_path}")
+    print(f"\nAbrindo relatÃ³rio de cobertura: {index_path}")
     try:
         webbrowser.open(f"file://{index_path}")
     except Exception as exc:
@@ -63,7 +63,7 @@ def abrir_htmlcov():
 
 def mostrar_resumo_teste():
     if not os.path.exists("report.json"):
-        print("Arquivo report.json não encontrado.")
+        print("Arquivo report.json nÃ£o encontrado.")
         return
 
     try:
@@ -89,9 +89,9 @@ def main():
     abrir_htmlcov()
 
     if exit_code != 0:
-        print("\nExecução finalizada com falhas.")
+        print("\nExecuÃ§Ã£o finalizada com falhas.")
     else:
-        print("\nExecução finalizada com sucesso.")
+        print("\nExecuÃ§Ã£o finalizada com sucesso.")
 
     raise SystemExit(exit_code)
 

@@ -1,4 +1,4 @@
-# app/config.py
+﻿# app/config.py
 import os
 from typing import List
 
@@ -9,7 +9,7 @@ ALLOWED_ORIGINS: List[str] = [
     "http://localhost:3000",
 ]
 
-# Configurações do Firebase
+# ConfiguraÃ§Ãµes do Firebase
 FIREBASE_MODE = os.getenv("FIREBASE_MODE", "prod").lower()
 FIREBASE_STORAGE_BUCKET = os.getenv("FIREBASE_STORAGE_BUCKET")
 GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")

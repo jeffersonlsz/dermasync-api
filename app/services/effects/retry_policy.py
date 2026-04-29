@@ -1,4 +1,4 @@
-# app/services/effects/retry_policy.py
+﻿# app/services/effects/retry_policy.py
 from app.services.effects.retry_decision import RetryDecision
 from app.services.effects.retry_classifier import RetryFailureType
 
@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 
 class RetryPolicy(ABC):
     """
-    Contrato para políticas de retry.
+    Contrato para polÃ­ticas de retry.
     """
 
     @abstractmethod
@@ -28,7 +28,7 @@ from app.services.effects.retry_classifier import RetryFailureType
 
 class DefaultRetryPolicy(RetryPolicy):
     """
-    Política padrão de retry do sistema.
+    PolÃ­tica padrÃ£o de retry do sistema.
     """
 
     MAX_RETRIES = {

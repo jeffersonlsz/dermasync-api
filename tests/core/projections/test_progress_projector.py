@@ -1,4 +1,4 @@
-# tests/core/projections/test_progress_projector.py
+﻿# tests/core/projections/test_progress_projector.py
 from datetime import datetime, timedelta
 
 from app.core.projections.progress_projector import (
@@ -31,7 +31,7 @@ def _effect(
 
 
 # =========================
-# TEST 1 — NO EFFECTS
+# TEST 1 â€” NO EFFECTS
 # =========================
 
 def test_progress_with_no_effects_all_pending():
@@ -55,7 +55,7 @@ def test_progress_with_no_effects_all_pending():
 
 
 # =========================
-# TEST 2 — STARTED + COMPLETED
+# TEST 2 â€” STARTED + COMPLETED
 # =========================
 
 def test_progress_step_completed():
@@ -99,7 +99,7 @@ def test_progress_step_completed():
 
 
 # =========================
-# TEST 3 — FAILED STEP
+# TEST 3 â€” FAILED STEP
 # =========================
 
 def test_progress_step_failed_sets_error():

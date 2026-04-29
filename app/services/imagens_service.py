@@ -1,7 +1,7 @@
-# app/services/imagens_service.py
+﻿# app/services/imagens_service.py
 """
-Serviços de Imagens — versão corrigida e otimizada
-Compatível com Firebase Storage + Firestore
+ServiÃ§os de Imagens â€” versÃ£o corrigida e otimizada
+CompatÃ­vel com Firebase Storage + Firestore
 Sem uso incorreto de async-for
 """
 
@@ -29,20 +29,20 @@ from google.cloud import storage
 
 
 
-BUCKET_NAME = "dermasync-3d14a.firebasestorage.app"  # ⚠️ ajuste se necessário
+BUCKET_NAME = "dermasync-3d14a.firebasestorage.app"  # âš ï¸ ajuste se necessÃ¡rio
 
 # ---------------------------------------------------------
-# CONSTANTES DE VALIDAÇÃO
+# CONSTANTES DE VALIDAÃ‡ÃƒO
 # ---------------------------------------------------------
 ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"]
 MAX_FILE_SIZE_MB = 10
 MAX_DIMENSIONS = (4096, 4096)
-# status públicos aceitos (expanda se precisar)
+# status pÃºblicos aceitos (expanda se precisar)
 _PUBLIC_STATUSES = {"public", "approved_public", "approved", "published"}
 
 
 # =========================================================
-# 🔧 FUNÇÕES AUXILIARES
+# ðŸ”§ FUNÃ‡Ã•ES AUXILIARES
 # =========================================================
 
 def _to_iso_if_datetime(val) -> Optional[str]:
@@ -60,7 +60,7 @@ def _to_iso_if_datetime(val) -> Optional[str]:
         elif hasattr(val, "to_datetime"):
             d = val.to_datetime()
         else:
-            # não é datetime -> tentar parse string
+            # nÃ£o Ã© datetime -> tentar parse string
             if isinstance(val, str):
                 return val
             return str(val)
@@ -76,11 +76,11 @@ def _to_iso_if_datetime(val) -> Optional[str]:
 
 
 def _generate_signed_url_sync(storage_path: str, expires_seconds: int = 3600) -> Optional[str]:
-    """Gera signed URL usando Firebase Storage (GCS) para um único storage_path."""
+    """Gera signed URL usando Firebase Storage (GCS) para um Ãºnico storage_path."""
     try:
         bucket = get_storage_bucket()
         blob = bucket.blob(storage_path)
-        logger.info(f"Gerando signed URL para {storage_path} com expiração de {expires_seconds} segundos.")
+        logger.info(f"Gerando signed URL para {storage_path} com expiraÃ§Ã£o de {expires_seconds} segundos.")
         logger.info(f"Blob info: name={blob.name} bucket={blob.bucket.name} exists={blob.exists()}")
         url = blob.generate_signed_url(
             version="v4",
@@ -94,7 +94,7 @@ def _generate_signed_url_sync(storage_path: str, expires_seconds: int = 3600) ->
 
 
 def _collect_sync(collection):
-    """Executa stream síncrono de Firestore em thread."""
+    """Executa stream sÃ­ncrono de Firestore em thread."""
     docs = []
     for doc in collection.stream():
         d = doc.to_dict()
@@ -103,9 +103,9 @@ def _collect_sync(collection):
     return docs
 
 
-# compatibilidade: alias usado por versões anteriores
+# compatibilidade: alias usado por versÃµes anteriores
 def _collect_public_images_sync(collection):
-    """Alias simples para o coletor síncrono genérico."""
+    """Alias simples para o coletor sÃ­ncrono genÃ©rico."""
     return _collect_sync(collection)
 
 
@@ -113,14 +113,14 @@ def _generate_signed_urls_for_meta(image_meta: dict, expires_seconds: int = 3600
     """
     Gera signed url(s) para image_meta.
     Retorna:
-      - None se não houver paths/storage_path
+      - None se nÃ£o houver paths/storage_path
       - string se 1 url
       - dict {'paths': [...], 'signed_urls': [...]} se >1
-    Esta versão é resiliente a valores None e loga erros internamente.
+    Esta versÃ£o Ã© resiliente a valores None e loga erros internamente.
     """
     try:
         if not isinstance(image_meta, dict):
-            logger.warning("_generate_signed_urls_for_meta recebeu image_meta não-dict: %r", image_meta)
+            logger.warning("_generate_signed_urls_for_meta recebeu image_meta nÃ£o-dict: %r", image_meta)
             return None
 
         paths = []
@@ -162,7 +162,7 @@ def _generate_signed_urls_for_meta(image_meta: dict, expires_seconds: int = 3600
         if all(u is None for u in signed_urls):
             return None
 
-        # se só 1 válida, retorne string (primeira não-nula)
+        # se sÃ³ 1 vÃ¡lida, retorne string (primeira nÃ£o-nula)
         if len(signed_urls) == 1:
             return signed_urls[0]
 
@@ -174,10 +174,10 @@ def _generate_signed_urls_for_meta(image_meta: dict, expires_seconds: int = 3600
 
 def _normalize_doc_for_response(im: dict) -> dict:
     """
-    Garante shape e tipos (JSON-serializáveis) para a resposta.
+    Garante shape e tipos (JSON-serializÃ¡veis) para a resposta.
     - converte datetimes para ISO strings
-    - preenche campos obrigatórios com defaults seguros
-    - mantém campo 'raw' com o doc original para depuração
+    - preenche campos obrigatÃ³rios com defaults seguros
+    - mantÃ©m campo 'raw' com o doc original para depuraÃ§Ã£o
     """
     if not isinstance(im, dict):
         im = {}
@@ -206,7 +206,7 @@ def _normalize_doc_for_response(im: dict) -> dict:
     created_at = _to_iso_if_datetime(created_at_raw) or _to_iso_if_datetime(updated_at_raw) or _to_iso_if_datetime(datetime.now(timezone.utc))
     updated_at = _to_iso_if_datetime(updated_at_raw) or created_at
 
-    # storage_path: prioriza campo storage_path; caso não exista, usa primeiro path de 'paths' (se houver)
+    # storage_path: prioriza campo storage_path; caso nÃ£o exista, usa primeiro path de 'paths' (se houver)
     storage_path = im.get("storage_path")
     if not storage_path:
         paths = im.get("paths")
@@ -238,28 +238,28 @@ def _normalize_doc_for_response(im: dict) -> dict:
 
 
 # =========================================================
-# 📤 UPLOAD
+# ðŸ“¤ UPLOAD
 # =========================================================
 
 async def _process_and_save_image_content(content: bytes, owner_user_id: str, original_filename: str) -> dict:
     # --------------------
-    # 1. Validação
+    # 1. ValidaÃ§Ã£o
     # --------------------
     file_size_bytes = len(content)
     if file_size_bytes > MAX_FILE_SIZE_MB * 1024 * 1024:
-        raise HTTPException(413, f"Arquivo muito grande. Máx: {MAX_FILE_SIZE_MB}MB.")
+        raise HTTPException(413, f"Arquivo muito grande. MÃ¡x: {MAX_FILE_SIZE_MB}MB.")
 
     mime_type = magic.from_buffer(content, mime=True)
     if mime_type not in ALLOWED_MIME_TYPES:
-        raise HTTPException(415, f"Tipo não suportado: {mime_type}")
+        raise HTTPException(415, f"Tipo nÃ£o suportado: {mime_type}")
 
     try:
         with Image.open(BytesIO(content)) as img:
             width, height = img.size
             if width > MAX_DIMENSIONS[0] or height > MAX_DIMENSIONS[1]:
-                raise HTTPException(413, f"Dimensões máximas excedidas: {width}x{height}px")
+                raise HTTPException(413, f"DimensÃµes mÃ¡ximas excedidas: {width}x{height}px")
     except Exception:
-        raise HTTPException(422, "Arquivo de imagem inválido")
+        raise HTTPException(422, "Arquivo de imagem invÃ¡lido")
 
     # --------------------
     # 2. Upload
@@ -287,7 +287,7 @@ async def _process_and_save_image_content(content: bytes, owner_user_id: str, or
     metadata = {
         "id": image_id,
         "owner_user_id": owner_user_id,
-        "status": "public",  # padrão: public para aparecer na galeria (ajuste conforme sua política)
+        "status": "public",  # padrÃ£o: public para aparecer na galeria (ajuste conforme sua polÃ­tica)
         "original_filename": original_filename,
         "content_type": mime_type,
         "size_bytes": file_size_bytes,
@@ -314,17 +314,17 @@ async def salvar_imagem(file: UploadFile, owner_user_id: str) -> dict:
     )
 
 
-# compatibilidade: recria salvar_imagem_from_base64 que outros módulos importam
+# compatibilidade: recria salvar_imagem_from_base64 que outros mÃ³dulos importam
 async def salvar_imagem_from_base64(base64_str: str, owner_user_id: str, filename: str) -> dict:
     """
     Decodifica base64 e delega ao pipeline de processamento/salvamento.
-    Mantido para compatibilidade com outros serviços (ex.: relatos_service).
+    Mantido para compatibilidade com outros serviÃ§os (ex.: relatos_service).
     """
     try:
         content = base64.b64decode(base64_str)
     except Exception as e:
         logger.exception("Falha ao decodificar base64: %s", e)
-        raise HTTPException(status_code=422, detail="String base64 inválida.")
+        raise HTTPException(status_code=422, detail="String base64 invÃ¡lida.")
 
     return await _process_and_save_image_content(
         content=content,
@@ -335,9 +335,9 @@ async def salvar_imagem_from_base64(base64_str: str, owner_user_id: str, filenam
 
 def salvar_imagem_bytes_to_storage(storage_path: str, content: bytes, content_type: str) -> Optional[str]:
     """
-    Salva bytes de uma imagem em um caminho específico no Firebase Storage.
+    Salva bytes de uma imagem em um caminho especÃ­fico no Firebase Storage.
     Retorna uma signed URL para o objeto.
-    Esta é uma função síncrona, projetada para ser usada em background tasks.
+    Esta Ã© uma funÃ§Ã£o sÃ­ncrona, projetada para ser usada em background tasks.
     """
     try:
         bucket = get_storage_bucket()
@@ -350,7 +350,7 @@ def salvar_imagem_bytes_to_storage(storage_path: str, content: bytes, content_ty
         return signed_url
     except Exception as e:
         logger.exception(f"Falha ao enviar imagem para Storage em {storage_path}.")
-        # Lançar exceção para que a background task possa capturar e logar o erro.
+        # LanÃ§ar exceÃ§Ã£o para que a background task possa capturar e logar o erro.
         raise
 
 
@@ -368,12 +368,12 @@ def salvar_imagem_bytes(
 ) -> dict:
     """
     Persiste imagem no Firebase Storage / GCS a partir de bytes.
-    Retorna metadados básicos do upload.
+    Retorna metadados bÃ¡sicos do upload.
     """
     logger.debug("[IMAGEM][UPLOAD] Salvando imagem bytes | relato=%s papel=%s filename=%s size=%d",
                  relato_id, papel_clinico, filename, len(content))
     if not content:
-        raise ValueError("Conteúdo da imagem vazio")
+        raise ValueError("ConteÃºdo da imagem vazio")
 
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
@@ -411,7 +411,7 @@ def salvar_imagem_bytes(
     blob.patch()
 
     logger.info(
-        "[IMAGEM][UPLOAD] Upload concluído | relato=%s papel=%s path=%s",
+        "[IMAGEM][UPLOAD] Upload concluÃ­do | relato=%s papel=%s path=%s",
         relato_id,
         papel_clinico,
         object_path,
@@ -435,22 +435,22 @@ def salvar_imagem_uploadfile(
     Salva uma imagem enviada via UploadFile no Storage.
 
     Responsabilidade:
-    - Persistência técnica
-    - Organização por relato e papel clínico
-    - NÃO altera estado de domínio
+    - PersistÃªncia tÃ©cnica
+    - OrganizaÃ§Ã£o por relato e papel clÃ­nico
+    - NÃƒO altera estado de domÃ­nio
     """
 
     if not file.filename:
         raise ValueError("Arquivo sem nome")
 
-    storage = get_storage_bucket() # TODO talvez seja get_firestore_client() dependendo da implementação 
+    storage = get_storage_bucket() # TODO talvez seja get_firestore_client() dependendo da implementaÃ§Ã£o 
     bucket = storage.bucket()
 
     extensao = file.filename.split(".")[-1].lower()
     imagem_id = uuid.uuid4().hex
 
     # =========================
-    # Path canônico
+    # Path canÃ´nico
     # =========================
     storage_path = (
         f"relatos/{relato_id}/imagens/"
@@ -497,7 +497,7 @@ def salvar_imagem_uploadfile(
 
 
 # =========================================================
-# 🔍 LISTAGEM PÚBLICA
+# ðŸ” LISTAGEM PÃšBLICA
 # =========================================================
 
 def _iso_to_datetime(s: str) -> Optional[datetime]:
@@ -521,24 +521,24 @@ def _iso_to_datetime(s: str) -> Optional[datetime]:
 
 async def listar_imagens_publicas(include_signed_url: bool = False, thumb: bool = False) -> List[dict]:
     """
-    Lista metadados de imagens públicas normalizando shape e types esperados pelo response_model.
-    Preenche campos obrigatórios com defaults válidos ('' para strings, 0 para ints, datetime ISO para datas).
+    Lista metadados de imagens pÃºblicas normalizando shape e types esperados pelo response_model.
+    Preenche campos obrigatÃ³rios com defaults vÃ¡lidos ('' para strings, 0 para ints, datetime ISO para datas).
 
-    Parâmetros:
+    ParÃ¢metros:
       - include_signed_url: se True, anexa campos signed (signed_url, signed_urls).
-      - thumb: se True, tenta localizar um thumbnail e anexa thumb_url (signed). Se não existir thumb, usa image_url como fallback.
+      - thumb: se True, tenta localizar um thumbnail e anexa thumb_url (signed). Se nÃ£o existir thumb, usa image_url como fallback.
     """
     db = get_firestore_client()
     coll = db.collection("imagens")
 
-    # coleta todos os documentos de forma síncrona dentro de thread
+    # coleta todos os documentos de forma sÃ­ncrona dentro de thread
     try:
         raw_docs = await asyncio.to_thread(_collect_sync, coll)
     except Exception as e:
         logger.exception("Falha ao coletar docs de imagens: %s", e)
         raise HTTPException(status_code=500, detail="Erro ao acessar Firestore.")
 
-    # filtra por status público aceito (case-insensitive)
+    # filtra por status pÃºblico aceito (case-insensitive)
     imagens_publicas_raw = [im for im in raw_docs if (im.get("status") or "").lower() in _PUBLIC_STATUSES]
 
     normalized = []
@@ -550,7 +550,7 @@ async def listar_imagens_publicas(include_signed_url: bool = False, thumb: bool 
     if include_signed_url and normalized:
         def _attach_signed_sync(imgs, thumb_flag: bool):
             """
-            Função síncrona que anexa signed URLs a cada item. Será executada em thread via asyncio.to_thread.
+            FunÃ§Ã£o sÃ­ncrona que anexa signed URLs a cada item. SerÃ¡ executada em thread via asyncio.to_thread.
             """
             for item in imgs:
                 signed_urls = []
@@ -565,7 +565,7 @@ async def listar_imagens_publicas(include_signed_url: bool = False, thumb: bool 
                             signed_urls.append(s)
                             image_url = image_url or s
 
-                    # 2) se não gerou via storage_path, tenta paths[]
+                    # 2) se nÃ£o gerou via storage_path, tenta paths[]
                     if not signed_urls and item.get("paths"):
                         for p in item.get("paths") or []:
                             try:
@@ -576,7 +576,7 @@ async def listar_imagens_publicas(include_signed_url: bool = False, thumb: bool 
                             except Exception:
                                 logger.debug("Falha ao gerar signed_url para path %s (ignorado)", p)
 
-                    # 3) se thumb solicitado, tente heurísticas de thumb
+                    # 3) se thumb solicitado, tente heurÃ­sticas de thumb
                     if thumb_flag:
                         # candidates baseados em id + original filename
                         candidates = []
@@ -591,7 +591,7 @@ async def listar_imagens_publicas(include_signed_url: bool = False, thumb: bool 
                         candidates.append(f"{id_part}/thumb.jpg")
                         candidates.append(f"{id_part}/thumbnail.jpg")
                         candidates.append(f"{id_part}/thumb_{id_part}.jpg")
-                        # tentar cada candidate até encontrar um existente (por tentativa de signed_url)
+                        # tentar cada candidate atÃ© encontrar um existente (por tentativa de signed_url)
                         for cand in candidates:
                             try:
                                 s_thumb = _generate_signed_url_sync(cand)
@@ -600,7 +600,7 @@ async def listar_imagens_publicas(include_signed_url: bool = False, thumb: bool 
                                     break
                             except Exception:
                                 logger.debug("Falha ao gerar signed_url para candidate thumb %s (ignorado)", cand)
-                        # fallback heurístico: tentar gerar signed_url para "<id>/antes_<orig>" e "<id>/depois_<orig>" (caso padrão do upload)
+                        # fallback heurÃ­stico: tentar gerar signed_url para "<id>/antes_<orig>" e "<id>/depois_<orig>" (caso padrÃ£o do upload)
                         if not thumb_url and orig:
                             try:
                                 alt1 = f"{id_part}/antes_{orig}"
@@ -632,29 +632,29 @@ async def listar_imagens_publicas(include_signed_url: bool = False, thumb: bool 
                 item["thumb_url"] = thumb_url
             return imgs
 
-        # Executa a versão síncrona em thread
+        # Executa a versÃ£o sÃ­ncrona em thread
         try:
             normalized = await asyncio.to_thread(_attach_signed_sync, normalized, thumb)
         except TypeError as te:
-            # Caso o caller não espere thumb param no service original, tentamos sem thumb (fallback defensivo)
+            # Caso o caller nÃ£o espere thumb param no service original, tentamos sem thumb (fallback defensivo)
             logger.warning("listar_imagens_publicas _attach_signed_sync TypeError: %s. Retry without thumb", te)
             normalized = await asyncio.to_thread(_attach_signed_sync, normalized, False)
         except Exception as e:
             logger.exception("Erro ao anexar signed urls (thread): %s", e)
-            # não falhar totalmente: retornar normalized sem signed urls
-            # mas logar para correção
+            # nÃ£o falhar totalmente: retornar normalized sem signed urls
+            # mas logar para correÃ§Ã£o
             return normalized
 
     return normalized
 
 
 # =========================================================
-# 🔍 GET PÚBLICO POR ID
+# ðŸ” GET PÃšBLICO POR ID
 # =========================================================
 
 async def get_public_imagem_by_id(image_id: str, include_signed_url: bool = False) -> dict:
     """
-    Retorna dados de uma imagem pública pelo ID.
+    Retorna dados de uma imagem pÃºblica pelo ID.
     Aceita qualquer status dentro de _PUBLIC_STATUSES.
     """
     db = get_firestore_client()
@@ -663,14 +663,14 @@ async def get_public_imagem_by_id(image_id: str, include_signed_url: bool = Fals
     doc = await asyncio.to_thread(doc_ref.get)
 
     if not doc.exists:
-        raise HTTPException(status_code=404, detail="Imagem não encontrada.")
+        raise HTTPException(status_code=404, detail="Imagem nÃ£o encontrada.")
 
     imagem_data = doc.to_dict() or {}
     imagem_data["id"] = image_id
 
     status = (imagem_data.get("status") or "").lower()
     if status not in _PUBLIC_STATUSES:
-        raise HTTPException(status_code=404, detail="Imagem não encontrada.")
+        raise HTTPException(status_code=404, detail="Imagem nÃ£o encontrada.")
 
     # normalizar / serializar
     norm = _normalize_doc_for_response(imagem_data)
@@ -687,7 +687,7 @@ async def get_public_imagem_by_id(image_id: str, include_signed_url: bool = Fals
 
 
 # =========================================================
-# 🔐 LISTAGEM ADMIN
+# ðŸ” LISTAGEM ADMIN
 # =========================================================
 
 async def listar_todas_imagens_admin(requesting_user: User) -> List[dict]:
@@ -707,7 +707,7 @@ async def listar_todas_imagens_admin(requesting_user: User) -> List[dict]:
 
 
 # =========================================================
-# 🔑 GET PRIVADO + SIGNED URL
+# ðŸ”‘ GET PRIVADO + SIGNED URL
 # =========================================================
 
 async def get_imagem_by_id(image_id: str, requesting_user: User) -> dict:
@@ -717,7 +717,7 @@ async def get_imagem_by_id(image_id: str, requesting_user: User) -> dict:
     doc = await asyncio.to_thread(doc_ref.get)
 
     if not doc.exists:
-        raise HTTPException(404, "Imagem não encontrada.")
+        raise HTTPException(404, "Imagem nÃ£o encontrada.")
 
     data = doc.to_dict() or {}
 
@@ -735,7 +735,7 @@ async def get_imagem_signed_url(image_id: str, requesting_user: User, expires_se
     try:
         data = await get_imagem_by_id(image_id, requesting_user)
 
-        # data já normalizado mas _generate_signed_urls_for_meta aceita dicts contendo 'storage_path'/'paths'
+        # data jÃ¡ normalizado mas _generate_signed_urls_for_meta aceita dicts contendo 'storage_path'/'paths'
         signed = _generate_signed_urls_for_meta(data, expires_seconds)
         if not signed:
             raise HTTPException(status_code=500, detail="storage_path ou paths ausente nos metadados da imagem.")
@@ -749,7 +749,7 @@ async def get_imagem_signed_url(image_id: str, requesting_user: User, expires_se
 
 
 # =========================================================
-# ⚠️ MARCAR COMO ORPHAN
+# âš ï¸ MARCAR COMO ORPHAN
 # =========================================================
 
 async def mark_image_as_orphaned(image_id: str):
@@ -761,7 +761,7 @@ async def mark_image_as_orphaned(image_id: str):
     logger.info(f"Imagem {image_id} marcada como orphaned.")
 
 # =========================================================
-# 🧠 IMAGENS POR RELATO (CANÔNICO PARA FRONT)
+# ðŸ§  IMAGENS POR RELATO (CANÃ”NICO PARA FRONT)
 # =========================================================
 
 
@@ -798,7 +798,7 @@ async def get_imagens_por_relato(
     include_private: bool = False
 ) -> Dict[str, Any]:
     """
-    Resolve imagens associadas a um relato, já filtradas, ordenadas
+    Resolve imagens associadas a um relato, jÃ¡ filtradas, ordenadas
     e com signed URLs prontas para o front.
     """
 

@@ -1,4 +1,4 @@
-# app/domain/enrichment/vocabularies/tags_v1.py
+﻿# app/domain/enrichment/vocabularies/tags_v1.py
 
 ALLOWED_TAGS: set[str] = {
     "dermatite_atopica",

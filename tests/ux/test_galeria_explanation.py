@@ -1,4 +1,4 @@
-from app.services.ux_adapters.galeria_explanation import (
+﻿from app.services.ux_adapters.galeria_explanation import (
     GaleriaExplanationBuilder,
 )
 from app.domain.galeria.eligibility import RelatoEligibilityDecision

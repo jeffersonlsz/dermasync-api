@@ -1,4 +1,4 @@
-# app/services/effects/result.py
+﻿# app/services/effects/result.py
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -17,22 +17,22 @@ class EffectStatus(Enum):
 @dataclass(frozen=True)
 class EffectResult:
     """
-    Resultado semântico da execução de um efeito.
+    Resultado semÃ¢ntico da execuÃ§Ã£o de um efeito.
 
-    - É um Value Object imutável
-    - NÃO governa fluxo
-    - NÃO decide retry
-    - NÃO representa estado de domínio
+    - Ã‰ um Value Object imutÃ¡vel
+    - NÃƒO governa fluxo
+    - NÃƒO decide retry
+    - NÃƒO representa estado de domÃ­nio
     """
 
-    # --- identidade semântica
+    # --- identidade semÃ¢ntica
     relato_id: str
     effect_type: str
 
     # --- estado do resultado
     status: EffectStatus
 
-    # --- dados técnicos
+    # --- dados tÃ©cnicos
     metadata: Dict
     created_at: datetime = field(default_factory=datetime.utcnow)
 
@@ -41,7 +41,7 @@ class EffectResult:
     retry_after: Optional[timedelta] = None
 
     # =========================
-    # Factories (API pública)
+    # Factories (API pÃºblica)
     # =========================
     @classmethod
     def started(

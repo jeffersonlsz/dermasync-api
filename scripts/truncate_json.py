@@ -1,21 +1,21 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import json
 import argparse
 
 def truncate_long_strings(data, max_len=50):
     """
-    Percorre recursivamente uma estrutura de dados (dicionário ou lista)
-    e trunca strings que excedam o comprimento máximo.
+    Percorre recursivamente uma estrutura de dados (dicionÃ¡rio ou lista)
+    e trunca strings que excedam o comprimento mÃ¡ximo.
 
     Args:
-        data: O dicionário ou lista a ser processado.
-        max_len: O comprimento máximo da string antes de ser truncada.
+        data: O dicionÃ¡rio ou lista a ser processado.
+        max_len: O comprimento mÃ¡ximo da string antes de ser truncada.
 
     Returns:
         A estrutura de dados com as strings longas truncadas.
     """
     if isinstance(data, dict):
-        # Retorna um novo dicionário com valores processados recursivamente
+        # Retorna um novo dicionÃ¡rio com valores processados recursivamente
         return {key: truncate_long_strings(value, max_len) for key, value in data.items()}
     elif isinstance(data, list):
         # Retorna uma nova lista com itens processados recursivamente
@@ -24,15 +24,15 @@ def truncate_long_strings(data, max_len=50):
         # Trunca a string e adiciona '...'
         return data[:max_len] + '...'
     else:
-        # Retorna números, booleanos, None e strings curtas como estão
+        # Retorna nÃºmeros, booleanos, None e strings curtas como estÃ£o
         return data
 
 def main():
     """
-    Função principal para analisar argumentos de linha de comando e processar o arquivo.
+    FunÃ§Ã£o principal para analisar argumentos de linha de comando e processar o arquivo.
     """
     parser = argparse.ArgumentParser(
-        description="Lê um arquivo JSON ou JSONL, trunca strings longas (>50 caracteres) e imprime o resultado."
+        description="LÃª um arquivo JSON ou JSONL, trunca strings longas (>50 caracteres) e imprime o resultado."
     )
     parser.add_argument("filepath", help="O caminho para o arquivo .json ou .jsonl a ser processado.")
     args = parser.parse_args()
@@ -48,9 +48,9 @@ def main():
                     truncated_obj = truncate_long_strings(json_obj)
                     print(json.dumps(truncated_obj, indent=2, ensure_ascii=False))
                 except json.JSONDecodeError:
-                    print(f"Aviso: Ignorando linha que não é um JSON válido: {line[:100]}...")
+                    print(f"Aviso: Ignorando linha que nÃ£o Ã© um JSON vÃ¡lido: {line[:100]}...")
     except FileNotFoundError:
-        print(f"Erro: O arquivo não foi encontrado em '{args.filepath}'")
+        print(f"Erro: O arquivo nÃ£o foi encontrado em '{args.filepath}'")
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-# app/domain/relato/transitions.py
+﻿# app/domain/relato/transitions.py
 
 from app.domain.relato.states import RelatoStatus
 from app.domain.relato.intents import RelatoIntent
@@ -8,16 +8,16 @@ ANY = "*"
 
 
 """
-Tabela canônica de transições de estado de Relato.
+Tabela canÃ´nica de transiÃ§Ãµes de estado de Relato.
 
-Chave: (estado_atual, intenção)
-Valor: próximo_estado
+Chave: (estado_atual, intenÃ§Ã£o)
+Valor: prÃ³ximo_estado
 
-Esta tabela é a FONTE ÚNICA DE VERDADE
-sobre quais transições são permitidas no domínio.
+Esta tabela Ã© a FONTE ÃšNICA DE VERDADE
+sobre quais transiÃ§Ãµes sÃ£o permitidas no domÃ­nio.
 
 Estados representam fatos consumados,
-não intenções ou etapas técnicas internas.
+nÃ£o intenÃ§Ãµes ou etapas tÃ©cnicas internas.
 """
 RELATO_STATE_TRANSITIONS: dict[
     tuple[RelatoStatus | None | str, RelatoIntent],
@@ -25,17 +25,17 @@ RELATO_STATE_TRANSITIONS: dict[
 ] = {
 
     # =====================================================
-    # Criação (ato ontológico)
+    # CriaÃ§Ã£o (ato ontolÃ³gico)
     # =====================================================
 
     # Um relato passa a existir
     (None, RelatoIntent.CREATE): RelatoStatus.CREATED,
 
     # =====================================================
-    # Submissão para processamento
+    # SubmissÃ£o para processamento
     # =====================================================
 
-    # O relato criado é submetido para pipeline
+    # O relato criado Ã© submetido para pipeline
     (RelatoStatus.CREATED, RelatoIntent.SUBMIT): RelatoStatus.PROCESSING,
 
     # =====================================================
@@ -59,7 +59,7 @@ RELATO_STATE_TRANSITIONS: dict[
     (ANY, RelatoIntent.ARCHIVE): RelatoStatus.ARCHIVED,
 
     # =====================================================
-    # Erro técnico (global)
+    # Erro tÃ©cnico (global)
     # =====================================================
 
     (ANY, RelatoIntent.MARK_ERROR): RelatoStatus.ERROR,
@@ -71,20 +71,20 @@ def resolve_transition(
     intent: RelatoIntent,
 ) -> RelatoStatus | None:
     """
-    Resolve a transição de estado para uma dada intenção.
+    Resolve a transiÃ§Ã£o de estado para uma dada intenÃ§Ã£o.
 
-    Retorna o próximo estado se a transição for válida,
-    ou None se for inválida.
+    Retorna o prÃ³ximo estado se a transiÃ§Ã£o for vÃ¡lida,
+    ou None se for invÃ¡lida.
 
-    Esta função é PURA e DETERMINÍSTICA.
+    Esta funÃ§Ã£o Ã© PURA e DETERMINÃSTICA.
     """
 
-    # Transição específica (estado explícito)
+    # TransiÃ§Ã£o especÃ­fica (estado explÃ­cito)
     key = (current_state, intent)
     if key in RELATO_STATE_TRANSITIONS:
         return RELATO_STATE_TRANSITIONS[key]
 
-    # Transição genérica (ANY)
+    # TransiÃ§Ã£o genÃ©rica (ANY)
     any_key = (ANY, intent)
     if any_key in RELATO_STATE_TRANSITIONS:
         return RELATO_STATE_TRANSITIONS[any_key]

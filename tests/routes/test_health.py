@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tests for DermaSync healthcheck endpoint (/healthz).
 """
 

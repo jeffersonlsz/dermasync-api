@@ -1,6 +1,6 @@
-# app/routes/imagens.py
+﻿# app/routes/imagens.py
 """
-Módulo de rotas para gerenciamento de imagens.
+MÃ³dulo de rotas para gerenciamento de imagens.
 Corrigido para remover prefixos duplicados, corrigir conflitos de rota
 e padronizar endpoints para signed URLs.
 """
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 # ----------------------
-# Helpers de serialização
+# Helpers de serializaÃ§Ã£o
 # ----------------------
 def _to_iso(dt: Optional[datetime]) -> Optional[str]:
     if dt is None:
@@ -60,7 +60,7 @@ def _to_iso(dt: Optional[datetime]) -> Optional[str]:
 def _serialize_image_meta_for_response(meta: Dict[str, Any]) -> Dict[str, Any]:
     """
     Garante que campos datetime sejam strings ISO e que tipos simples estejam coerentes.
-    Não remove campos extras; é uma camada leve antes de enviar ao client.
+    NÃ£o remove campos extras; Ã© uma camada leve antes de enviar ao client.
     """
     m = dict(meta)  # shallow copy
     for date_field in ("created_at", "createdAt", "criado_em", "updated_at", "updatedAt", "updated_em"):
@@ -102,7 +102,7 @@ def _serialize_image_meta_for_response(meta: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # ============================================================
-# 📤 UPLOAD
+# ðŸ“¤ UPLOAD
 # ============================================================
 @router.post("/upload", response_model=UploadSuccessResponse)
 async def upload_imagem(
@@ -113,7 +113,7 @@ async def upload_imagem(
 
     try:
         imagem_metadata = await salvar_imagem(file=file, owner_user_id=current_user.id)
-        # garantir campos serializáveis
+        # garantir campos serializÃ¡veis
         imagem_metadata = _serialize_image_meta_for_response(imagem_metadata)
         return {"image_id": imagem_metadata["id"]}
     except HTTPException:
@@ -125,7 +125,7 @@ async def upload_imagem(
 
 
 # ============================================================
-# 🔐 LISTAR TODAS (ADMIN / COLABORADOR)
+# ðŸ” LISTAR TODAS (ADMIN / COLABORADOR)
 # ============================================================
 @router.get(
     "/listar-todas",
@@ -136,25 +136,25 @@ async def get_imagens_admin(current_user: User = Depends(get_current_user)):
     logger.info(f"Admin/colaborador listando todas as imagens. User={current_user.id}")
 
     imagens = await listar_todas_imagens_admin(requesting_user=current_user)
-    # serializar datas para evitar erros de validação
+    # serializar datas para evitar erros de validaÃ§Ã£o
     imagens_serial = [_serialize_image_meta_for_response(i) for i in imagens]
     return {"quantidade": len(imagens_serial), "dados": imagens_serial}
 
 
 # ============================================================
-# 🌍 LISTAR PÚBLICAS
+# ðŸŒ LISTAR PÃšBLICAS
 # ============================================================
 @router.get("/listar-publicas", response_model=ImageListResponse)
 async def get_imagens_publicas(
     include_signed_url: bool = Query(False, description="Incluir signed_url(s)"),
-    thumb: bool = Query(False, description="Incluir/gerar thumbnail signed_url quando aplicável"),
+    thumb: bool = Query(False, description="Incluir/gerar thumbnail signed_url quando aplicÃ¡vel"),
 ):
     """
-    Lista imagens públicas. Se include_signed_url=True o serviço tentará
-    anexar signed URLs. Se thumb=True, pede ao serviço thumbnails assinadas
-    quando disponíveis (melhor para exibição em grid).
+    Lista imagens pÃºblicas. Se include_signed_url=True o serviÃ§o tentarÃ¡
+    anexar signed URLs. Se thumb=True, pede ao serviÃ§o thumbnails assinadas
+    quando disponÃ­veis (melhor para exibiÃ§Ã£o em grid).
     """
-    logger.info(f"Listando imagens públicas. include_signed_url={include_signed_url} thumb={thumb}")
+    logger.info(f"Listando imagens pÃºblicas. include_signed_url={include_signed_url} thumb={thumb}")
     try:
         # Passa thumb para o service para que ele saiba se deve gerar/retornar thumbs
         imagens = await listar_imagens_publicas(include_signed_url=include_signed_url, thumb=thumb)
@@ -163,13 +163,13 @@ async def get_imagens_publicas(
         for raw_meta in imagens:
             meta = _serialize_image_meta_for_response(raw_meta)
 
-            # Normalização inteligente quando signed URLs foram solicitadas
+            # NormalizaÃ§Ã£o inteligente quando signed URLs foram solicitadas
             if include_signed_url:
-                # Possíveis locais onde o serviço pode ter colocado signed urls:
+                # PossÃ­veis locais onde o serviÃ§o pode ter colocado signed urls:
                 # - meta["signed_urls"] -> list[str]
                 # - meta["signed_url"] -> str
                 # - meta["signed"] -> dict or str
-                # - meta["thumb_url"] / meta["image_url"] já presentes
+                # - meta["thumb_url"] / meta["image_url"] jÃ¡ presentes
                 signed_source = (
                     meta.get("signed_urls")
                     or meta.get("signed_url")
@@ -178,11 +178,11 @@ async def get_imagens_publicas(
                     or {}
                 )
 
-                # inicializa campos canônicos
+                # inicializa campos canÃ´nicos
                 meta.setdefault("thumb_url", None)
                 meta.setdefault("image_url", None)
 
-                # 1) se o serviço já devolveu thumb_url/image_url explícitos, usa-os
+                # 1) se o serviÃ§o jÃ¡ devolveu thumb_url/image_url explÃ­citos, usa-os
                 if meta.get("thumb_url"):
                     # mantem thumb_url
                     pass
@@ -195,11 +195,11 @@ async def get_imagens_publicas(
                     # ex.: {"thumb": "...", "full": "..."} ou {"thumb_url": "...", "signed_url": "..."}
                     meta["thumb_url"] = meta["thumb_url"] or signed_source.get("thumb") or signed_source.get("thumb_url") or signed_source.get("signed_thumb")
                     meta["image_url"] = meta["image_url"] or signed_source.get("full") or signed_source.get("image") or signed_source.get("signed_url") or signed_source.get("url")
-                    # se o serviço devolveu 'signed_urls' como lista dentro do dict
+                    # se o serviÃ§o devolveu 'signed_urls' como lista dentro do dict
                     if not meta["image_url"] and isinstance(signed_source.get("signed_urls"), (list, tuple)):
                         meta["image_url"] = signed_source.get("signed_urls")[0] if signed_source.get("signed_urls") else None
 
-                # 3) se signed_source for list -> first element é a full image
+                # 3) se signed_source for list -> first element Ã© a full image
                 elif isinstance(signed_source, (list, tuple)):
                     if signed_source:
                         meta["image_url"] = meta["image_url"] or signed_source[0]
@@ -207,41 +207,41 @@ async def get_imagens_publicas(
                 elif isinstance(signed_source, str):
                     meta["image_url"] = meta["image_url"] or signed_source
 
-                # 5) heurística final: se thumb=True mas não veio thumb_url, tente inferir campo 'thumbnail'/'thumb'
+                # 5) heurÃ­stica final: se thumb=True mas nÃ£o veio thumb_url, tente inferir campo 'thumbnail'/'thumb'
                 if thumb and not meta.get("thumb_url"):
                     meta["thumb_url"] = meta.get("thumbnail") or meta.get("thumb") or None
 
-            # garantia de tipos coerentes já aplicada em _serialize_image_meta_for_response
+            # garantia de tipos coerentes jÃ¡ aplicada em _serialize_image_meta_for_response
             imagens_serial.append(meta)
 
         return {"quantidade": len(imagens_serial), "dados": imagens_serial}
     except HTTPException:
         raise
     except TypeError as te:
-        # caso listar_imagens_publicas não aceite parâmetro 'thumb' (retrocompat)
+        # caso listar_imagens_publicas nÃ£o aceite parÃ¢metro 'thumb' (retrocompat)
         logger.warning("listar_imagens_publicas raised TypeError (maybe 'thumb' param unsupported). Retrying without thumb: %s", te)
         try:
             imagens = await listar_imagens_publicas(include_signed_url=include_signed_url)
             imagens_serial = [_serialize_image_meta_for_response(i) for i in imagens]
             return {"quantidade": len(imagens_serial), "dados": imagens_serial}
         except Exception:
-            logger.exception("Erro ao listar imagens públicas (fallback também falhou).")
-            raise HTTPException(status_code=500, detail="Erro ao listar imagens públicas.")
+            logger.exception("Erro ao listar imagens pÃºblicas (fallback tambÃ©m falhou).")
+            raise HTTPException(status_code=500, detail="Erro ao listar imagens pÃºblicas.")
     except Exception as e:
-        logger.exception("Erro ao listar imagens públicas.")
-        raise HTTPException(status_code=500, detail="Erro ao listar imagens públicas.")
+        logger.exception("Erro ao listar imagens pÃºblicas.")
+        raise HTTPException(status_code=500, detail="Erro ao listar imagens pÃºblicas.")
 
 
 
 # ============================================================
-# 🌎 IMAGEM PÚBLICA POR ID
+# ðŸŒŽ IMAGEM PÃšBLICA POR ID
 # ============================================================
 @router.get("/public/{image_id}", response_model=ImagemMetadata)
 async def get_imagem_publica(
     image_id: str,
     include_signed_url: bool = Query(False, description="Incluir signed_url(s) nas respostas"),
 ):
-    logger.info(f"Consultando imagem pública {image_id}")
+    logger.info(f"Consultando imagem pÃºblica {image_id}")
 
     try:
         imagem_data = await get_public_imagem_by_id(
@@ -249,17 +249,17 @@ async def get_imagem_publica(
             include_signed_url=include_signed_url,
         )
         imagem_data = _serialize_image_meta_for_response(imagem_data)
-        # se o serviço retornou signed structure em 'signed_url', normalizamos para a resposta esperada
+        # se o serviÃ§o retornou signed structure em 'signed_url', normalizamos para a resposta esperada
         return imagem_data
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception(f"Erro ao obter imagem pública {image_id}: {e}")
-        raise HTTPException(status_code=500, detail="Erro ao obter imagem pública.")
+        logger.exception(f"Erro ao obter imagem pÃºblica {image_id}: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao obter imagem pÃºblica.")
 
 
 # ============================================================
-# 🔑 IMAGEM PRIVADA / ADMIN
+# ðŸ”‘ IMAGEM PRIVADA / ADMIN
 # ============================================================
 @router.get("/id/{image_id}", response_model=ImagemSignedUrlResponse)
 async def get_imagem(
@@ -273,7 +273,7 @@ async def get_imagem(
       - Dono da imagem pode ver.
       - Admin e colaborador podem ver.
     """
-    logger.info(f"Usuário {current_user.id} consultando imagem {image_id}")
+    logger.info(f"UsuÃ¡rio {current_user.id} consultando imagem {image_id}")
     logger.debug(f"include_signed_url={include_signed_url}")
     logger.debug(f"current_user roles={current_user.role}")
     logger.debug(f"current_user id={current_user.id}")

@@ -1,4 +1,4 @@
-# app/services/retry_relato.py
+﻿# app/services/retry_relato.py
 
 from app.services.effects.fetch_firestore import fetch_failed_effects
 from app.services.effects.retry_effect_executor import RetryEffectExecutor
@@ -10,7 +10,7 @@ from app.domain.ux_effects.retry import RetryUXEffect
 def retry_failed_effects(*, relato_id: str) -> ServiceResult:
     failed_results = fetch_failed_effects(relato_id=relato_id)
 
-    # 🟢 Caso não haja nada para retry
+    # ðŸŸ¢ Caso nÃ£o haja nada para retry
     if not failed_results:
         return ServiceResult(
             ux_effects=[
@@ -20,7 +20,7 @@ def retry_failed_effects(*, relato_id: str) -> ServiceResult:
             ]
         )
 
-    # 🔁 Converte EffectResults técnicos em comandos de domínio
+    # ðŸ” Converte EffectResults tÃ©cnicos em comandos de domÃ­nio
     commands = [
         _effect_result_to_command(result)
         for result in failed_results
@@ -29,7 +29,7 @@ def retry_failed_effects(*, relato_id: str) -> ServiceResult:
     executor = RetryEffectExecutor()
     executor.execute(commands)
 
-    # 🔔 Emite efeito UX informando retry em andamento
+    # ðŸ”” Emite efeito UX informando retry em andamento
     return ServiceResult(
         ux_effects=[
             RetryUXEffect.retrying(

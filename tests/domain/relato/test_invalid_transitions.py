@@ -1,9 +1,9 @@
-"""
-Testes para transições inválidas de relato no domínio.
+﻿"""
+Testes para transiÃ§Ãµes invÃ¡lidas de relato no domÃ­nio.
 
-Este arquivo testa tentativas de comandos proibidos a partir de estados inválidos,
-garantindo que o domínio bloqueia todas as transições ilegais e mantém invariantes
-semânticas consistentes.
+Este arquivo testa tentativas de comandos proibidos a partir de estados invÃ¡lidos,
+garantindo que o domÃ­nio bloqueia todas as transiÃ§Ãµes ilegais e mantÃ©m invariantes
+semÃ¢nticas consistentes.
 """
 
 from app.domain.relato.orchestrator import decide
@@ -20,7 +20,7 @@ from app.domain.relato.states import RelatoStatus
 
 
 def test_negar_submissao_estado_error():
-    """Não é possível submeter um relato em estado ERROR."""
+    """NÃ£o Ã© possÃ­vel submeter um relato em estado ERROR."""
     actor = Actor(id="user-123", role=ActorRole.USER)
     command = SubmitRelato(relato_id="relato-456")
 
@@ -38,7 +38,7 @@ def test_negar_submissao_estado_error():
 
 
 def test_negar_submissao_estado_processado():
-    """Não é possível submeter um relato em estado PROCESSED."""
+    """NÃ£o Ã© possÃ­vel submeter um relato em estado PROCESSED."""
     actor = Actor(id="user-123", role=ActorRole.USER)
     command = SubmitRelato(relato_id="relato-456")
 
@@ -56,7 +56,7 @@ def test_negar_submissao_estado_processado():
 
 
 def test_negar_aprovacao_estado_draft():
-    """Não é possível aprovar um relato em estado CREATED."""
+    """NÃ£o Ã© possÃ­vel aprovar um relato em estado CREATED."""
     actor = Actor(id="admin-123", role=ActorRole.ADMIN)
     command = ApproveRelatoPublic(relato_id="relato-456")
 
@@ -74,7 +74,7 @@ def test_negar_aprovacao_estado_draft():
 
 
 def test_negar_aprovacao_estado_processing():
-    """Não é possível aprovar um relato em estado PROCESSING."""
+    """NÃ£o Ã© possÃ­vel aprovar um relato em estado PROCESSING."""
     actor = Actor(id="admin-123", role=ActorRole.ADMIN)
     command = ApproveRelatoPublic(relato_id="relato-456")
 
@@ -92,7 +92,7 @@ def test_negar_aprovacao_estado_processing():
 
 
 def test_negar_rejeicao_estado_draft():
-    """Não é possível rejeitar um relato em estado CREATED."""
+    """NÃ£o Ã© possÃ­vel rejeitar um relato em estado CREATED."""
     actor = Actor(id="admin-123", role=ActorRole.ADMIN)
     command = RejectRelato(relato_id="relato-456")
 
@@ -110,7 +110,7 @@ def test_negar_rejeicao_estado_draft():
 
 
 def test_negar_rejeicao_estado_processing():
-    """Não é possível rejeitar um relato em estado PROCESSING."""
+    """NÃ£o Ã© possÃ­vel rejeitar um relato em estado PROCESSING."""
     actor = Actor(id="admin-123", role=ActorRole.ADMIN)
     command = RejectRelato(relato_id="relato-456")
 
@@ -128,7 +128,7 @@ def test_negar_rejeicao_estado_processing():
 
 
 def test_negar_marcar_como_processado_estado_draft():
-    """Não é possível marcar um relato como processado a partir de CREATED."""
+    """NÃ£o Ã© possÃ­vel marcar um relato como processado a partir de CREATED."""
     actor = Actor(id="system", role=ActorRole.SYSTEM)
     command = MarkRelatoAsProcessed(relato_id="relato-456")
 

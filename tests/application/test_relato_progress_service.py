@@ -1,4 +1,4 @@
-from datetime import datetime
+﻿from datetime import datetime
 from unittest.mock import Mock
 
 from app.services.relato_progress_service import RelatoProgressService
@@ -7,15 +7,15 @@ from app.domain.ux_progress.step_definition import default_step_definitions
 import pytest
 
 """
-Teste 1 — Service retorna progresso com repositório vazio
-Este é o teste base.
+Teste 1 â€” Service retorna progresso com repositÃ³rio vazio
+Este Ã© o teste base.
 """
 def test_service_returns_progress_with_no_effects():
     """
     O que esse teste prova
-    - service chama o domínio
-    - nenhuma lógica foi duplicada
-    - narrativa default está correta
+    - service chama o domÃ­nio
+    - nenhuma lÃ³gica foi duplicada
+    - narrativa default estÃ¡ correta
     """
     # Arrange
     mock_repo = Mock()
@@ -36,15 +36,15 @@ def test_service_returns_progress_with_no_effects():
     assert len(progress.steps) == len(default_step_definitions())
 
 """
-🧪 Teste 2 — Service respeita efeitos vindos do repositório
-Aqui validamos orquestração correta, não regra.
+ðŸ§ª Teste 2 â€” Service respeita efeitos vindos do repositÃ³rio
+Aqui validamos orquestraÃ§Ã£o correta, nÃ£o regra.
 """
 def test_service_passes_effects_to_domain_correctly():
     """
     O que esse teste garante
-    Application Service não filtra
-    Application Service não interpreta
-    Ele apenas encaminha dados ao domínio
+    Application Service nÃ£o filtra
+    Application Service nÃ£o interpreta
+    Ele apenas encaminha dados ao domÃ­nio
     """
     # Arrange
     mock_repo = Mock()
@@ -66,8 +66,8 @@ def test_service_passes_effects_to_domain_correctly():
     assert step_states["persist_relato"] == "done"
     
 """    
-🧪 Teste 3 — Repositório é chamado corretamente
-Esse teste é simples, mas importante.
+ðŸ§ª Teste 3 â€” RepositÃ³rio Ã© chamado corretamente
+Esse teste Ã© simples, mas importante.
 """
 def test_service_calls_repository_with_correct_relato_id():
     mock_repo = Mock()
@@ -80,14 +80,14 @@ def test_service_calls_repository_with_correct_relato_id():
     mock_repo.fetch_by_relato_id.assert_called_once_with("relato_123")
 
 """
-📌 Isso garante contrato entre camadas.
-🧪 Teste 4 — Erro no repositório propaga corretamente
-O Application Service não deve engolir exceções.
+ðŸ“Œ Isso garante contrato entre camadas.
+ðŸ§ª Teste 4 â€” Erro no repositÃ³rio propaga corretamente
+O Application Service nÃ£o deve engolir exceÃ§Ãµes.
 """
 def test_service_propagates_repository_errors():
     """
-     📌 A rota decide como traduzir isso para HTTP.
-     O service não é camada de erro HTTP.
+     ðŸ“Œ A rota decide como traduzir isso para HTTP.
+     O service nÃ£o Ã© camada de erro HTTP.
     """
     mock_repo = Mock()
     mock_repo.fetch_by_relato_id.side_effect = RuntimeError("DB down")

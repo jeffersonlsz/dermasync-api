@@ -1,4 +1,4 @@
-# scripts/01_gerar_jsonl_bruto.py
+﻿# scripts/01_gerar_jsonl_bruto.py
 
 import argparse
 import asyncio
@@ -22,11 +22,11 @@ logger = logging.getLogger(__name__)
 
 OUTPUT_DIR = "./app/pipeline/dados/jsonl_brutos"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-# Definindo a versão do pipeline
+# Definindo a versÃ£o do pipeline
 
-VERSAO_PIPELINE = "v0.0.1"  # Versão do pipeline, pode ser alterada conforme necessário
+VERSAO_PIPELINE = "v0.0.1"  # VersÃ£o do pipeline, pode ser alterada conforme necessÃ¡rio
 
-# ===== FUNÇÕES DE LIMPEZA =====
+# ===== FUNÃ‡Ã•ES DE LIMPEZA =====
 
 
 def remover_emojis(texto: str) -> str:
@@ -38,8 +38,8 @@ def remover_emojis(texto: str) -> str:
 def limpar_texto(texto: str) -> str:
     texto = remover_emojis(texto)
     texto = re.sub(r"[^\w\s.,!?-]", "", texto)  # Remove caracteres especiais
-    texto = re.sub(r"\s+", " ", texto)  # Remove múltiplos espaços
-    texto = re.sub(r"\.(?=\S)", ". ", texto)  # Garante espaço após ponto
+    texto = re.sub(r"\s+", " ", texto)  # Remove mÃºltiplos espaÃ§os
+    texto = re.sub(r"\.(?=\S)", ". ", texto)  # Garante espaÃ§o apÃ³s ponto
     return texto.strip()
 
 
@@ -62,7 +62,7 @@ def extrair_firestore_documentos(colecao: str):
             {
                 "origem": "firestore",
                 "id_relato": doc.id,
-                "nome_arquivo": f"{doc.id}.txt",  # Nome fictício para compatibilidade
+                "nome_arquivo": f"{doc.id}.txt",  # Nome fictÃ­cio para compatibilidade
                 "data_modificacao": (
                     doc.update_time.isoformat() if doc.update_time else None
                 ),
@@ -80,11 +80,11 @@ def salvar_jsonl(lista, caminho_saida):
 
 
 async def gerar_jsonl_bruto(input_dir: dict, output_path: str):
-    logger.info("Iniciando a geração do JSONL bruto...")
-    logger.info(f"Parâmetros de entrada: {input_dir}, {output_path}")
+    logger.info("Iniciando a geraÃ§Ã£o do JSONL bruto...")
+    logger.info(f"ParÃ¢metros de entrada: {input_dir}, {output_path}")
     registros = []
 
-    # === Parâmetros ===
+    # === ParÃ¢metros ===
     origem_dict = input_dir.get("origem", {})
     fonte_plataforma = (
         origem_dict.get("plataforma") if isinstance(origem_dict, dict) else origem_dict
@@ -97,7 +97,7 @@ async def gerar_jsonl_bruto(input_dir: dict, output_path: str):
     if not src_dir:
         raise ValueError("src_dir is required in input_dir dict")
 
-    print(f"📂 Lendo arquivos do diretório: {src_dir} ({fonte_plataforma})")
+    print(f"ðŸ“‚ Lendo arquivos do diretÃ³rio: {src_dir} ({fonte_plataforma})")
 
     for file in Path(src_dir).glob("*.txt"):
         with open(file, "r", encoding="utf-8") as f:
@@ -115,7 +115,7 @@ async def gerar_jsonl_bruto(input_dir: dict, output_path: str):
             "conteudo_original": conteudo,
             "origem": {
                 "plataforma": fonte_plataforma,
-                "link": None,  # Você pode adaptar isso se extrair dos arquivos ou nomes
+                "link": None,  # VocÃª pode adaptar isso se extrair dos arquivos ou nomes
                 "tipo": tipo_postagem,
                 "ano_postagem": None,
                 "grupo": grupo_nome,
@@ -129,7 +129,7 @@ async def gerar_jsonl_bruto(input_dir: dict, output_path: str):
     with open(output_path, "w", encoding="utf-8") as fout:
         for r in registros:
             fout.write(json.dumps(r, ensure_ascii=False) + "\n")
-        print(f"💾 {len(registros)} registros salvos em {output_path}")
+        print(f"ðŸ’¾ {len(registros)} registros salvos em {output_path}")
 
 
 if __name__ == "__main__":
@@ -139,34 +139,34 @@ if __name__ == "__main__":
             "origem": "facebook",
             "src_dir": "D:\\workspace_projects_001\\fotos_dados\\resultados",
             "ctx_id": "1234567890",
-            "grupo": "Dermatite Atópica Brasil",
+            "grupo": "Dermatite AtÃ³pica Brasil",
             "tipo": "comentario",
         },
         {
             "origem": "youtube",
             "src_dir": "D:\\workspace_projects_001\\fotos_dados\\resultados\\videos_transcripts",
             "ctx_id": "1234567890",
-            "grupo": "Dermatite Atópica Brasil",
+            "grupo": "Dermatite AtÃ³pica Brasil",
             "tipo": "comentario",
         },
         {
             "origem": "facebook",
             "src_dir": "D:\\workspace_projects_001\\fotos_dados\\resultados\\depoimentos",
             "ctx_id": "1234567890",
-            "grupo": "Dermatite Atópica Brasil",
+            "grupo": "Dermatite AtÃ³pica Brasil",
             "tipo": "comentario",
         },
         {
             "origem": "facebook",
             "src_dir": "D:\\workspace_projects_001\\fotos_dados\\resultados\\coleta",
             "ctx_id": "1234567890",
-            "grupo": "Dermatite Atópica Brasil",
+            "grupo": "Dermatite AtÃ³pica Brasil",
             "tipo": "comentario",
         },
     ]
 
     data_hoje = datetime.now().strftime("%Y%m%d")
-    # Definindo o nome do arquivo de saída
+    # Definindo o nome do arquivo de saÃ­da
     origem = "facebook"  # ou 'youtube', dependendo do contexto
     ARQUIVO_SAIDA = f"relatos-{data_hoje}-{origem}-{VERSAO_PIPELINE}.jsonl"
 
@@ -175,7 +175,7 @@ if __name__ == "__main__":
             {
                 "origem": origem,
                 "src_dir": "D:\\workspace_projects_001\\fotos_dados\\resultados\\depoimentos",
-                "grupo": "Dermatite Atópica Brasil",
+                "grupo": "Dermatite AtÃ³pica Brasil",
                 "ctx_id": "1234567890",
                 "tipo": "comentario",
             },
@@ -183,22 +183,22 @@ if __name__ == "__main__":
         )
 
     asyncio.run(main())
-    # print("📂 Lendo arquivos dos diretórios:", diretorios)
+    # print("ðŸ“‚ Lendo arquivos dos diretÃ³rios:", diretorios)
     # registros = processar_diretorios(diretorios, 'local-youtube')
-    # print(f"📄 Encontrados {len(registros)} registros nos diretórios.")
+    # print(f"ðŸ“„ Encontrados {len(registros)} registros nos diretÃ³rios.")
     # for i, registro in enumerate(registros):
     #    print(f"{i+1:03d} - {registro['id_relato']} - {registro['link']}...")
 
-    # print("📂 Lendo documentos do Firestore...")
+    # print("ðŸ“‚ Lendo documentos do Firestore...")
     # colecao_firestore = "jornadas"
     # registros_firestore = extrair_firestore_documentos(colecao_firestore)
     # hoje = datetime.now().strftime("%Y%m%d")
     # output_path = f"app/pipeline/dados/jsonl_brutos/relatos-{hoje}-v.jsonl"
     # os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    # print(f"💾 Salvando {len(registros) + len(registros_firestore) } registros em {output_path}")
+    # print(f"ðŸ’¾ Salvando {len(registros) + len(registros_firestore) } registros em {output_path}")
     # salvar_jsonl(registros + registros_firestore, output_path)
-    # print(f"💾 Salvando {len(registros)} registros em {output_path}")
+    # print(f"ðŸ’¾ Salvando {len(registros)} registros em {output_path}")
     # salvar_jsonl(registros, output_path)
 
-    # print("✅ Finalizado com sucesso.")
+    # print("âœ… Finalizado com sucesso.")

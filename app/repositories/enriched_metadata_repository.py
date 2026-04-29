@@ -1,14 +1,14 @@
-from datetime import datetime
+﻿from datetime import datetime
 from google.cloud import firestore
 
 
 class EnrichedMetadataRepository:
     """
-    Repositório de persistência de EnrichedMetadata (schema-agnóstico).
+    RepositÃ³rio de persistÃªncia de EnrichedMetadata (schema-agnÃ³stico).
 
-    Responsabilidade única:
+    Responsabilidade Ãºnica:
     - Persistir enrichment validado
-    - NÃO conter lógica cognitiva
+    - NÃƒO conter lÃ³gica cognitiva
     """
 
     COLLECTION = "relato_enrichments"
@@ -27,7 +27,7 @@ class EnrichedMetadataRepository:
         created_at: datetime | None = None,
     ) -> None:
         """
-        Persiste enrichment cognitivo já validado.
+        Persiste enrichment cognitivo jÃ¡ validado.
 
         - data: payload completo (schema v2)
         - validation_mode: 'relaxed' | 'strict'

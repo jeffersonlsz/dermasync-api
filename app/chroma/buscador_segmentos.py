@@ -1,4 +1,4 @@
-import chromadb
+﻿import chromadb
 from sentence_transformers import SentenceTransformer
 
 # Inicializa ChromaDB persistente
@@ -26,21 +26,21 @@ def _buscar_por_tags(
     log: bool = False,
 ):
     if collection is None:
-        raise ValueError("Collection não fornecida.")
+        raise ValueError("Collection nÃ£o fornecida.")
     if modo not in ("and", "or"):
-        raise ValueError(f"Modo inválido: {modo}. Use 'and' ou 'or'.")
+        raise ValueError(f"Modo invÃ¡lido: {modo}. Use 'and' ou 'or'.")
     # Normaliza as tags
     normalized_tags = [f"tag_{normalizar_tag(tag)}" for tag in tags]
     if log:
-        print(f"🔍 Buscando por tags normalizadas: {normalized_tags}")
-        print(f"📐 Modo de combinação: {modo.upper()}")
+        print(f"ðŸ” Buscando por tags normalizadas: {normalized_tags}")
+        print(f"ðŸ“ Modo de combinaÃ§Ã£o: {modo.upper()}")
     # Usa $in para buscar todos documentos que tenham pelo menos uma das tags
-    where_filter = {"$or": normalized_tags}  # Pseudo-operação, pois $or não é aceito
+    where_filter = {"$or": normalized_tags}  # Pseudo-operaÃ§Ã£o, pois $or nÃ£o Ã© aceito
 
-    # Solução real: fazer uma busca ampla e filtrar localmente
+    # SoluÃ§Ã£o real: fazer uma busca ampla e filtrar localmente
     resultados_brutos = collection.get(include=["metadatas", "documents"])
 
-    # Filtragem local: mantém apenas os que contêm **todas** as tags
+    # Filtragem local: mantÃ©m apenas os que contÃªm **todas** as tags
     resultados_filtrados = []
     for doc, metadata in zip(
         resultados_brutos["documents"], resultados_brutos["metadatas"]
@@ -57,7 +57,7 @@ def _buscar_por_tags(
 
     if log:
         print(
-            f"✅ {len(resultados_filtrados)} resultados encontrados no modo {modo.upper()}."
+            f"âœ… {len(resultados_filtrados)} resultados encontrados no modo {modo.upper()}."
         )
 
     resultados_formatados = []
@@ -96,9 +96,9 @@ def buscar_segmentos_similares(query: str, k: int = 5):
 
 
 if __name__ == "__main__":
-    # Teste rápido da função
+    # Teste rÃ¡pido da funÃ§Ã£o
     query = "Cremes para o rosto"
-    # Suponha que você já tenha uma variável `collection` pronta
+    # Suponha que vocÃª jÃ¡ tenha uma variÃ¡vel `collection` pronta
     res_and = _buscar_por_tags(
         ["corticoide", "hixizine", "bullying"],
         modo="and",
@@ -120,4 +120,4 @@ if __name__ == "__main__":
     """ resultados_similares = buscar_segmentos_similares(query, k=5)
     print("Resultados similares encontrados:", len(resultados_similares))
     for r in resultados_similares:
-        print(f"Texto: {r['texto']}\nMetadados: {r['metadados']}\nDistância: {r['distancia']}\n") """
+        print(f"Texto: {r['texto']}\nMetadados: {r['metadados']}\nDistÃ¢ncia: {r['distancia']}\n") """

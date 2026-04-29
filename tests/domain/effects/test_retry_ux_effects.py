@@ -1,4 +1,4 @@
-# tests/domain/effects/test_retry_ux_effects.py
+﻿# tests/domain/effects/test_retry_ux_effects.py
 from httpx import AsyncClient
 import pytest
 
@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 
 # =========================================================
-# TEST 1 — Ignora quando não há effects falhos
+# TEST 1 â€” Ignora quando nÃ£o hÃ¡ effects falhos
 # =========================================================
 
 def test_retry_emits_retry_ux_effect(monkeypatch):
@@ -30,7 +30,7 @@ def test_retry_emits_retry_ux_effect(monkeypatch):
 
 
 # =========================================================
-# TEST 2 — Executa apenas effects com success=False
+# TEST 2 â€” Executa apenas effects com success=False
 # =========================================================
 
 
@@ -62,7 +62,7 @@ def test_retry_executes_failed_effects(monkeypatch):
     assert executed[0].type == "UPLOAD_IMAGES"
 
 # =========================================================
-# TEST 3 — Endpoint de retry
+# TEST 3 â€” Endpoint de retry
 # =========================================================
 
 
@@ -76,7 +76,7 @@ async def test_retry_endpoint_returns_202(
     assert response.status_code == 202
 
 # =========================================================
-# TEST 4 — Endpoint de retry retorna UXEffect
+# TEST 4 â€” Endpoint de retry retorna UXEffect
 # =========================================================
 
 @pytest.mark.asyncio

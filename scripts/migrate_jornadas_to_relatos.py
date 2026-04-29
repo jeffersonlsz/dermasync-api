@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Migration script: Copies all documents from 'jornadas' collection to 'relatos' collection.
 Preserves document IDs.

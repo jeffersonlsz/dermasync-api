@@ -1,4 +1,4 @@
-# app/services/effects/executors/upload_image.py
+﻿# app/services/effects/executors/upload_image.py
 import logging
 from datetime import datetime
 
@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 
 def execute_upload_image(metadata: dict) -> EffectResult:
     """
-    Executor técnico de UPLOAD_IMAGE.
+    Executor tÃ©cnico de UPLOAD_IMAGE.
 
-    🔥 Este é o ÚLTIMO ponto do sistema onde bytes existem.
-    A partir daqui, apenas referências são propagadas.
+    ðŸ”¥ Este Ã© o ÃšLTIMO ponto do sistema onde bytes existem.
+    A partir daqui, apenas referÃªncias sÃ£o propagadas.
     """
 
-    # --- Extração explícita ---
+    # --- ExtraÃ§Ã£o explÃ­cita ---
     relato_id: str = str(metadata["relato_id"])
     image_bytes: bytes = metadata["bytes"]
     path: str = metadata["path"]

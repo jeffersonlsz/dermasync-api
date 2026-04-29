@@ -1,4 +1,4 @@
-# app/llm/enrich_metadata_runner.py
+﻿# app/llm/enrich_metadata_runner.py
 import logging
 from typing import Dict
 
@@ -11,13 +11,13 @@ logger = logging.getLogger(__name__)
 
 def run_enrich_metadata_llm(relato_text: str) -> Dict:
     """
-    Executa o enriquecimento semântico do relato.
-    Retorna um dicionário estruturado.
-    Pode levantar exceções.
+    Executa o enriquecimento semÃ¢ntico do relato.
+    Retorna um dicionÃ¡rio estruturado.
+    Pode levantar exceÃ§Ãµes.
     """
 
     if not relato_text or not relato_text.strip():
-        raise ValueError("Relato vazio ou inválido.")
+        raise ValueError("Relato vazio ou invÃ¡lido.")
 
     prompt = build_enrich_metadata_prompt(relato_text)
 
@@ -35,15 +35,15 @@ def run_enrich_metadata_llm(relato_text: str) -> Dict:
     data = _parse_llm_response(response)
 
     if not isinstance(data, dict):
-        raise ValueError("Resposta do LLM não retornou JSON válido.")
+        raise ValueError("Resposta do LLM nÃ£o retornou JSON vÃ¡lido.")
 
     return data
 
 
 def _parse_llm_response(response: str) -> Dict:
     """
-    Parser isolado de propósito.
-    Aqui é onde você pode endurecer validações depois.
+    Parser isolado de propÃ³sito.
+    Aqui Ã© onde vocÃª pode endurecer validaÃ§Ãµes depois.
     """
     import json
     from app.services.llm.normalization import strip_code_fences

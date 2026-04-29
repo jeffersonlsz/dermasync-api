@@ -1,4 +1,4 @@
-"""Module for generating directory tree structures with filtering capabilities."""
+﻿"""Module for generating directory tree structures with filtering capabilities."""
 
 import fnmatch
 from pathlib import Path
@@ -38,19 +38,19 @@ def print_directory_tree(start_path=".", ignore_patterns=None, indent="", prefix
             if not should_ignore:
                 items.append(item)
     except OSError as e:
-        return f"{indent}{prefix}⚠ Error reading directory: {e}"
+        return f"{indent}{prefix}âš  Error reading directory: {e}"
 
     items.sort(key=lambda x: (not x.is_dir(), x.name.lower()))
     lines = []
 
     for index, item in enumerate(items):
         is_last = index == len(items) - 1
-        connector = "└── " if is_last else "├── "
+        connector = "â””â”€â”€ " if is_last else "â”œâ”€â”€ "
         line = f"{indent}{prefix}{connector}{item.name}"
         lines.append(line)
 
         if item.is_dir():
-            new_prefix = "    " if is_last else "│   "
+            new_prefix = "    " if is_last else "â”‚   "
             sub_tree = print_directory_tree(
                 start_path=item,
                 ignore_patterns=ignore_patterns,

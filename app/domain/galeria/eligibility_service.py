@@ -1,4 +1,4 @@
-# app/domain/galeria/eligibility_service.py
+﻿# app/domain/galeria/eligibility_service.py
 
 from typing import Optional
 
@@ -13,8 +13,8 @@ from .eligibility import RelatoEligibilityDecision
 
 class RelatoEligibilityService:
     """
-    Decide elegibilidade e nível base de exposição.
-    Não decide conteúdo específico — apenas limites semânticos.
+    Decide elegibilidade e nÃ­vel base de exposiÃ§Ã£o.
+    NÃ£o decide conteÃºdo especÃ­fico â€” apenas limites semÃ¢nticos.
     """
 
     def decide(
@@ -25,7 +25,7 @@ class RelatoEligibilityService:
     ) -> RelatoEligibilityDecision:
 
         # ------------------------------------------------------------
-        # 0️⃣ Anônimo
+        # 0ï¸âƒ£ AnÃ´nimo
         # ------------------------------------------------------------
         if user is None:
             if relato_policy.status == RelatoStatus.APPROVED:
@@ -34,7 +34,7 @@ class RelatoEligibilityService:
                     reason="public_access",
                     similarity_required=False,
                     min_similarity=None,
-                    exposure_factor=0.4,  # anônimo vê menos
+                    exposure_factor=0.4,  # anÃ´nimo vÃª menos
                 )
 
             return RelatoEligibilityDecision(
@@ -46,7 +46,7 @@ class RelatoEligibilityService:
             )
 
         # ------------------------------------------------------------
-        # 1️⃣ ADMIN
+        # 1ï¸âƒ£ ADMIN
         # ------------------------------------------------------------
         if user.role == UserRole.ADMIN:
             return RelatoEligibilityDecision(
@@ -58,7 +58,7 @@ class RelatoEligibilityService:
             )
 
         # ------------------------------------------------------------
-        # 2️⃣ COLLABORATOR
+        # 2ï¸âƒ£ COLLABORATOR
         # ------------------------------------------------------------
         if user.role == UserRole.COLLABORATOR:
             if relato_policy.status in {
@@ -82,7 +82,7 @@ class RelatoEligibilityService:
             )
 
         # ------------------------------------------------------------
-        # 3️⃣ USER comum
+        # 3ï¸âƒ£ USER comum
         # ------------------------------------------------------------
         if user.role == UserRole.USER:
 
@@ -104,7 +104,7 @@ class RelatoEligibilityService:
                     exposure_factor=0.0,
                 )
 
-            # Similaridade exigida → exposição depende do threshold
+            # Similaridade exigida â†’ exposiÃ§Ã£o depende do threshold
             if VisibilityConstraint.REQUIRE_SIMILARITY in relato_policy.constraints:
                 return RelatoEligibilityDecision(
                     eligible=True,
@@ -114,7 +114,7 @@ class RelatoEligibilityService:
                     exposure_factor=self._base_exposure_for(user.exposure_level),
                 )
 
-            # acesso padrão
+            # acesso padrÃ£o
             return RelatoEligibilityDecision(
                 eligible=True,
                 reason="default_user_access",
@@ -126,7 +126,7 @@ class RelatoEligibilityService:
         raise ValueError(f"Unhandled user role: {user.role}")
 
     # ------------------------------------------------------------
-    # Threshold mínimo por perfil cognitivo
+    # Threshold mÃ­nimo por perfil cognitivo
     # ------------------------------------------------------------
     def _threshold_for(self, exposure_level: ExposureLevel) -> float:
         return {
@@ -136,7 +136,7 @@ class RelatoEligibilityService:
         }[exposure_level]
 
     # ------------------------------------------------------------
-    # Exposição base por perfil cognitivo
+    # ExposiÃ§Ã£o base por perfil cognitivo
     # ------------------------------------------------------------
     def _base_exposure_for(self, exposure_level: ExposureLevel) -> float:
         return {

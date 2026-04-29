@@ -1,4 +1,4 @@
-import json
+﻿import json
 import logging
 import os
 import tempfile
@@ -15,38 +15,38 @@ from app.pipeline.a_extracao_bruta.gerar_jsonl_bruto import \
 logger = logging.getLogger(__name__)
 
 
-# Teste para ler um diretorio temporário e gerar um arquivo JSONL bruto a partir de um arquivo .txt
-# O teste deve garantir que o arquivo JSONL gerado tenha o formato correto e os campos obrigatórios estejam presentes.
-# Além disso, deve validar o JSON contra um schema predefinido.
+# Teste para ler um diretorio temporÃ¡rio e gerar um arquivo JSONL bruto a partir de um arquivo .txt
+# O teste deve garantir que o arquivo JSONL gerado tenha o formato correto e os campos obrigatÃ³rios estejam presentes.
+# AlÃ©m disso, deve validar o JSON contra um schema predefinido.
 @pytest.mark.asyncio
 async def test_gerar_jsonl_bruto_formato_valido():
     """Teste para gerar um arquivo JSONL bruto a partir de um arquivo .txt mockado."""
 
-    # 1. Cria diretório e arquivo .txt mockado
+    # 1. Cria diretÃ³rio e arquivo .txt mockado
     with tempfile.TemporaryDirectory() as tmpdir:
         txt_path = Path(tmpdir) / "relato1.txt"
         txt_path.write_text("Relato de teste sobre coceira e pele seca.")
 
         output_path = Path(tmpdir) / "saida.jsonl"
 
-        # 2. Chama a função alvo
+        # 2. Chama a funÃ§Ã£o alvo
         await gerar_jsonl_bruto(
             {
                 "origem": "facebook",
                 "src_dir": tmpdir,
                 "ctx_id": "1234567890",
-                "grupo": "Dermatite Atópica Brasil",
+                "grupo": "Dermatite AtÃ³pica Brasil",
                 "tipo": "comentario",
             },
             output_path=output_path,
         )
 
-        # 3. Lê o resultado
-        assert output_path.exists(), "Arquivo JSONL não foi gerado."
+        # 3. LÃª o resultado
+        assert output_path.exists(), "Arquivo JSONL nÃ£o foi gerado."
         linhas = output_path.read_text().splitlines()
         assert len(linhas) == 1, "Deveria conter uma linha por relato."
 
-        # 4. Valida o JSON e campos obrigatórios
+        # 4. Valida o JSON e campos obrigatÃ³rios
         dado = json.loads(linhas[0])
         logging.info("Dado gerado: %s", dado)
         assert isinstance(dado, dict), "O dado deve ser um objeto JSON."
@@ -61,7 +61,7 @@ async def test_gerar_jsonl_bruto_formato_valido():
         assert isinstance(dado["id_relato"], str)
         assert isinstance(dado["origem"], dict)
         assert isinstance(dado["data_modificacao"], str)
-        datetime.fromisoformat(dado["data_modificacao"])  # lança erro se inválido
+        datetime.fromisoformat(dado["data_modificacao"])  # lanÃ§a erro se invÃ¡lido
 
 
 @pytest.mark.asyncio
@@ -77,4 +77,4 @@ async def test_valida_schema_jsonl_bruto():
     ) as f:
         for linha in f:
             dado = json.loads(linha)
-            validate(instance=dado, schema=schema)  # lança erro se inválido
+            validate(instance=dado, schema=schema)  # lanÃ§a erro se invÃ¡lido

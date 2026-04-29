@@ -1,11 +1,11 @@
-#  File: app/archlog_sync/mermaid_generator.py
+﻿#  File: app/archlog_sync/mermaid_generator.py
 # -*- coding: utf-8 -*-
 
 import logging
 import sys
 
 """
-Este módulo contém funções para gerar diagramas de sequência em Mermaid a partir de eventos de log.
+Este mÃ³dulo contÃ©m funÃ§Ãµes para gerar diagramas de sequÃªncia em Mermaid a partir de eventos de log.
 """
 
 from .parser import parse_logs
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def to_sequence_diagram(events: list[dict]) -> str:
-    logger.info("Gerando diagrama de sequência Mermaid a partir dos eventos de log")
+    logger.info("Gerando diagrama de sequÃªncia Mermaid a partir dos eventos de log")
     logger.info(f"Total de eventos recebidos: {len(events)}")
     if not events:
         logger.warning("Nenhum evento fornecido, retornando diagrama vazio")
@@ -28,7 +28,7 @@ def to_sequence_diagram(events: list[dict]) -> str:
       - "operation": a short description of the operation (e.g. HTTP method + path)
 
     Returns a string containing a valid Mermaid sequenceDiagram. If `events` is empty,
-    it will still emit the “sequenceDiagram” header alone.
+    it will still emit the â€œsequenceDiagramâ€ header alone.
     """
     # Always start with the header
     lines = ["sequenceDiagram"]

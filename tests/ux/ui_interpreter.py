@@ -1,4 +1,4 @@
-# tests/ux/ui_interpreter.py
+﻿# tests/ux/ui_interpreter.py
 
 from typing import List, Dict, Any
 
@@ -7,7 +7,7 @@ def interpret_for_ui(ux_effects: List[Dict[str, Any]]) -> List[str]:
     """
     Simulador cognitivo de UI.
 
-    Recebe UX Effects já serializados (shape público).
+    Recebe UX Effects jÃ¡ serializados (shape pÃºblico).
     Retorna a narrativa percebida por um humano.
     """
 
@@ -25,9 +25,9 @@ def interpret_for_ui(ux_effects: List[Dict[str, Any]]) -> List[str]:
             if failed_effects_count > 0:
                 story.append("Tentando novamente...")
             else:
-                story.append("Não foi possível concluir agora")
+                story.append("NÃ£o foi possÃ­vel concluir agora")
 
-        # efeitos desconhecidos são ignorados
+        # efeitos desconhecidos sÃ£o ignorados
         else:
             continue
 

@@ -1,4 +1,4 @@
-# app/domain/relato/effects/rollback.py
+﻿# app/domain/relato/effects/rollback.py
 from dataclasses import dataclass
 
 from .base import Effect

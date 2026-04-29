@@ -1,4 +1,4 @@
-# tests/ux/test_cognitive_integration_flow.py
+﻿# tests/ux/test_cognitive_integration_flow.py
 
 from app.domain.ux_effects.processing_started import ProcessingStartedUXEffect
 from app.domain.ux_effects.retry import RetryUXEffect
@@ -28,5 +28,5 @@ def test_user_sees_coherent_story_from_ux_effects():
         "Recebemos seu relato",
         "Tentando novamente...",
         "Tentando novamente...",
-        "Não foi possível concluir agora",
+        "NÃ£o foi possÃ­vel concluir agora",
     ]

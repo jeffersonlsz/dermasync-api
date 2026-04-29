@@ -1,4 +1,4 @@
-"""Orquestrador de enriquecimento de metadados para relatos de dermatite atópica."""
+﻿"""Orquestrador de enriquecimento de metadados para relatos de dermatite atÃ³pica."""
 
 import json
 import logging
@@ -9,7 +9,7 @@ from pathlib import Path
 from app.services.llm.normalization import strip_code_fences
 from ..llm_client.base import get_llm_client
 
-# === CONFIGURAÇÕES ===
+# === CONFIGURAÃ‡Ã•ES ===
 MODELO_LLM = "gemini"
 DIRETORIO_JSONS_BRUTOS = Path("app/pipeline/dados/jsonl_brutos")
 ENTRADA_JSONL_BRUTO = "relatos-20250620-facebook-v0.0.1.jsonl"
@@ -29,7 +29,7 @@ logger.info("Current Python path: %s", sys.path)
 
 
 def extrair_idade_e_genero(_conteudo: str) -> dict:
-    """Extrai idade e gênero do conteúdo do relato (mock function)."""
+    """Extrai idade e gÃªnero do conteÃºdo do relato (mock function)."""
     return {"idade": 22, "genero": "Feminino", "classificacao_etaria": "Adulto"}
 
 
@@ -41,20 +41,20 @@ def extrair_tags(conteudo: str) -> dict:
         conteudo: Texto do relato a ser processado
 
     Returns:
-        Dicionário com os campos extraídos prontos para uso no JSON final
+        DicionÃ¡rio com os campos extraÃ­dos prontos para uso no JSON final
 
     Raises:
-        ValueError: Se o cliente LLM não estiver configurado ou resposta inválida
+        ValueError: Se o cliente LLM nÃ£o estiver configurado ou resposta invÃ¡lida
     """
     client = get_llm_client("gemini", MODELO_LLM)
     logger.info("Usando cliente LLM: %s", client)
     if not client:
-        raise ValueError("Cliente LLM não configurado corretamente.")
+        raise ValueError("Cliente LLM nÃ£o configurado corretamente.")
 
     prompt = (
         "A partir do texto abaixo, extraia SOMENTE os seguintes dados como estrutura JSON:"
         "\n- sintomas\n- produtos_naturais\n- terapias_realizadas\n- medicamentos\n\n"
-        "Formato de resposta (não inclua explicações):\n"
+        "Formato de resposta (nÃ£o inclua explicaÃ§Ãµes):\n"
         "{\n"
         '  "sintomas": [...],\n'
         '  "produtos_naturais": [...],\n'
@@ -63,14 +63,14 @@ def extrair_tags(conteudo: str) -> dict:
         '    {"nome_comercial": ..., "frequencia": ..., "duracao": ... }\n'
         "  ]\n"
         "}\n\n"
-        "Ignore nomes próprios e preencha com listas vazias ou 'ausente' se não houver informação.\n\n"
+        "Ignore nomes prÃ³prios e preencha com listas vazias ou 'ausente' se nÃ£o houver informaÃ§Ã£o.\n\n"
         f"TEXTO:\n{conteudo}"
     )
     logger.info("Enviando prompt para LLM...")
     resposta = client.completar(prompt)
     logger.info("Resposta do LLM recebida")
 
-    # Normalização da saída
+    # NormalizaÃ§Ã£o da saÃ­da
     resposta = strip_code_fences(resposta)
     logger.info("Resposta sanitizada do LLM")
 
@@ -78,7 +78,7 @@ def extrair_tags(conteudo: str) -> dict:
         dados = json.loads(resposta)
     except json.JSONDecodeError as e:
         logger.error("Erro ao decodificar JSON: %s", e)
-        raise ValueError("Resposta do LLM não é um JSON válido.") from e
+        raise ValueError("Resposta do LLM nÃ£o Ã© um JSON vÃ¡lido.") from e
 
     if not isinstance(dados, dict):
         raise ValueError("Resposta do LLM deve ser um objeto JSON.")
@@ -92,7 +92,7 @@ def extrair_tags(conteudo: str) -> dict:
 
 
 def anonimizar_conteudo(_conteudo: str) -> str:
-    """Anonimiza o conteúdo do relato (mock function)."""
+    """Anonimiza o conteÃºdo do relato (mock function)."""
     return "conteudo anonimizado"
 
 
@@ -101,10 +101,10 @@ def processar_relato(dado: dict) -> dict:
     Processa um relato individual, enriquecendo com metadados.
 
     Args:
-        dado: Dicionário com os dados originais do relato
+        dado: DicionÃ¡rio com os dados originais do relato
 
     Returns:
-        Dicionário com os dados enriquecidos
+        DicionÃ¡rio com os dados enriquecidos
     """
     conteudo = dado.get("conteudo_original", "")
     inicio = datetime.utcnow()
@@ -115,7 +115,7 @@ def processar_relato(dado: dict) -> dict:
     try:
         info_basica = extrair_idade_e_genero(conteudo)
         tags = extrair_tags(conteudo)
-        logger.info("Extração de tags concluída")
+        logger.info("ExtraÃ§Ã£o de tags concluÃ­da")
         conteudo_anonimizado = anonimizar_conteudo(conteudo)
     except Exception as e:  # pylint: disable=broad-except
         erro = str(e)
@@ -142,7 +142,7 @@ def processar_relato(dado: dict) -> dict:
         "status_llm": "concluido" if not erro else "erro",
     }
 def main():
-    """Função principal que orquestra o processamento dos relatos."""
+    """FunÃ§Ã£o principal que orquestra o processamento dos relatos."""
     input_path = DIRETORIO_JSONS_BRUTOS / ENTRADA_JSONL_BRUTO
     output_path = OUTPUT_DIR / JSONL_ENRIQUECIDO
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

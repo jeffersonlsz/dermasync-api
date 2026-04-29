@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 import json
 import os
 import re
@@ -70,14 +70,14 @@ if __name__ == "__main__":
 
     # import pdb	; pdb.set_trace()
     if not os.path.exists(DIRETORIO_JSONS_ENRIQUECIDOS):
-        print(f"❌ Diretório {DIRETORIO_JSONS_ENRIQUECIDOS} não encontrado.")
+        print(f"âŒ DiretÃ³rio {DIRETORIO_JSONS_ENRIQUECIDOS} nÃ£o encontrado.")
         exit(1)
 
     relatos = carregar_jsonl(
         DIRETORIO_JSONS_ENRIQUECIDOS + "/relatos_enriquecidos-20250529.jsonl"
     )
     if not relatos:
-        print("❌ Nenhum relato encontrado para processar.")
+        print("âŒ Nenhum relato encontrado para processar.")
         exit(1)
     segmentos = processar(relatos)
 
@@ -85,4 +85,4 @@ if __name__ == "__main__":
     output_path = f"app/pipeline/dados/segmentos/segmentos-{hoje}.jsonl"
     # os.makedirs(os.path.dirname(output_path), exist_ok=True)
     salvar_jsonl(segmentos, output_path)
-    print(f"✅ {len(segmentos)} segmentos salvos em {output_path}")
+    print(f"âœ… {len(segmentos)} segmentos salvos em {output_path}")

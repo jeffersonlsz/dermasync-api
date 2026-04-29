@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+﻿from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.auth.dependencies import get_current_user, require_roles
 from app.auth.schemas import User, UserRole

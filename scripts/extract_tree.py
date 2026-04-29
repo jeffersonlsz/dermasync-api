@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 extract_tree.py
 
 Extrai a estrutura de pastas do projeto e salva:
- - uma representação em texto "tree"
- - uma representação em JSON (lista/arvore)
+ - uma representaÃ§Ã£o em texto "tree"
+ - uma representaÃ§Ã£o em JSON (lista/arvore)
 
 Uso:
   python extract_tree.py            # imprime a tree no stdout
@@ -24,15 +24,15 @@ DEFAULT_EXCLUDES = ["dermasync-db", "storage", "htmlcov", "node_modules", ".git"
 
 def parse_args():
     p = argparse.ArgumentParser(description="Extrai estrutura de pastas (tree + json).")
-    p.add_argument("--root", "-r", default=".", help="Diretório raiz do projeto (default: .)")
-    p.add_argument("--depth", "-d", type=int, default=9999, help="Máxima profundidade (default: ilimitado)")
+    p.add_argument("--root", "-r", default=".", help="DiretÃ³rio raiz do projeto (default: .)")
+    p.add_argument("--depth", "-d", type=int, default=9999, help="MÃ¡xima profundidade (default: ilimitado)")
     p.add_argument("--exclude", "-e", default=",".join(DEFAULT_EXCLUDES),
-                   help=f"Lista separada por vírgula de nomes ou padrões a excluir (default: {','.join(DEFAULT_EXCLUDES)})")
+                   help=f"Lista separada por vÃ­rgula de nomes ou padrÃµes a excluir (default: {','.join(DEFAULT_EXCLUDES)})")
     p.add_argument("--follow-symlinks", action="store_true", help="Seguir symlinks (cuidado com loops)")
-    p.add_argument("--json", "-j", metavar="OUT", help="Salvar a árvore em JSON no arquivo indicado")
-    p.add_argument("--text", "-t", metavar="OUT", help="Salvar a árvore texto (ASCII) no arquivo indicado")
+    p.add_argument("--json", "-j", metavar="OUT", help="Salvar a Ã¡rvore em JSON no arquivo indicado")
+    p.add_argument("--text", "-t", metavar="OUT", help="Salvar a Ã¡rvore texto (ASCII) no arquivo indicado")
     p.add_argument("--show-sizes", action="store_true", help="Incluir tamanhos de arquivo em bytes no JSON")
-    p.add_argument("--hidden", action="store_true", help="Incluir arquivos/dirs ocultos (começando com .)")
+    p.add_argument("--hidden", action="store_true", help="Incluir arquivos/dirs ocultos (comeÃ§ando com .)")
     return p.parse_args()
 
 def build_exclude_patterns(exclude_csv: str) -> List[str]:
@@ -41,7 +41,7 @@ def build_exclude_patterns(exclude_csv: str) -> List[str]:
 
 def matches_any(name: str, patterns: List[str]) -> bool:
     for pat in patterns:
-        # se o padrão contém wildcard usa fnmatch, caso contrário compara nome exato
+        # se o padrÃ£o contÃ©m wildcard usa fnmatch, caso contrÃ¡rio compara nome exato
         if any(c in pat for c in "*?[]"):
             if fnmatch.fnmatch(name, pat):
                 return True
@@ -99,7 +99,7 @@ def build_tree(root: str, max_depth: int, exclude_patterns: List[str], follow_sy
                 if matches_any(entry, exclude_patterns):
                     continue
                 child_path = os.path.join(path, entry)
-                # prevenção simples de loop se não seguir symlinks
+                # prevenÃ§Ã£o simples de loop se nÃ£o seguir symlinks
                 if os.path.islink(child_path) and not follow_symlinks:
                     node["children"].append({
                         "name": entry,
@@ -118,7 +118,7 @@ def build_tree(root: str, max_depth: int, exclude_patterns: List[str], follow_sy
 
 def tree_to_ascii(node: Dict[str, Any], prefix: str = "", is_last: bool = True) -> List[str]:
     lines = []
-    connector = "└── " if is_last else "├── "
+    connector = "â””â”€â”€ " if is_last else "â”œâ”€â”€ "
     name = node.get("name", "")
     typ = node.get("type", "")
     extra = ""
@@ -131,12 +131,12 @@ def tree_to_ascii(node: Dict[str, Any], prefix: str = "", is_last: bool = True) 
     lines.append(prefix + connector + name + extra)
     children = node.get("children", [])
     if children:
-        new_prefix = prefix + ("    " if is_last else "│   ")
+        new_prefix = prefix + ("    " if is_last else "â”‚   ")
         for i, c in enumerate(children):
             lines.extend(tree_to_ascii(c, new_prefix, i == (len(children) - 1)))
     elif node.get("truncated"):
-        new_prefix = prefix + ("    " if is_last else "│   ")
-        lines.append(new_prefix + "└── ...")
+        new_prefix = prefix + ("    " if is_last else "â”‚   ")
+        lines.append(new_prefix + "â””â”€â”€ ...")
     return lines
 
 def main():

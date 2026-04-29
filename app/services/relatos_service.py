@@ -1,4 +1,4 @@
-# app/services/relatos_service.py
+﻿# app/services/relatos_service.py
 import logging
 import uuid
 import json
@@ -26,7 +26,7 @@ from app.services.relato_effect_executor import RelatoEffectExecutor
 
 
 
-# Para produção (chame uma vez no início do seu main ou serviço)
+# Para produÃ§Ã£o (chame uma vez no inÃ­cio do seu main ou serviÃ§o)
 configurar_logger_json()
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ async def listar_relatos():
             resultados.append(data)
 
         logger.info(
-            f"Listagem de relatos concluída , total de {len(resultados)} relatos encontrados"
+            f"Listagem de relatos concluÃ­da , total de {len(resultados)} relatos encontrados"
         )
 
         return resultados
@@ -60,18 +60,18 @@ async def listar_relatos():
 
 async def enqueue_relato_processing(relato_id: str):
     """
-    (Stub) Adiciona o relato a uma fila para processamento assíncrono (LLM, metadados, anonimização, micro_depoimento).
+    (Stub) Adiciona o relato a uma fila para processamento assÃ­ncrono (LLM, metadados, anonimizaÃ§Ã£o, micro_depoimento).
     """
     logger.info(
         f"Relato {relato_id} enfileirado para processamento em segundo plano."
     )
-    # TODO: Implementar integração real com uma fila (Celery, RQ, Cloud Tasks) aqui.
+    # TODO: Implementar integraÃ§Ã£o real com uma fila (Celery, RQ, Cloud Tasks) aqui.
     pass
 
 
 async def get_relatos_by_owner_id(owner_user_id: str) -> list:
     """
-    Lista relatos pertencentes a um usuário específico.
+    Lista relatos pertencentes a um usuÃ¡rio especÃ­fico.
     """
     db = get_firestore_client()
     if not db:
@@ -85,7 +85,7 @@ async def get_relatos_by_owner_id(owner_user_id: str) -> list:
             data = doc.to_dict()
             data["id"] = doc.id
             resultados.append(data)
-        logger.info(f"Listagem de relatos para owner {owner_user_id} concluída, total de {len(resultados)} relatos encontrados.")
+        logger.info(f"Listagem de relatos para owner {owner_user_id} concluÃ­da, total de {len(resultados)} relatos encontrados.")
         return resultados
     except Exception as e:
         logger.exception(f"Erro ao listar relatos para owner {owner_user_id}.")
@@ -94,8 +94,8 @@ async def get_relatos_by_owner_id(owner_user_id: str) -> list:
 
 async def get_relato_by_id(relato_id: str, requesting_user: User) -> Union[RelatoFullOutput, RelatoPublicoOutput]:
     """
-    Busca um relato pelo ID com base nas permissões do usuário e status do relato.
-    Retorna o documento completo para owner/admin/colaborador ou campos públicos se aprovado publicamente.
+    Busca um relato pelo ID com base nas permissÃµes do usuÃ¡rio e status do relato.
+    Retorna o documento completo para owner/admin/colaborador ou campos pÃºblicos se aprovado publicamente.
     """
     db = get_firestore_client()
     if not db:
@@ -106,15 +106,15 @@ async def get_relato_by_id(relato_id: str, requesting_user: User) -> Union[Relat
     doc = await asyncio.to_thread(doc_ref.get)
 
     if not doc.exists:
-        raise HTTPException(status_code=404, detail="Relato não encontrado.")
+        raise HTTPException(status_code=404, detail="Relato nÃ£o encontrado.")
 
     relato_data = doc.to_dict()
-    relato_data['id'] = doc.id # Garante que o id do documento está presente
+    relato_data['id'] = doc.id # Garante que o id do documento estÃ¡ presente
 
-    # --- Camada de Mapeamento e Normalização ---
+    # --- Camada de Mapeamento e NormalizaÃ§Ã£o ---
     # Transforma o 'relato_data' do Firestore para o formato esperado pelos modelos Pydantic
     
-    # Converte 'created_at' (string ISO) para datetime, se necessário
+    # Converte 'created_at' (string ISO) para datetime, se necessÃ¡rio
     timestamp_str = relato_data.get("created_at") or relato_data.get("timestamp")
     timestamp_dt = None
     if isinstance(timestamp_str, str):
@@ -159,13 +159,13 @@ async def get_relato_by_id(relato_id: str, requesting_user: User) -> Union[Relat
         if is_owner or is_admin_or_colab:
             return RelatoFullOutput(**mapped_data)
         elif is_public:
-            return RelatoPublicoOutput(**mapped_data) # Pydantic irá filtrar os campos
+            return RelatoPublicoOutput(**mapped_data) # Pydantic irÃ¡ filtrar os campos
         else:
-            raise HTTPException(status_code=403, detail="Acesso negado. Relato privado ou não publicado.")
+            raise HTTPException(status_code=403, detail="Acesso negado. Relato privado ou nÃ£o publicado.")
     except Exception as e:
         logger.error(f"Pydantic validation error for relato {relato_id}: {e}")
         logger.error(f"Data passed to Pydantic: {mapped_data}")
-        raise HTTPException(status_code=500, detail="Erro de validação de dados internos.")
+        raise HTTPException(status_code=500, detail="Erro de validaÃ§Ã£o de dados internos.")
 
 async def attach_image_to_relato(
     relato_id: str, image_id: str, current_user: User
@@ -183,14 +183,14 @@ async def attach_image_to_relato(
     doc = doc_ref.get() # MODIFIED: Removed await
 
     if not doc.exists:
-        raise HTTPException(status_code=404, detail="Relato não encontrado.")
+        raise HTTPException(status_code=404, detail="Relato nÃ£o encontrado.")
     
     relato_data = doc.to_dict()
     is_owner = relato_data.get("owner_user_id") == current_user.id
     is_admin_or_colab = current_user.role in ["admin", "colaborador"]
 
     if not (is_owner or is_admin_or_colab):
-        raise HTTPException(status_code=403, detail="Acesso negado. Você não tem permissão para modificar este relato.")
+        raise HTTPException(status_code=403, detail="Acesso negado. VocÃª nÃ£o tem permissÃ£o para modificar este relato.")
 
     # 2. Get Image and check permissions
     # Use the existing get_imagem_by_id to check image existence and ownership
@@ -198,14 +198,14 @@ async def attach_image_to_relato(
         image_metadata = await get_imagem_by_id(image_id=image_id, requesting_user=current_user)
     except HTTPException as e:
         if e.status_code == 404:
-            raise HTTPException(status_code=404, detail="Imagem não encontrada ou não pertence a você.")
+            raise HTTPException(status_code=404, detail="Imagem nÃ£o encontrada ou nÃ£o pertence a vocÃª.")
         if e.status_code == 403:
-            raise HTTPException(status_code=403, detail="Acesso negado à imagem.")
+            raise HTTPException(status_code=403, detail="Acesso negado Ã  imagem.")
         raise e # Re-raise other HTTP exceptions
 
     # Ensure image is not already associated or in a final state
     if image_metadata.get("status") in ["associated", "approved_public", "rejected", "archived"]:
-        raise HTTPException(status_code=400, detail="Imagem já associada ou em estado final.")
+        raise HTTPException(status_code=400, detail="Imagem jÃ¡ associada ou em estado final.")
 
 
     # 3. Update Relato's imagens_ids
@@ -233,11 +233,11 @@ async def attach_image_to_relato(
 
 async def list_pending_moderation_relatos(requesting_user: User) -> list:
     """
-    Lista relatos com status 'processed' aguardando moderação.
-    Apenas para usuários com roles 'admin' ou 'colaborador'.
+    Lista relatos com status 'processed' aguardando moderaÃ§Ã£o.
+    Apenas para usuÃ¡rios com roles 'admin' ou 'colaborador'.
     """
     if requesting_user.role not in ["admin", "colaborador"]:
-        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores e colaboradores podem listar relatos pendentes de moderação.")
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores e colaboradores podem listar relatos pendentes de moderaÃ§Ã£o.")
 
     db = get_firestore_client()
     if not db:
@@ -251,23 +251,23 @@ async def list_pending_moderation_relatos(requesting_user: User) -> list:
             data = doc.to_dict()
             data["id"] = doc.id
             resultados.append(data)
-        logger.info(f"Listagem de relatos pendentes de moderação concluída, total de {len(resultados)} relatos encontrados.")
+        logger.info(f"Listagem de relatos pendentes de moderaÃ§Ã£o concluÃ­da, total de {len(resultados)} relatos encontrados.")
         return resultados
     except Exception as e:
-        logger.exception("Erro ao listar relatos pendentes de moderação.")
+        logger.exception("Erro ao listar relatos pendentes de moderaÃ§Ã£o.")
         raise HTTPException(status_code=500, detail=f"Erro ao acessar o Firestore: {str(e)}")
 
 
 async def moderate_relato(relato_id: str, action: str, current_user: User) -> dict:
     """
-    Modera um relato (aprova, rejeita, arquiva), delegando a decisão ao domínio.
+    Modera um relato (aprova, rejeita, arquiva), delegando a decisÃ£o ao domÃ­nio.
     """
     db = get_firestore_client()
     doc_ref = db.collection("relatos").document(relato_id)
     doc = await asyncio.to_thread(doc_ref.get)
 
     if not doc.exists:
-        raise HTTPException(status_code=404, detail="Relato não encontrado.")
+        raise HTTPException(status_code=404, detail="Relato nÃ£o encontrado.")
 
     relato_data = doc.to_dict()
     current_status_str = relato_data.get("status")
@@ -284,7 +284,7 @@ async def moderate_relato(relato_id: str, action: str, current_user: User) -> di
 
     command = command_map.get(action.lower())
     if not command:
-        raise HTTPException(status_code=400, detail=f"Ação de moderação inválida: '{action}'. Válidas: approve, reject, archive.")
+        raise HTTPException(status_code=400, detail=f"AÃ§Ã£o de moderaÃ§Ã£o invÃ¡lida: '{action}'. VÃ¡lidas: approve, reject, archive.")
 
     actor = Actor(id=current_user.id, role=current_user.role)
 
@@ -293,7 +293,7 @@ async def moderate_relato(relato_id: str, action: str, current_user: User) -> di
     if not decision.allowed:
         raise HTTPException(status_code=403, detail=decision.reason)
 
-    # O executor é instanciado aqui com os adaptadores necessários para este fluxo
+    # O executor Ã© instanciado aqui com os adaptadores necessÃ¡rios para este fluxo
     executor = RelatoEffectExecutor(
         persist_relato=lambda *args, **kwargs: None,
         enqueue_processing=lambda *args, **kwargs: None,
@@ -327,15 +327,15 @@ async def process_and_save_relato(
     current_user: User,
 ) -> dict:
     """
-    Entrada HTTP para criação de relato.
-    NÃO decide regras de domínio.
+    Entrada HTTP para criaÃ§Ã£o de relato.
+    NÃƒO decide regras de domÃ­nio.
     """
 
-    # 1️⃣ Validação mínima de contrato HTTP
+    # 1ï¸âƒ£ ValidaÃ§Ã£o mÃ­nima de contrato HTTP
     if not relato.conteudo_original.strip():
-        raise HTTPException(status_code=400, detail="Relato não pode estar vazio.")
+        raise HTTPException(status_code=400, detail="Relato nÃ£o pode estar vazio.")
 
-    # 2️⃣ Construção do Comando de domínio
+    # 2ï¸âƒ£ ConstruÃ§Ã£o do Comando de domÃ­nio
     relato_id = uuid.uuid4().hex
     command = CreateRelato(
         relato_id=relato_id,
@@ -353,14 +353,14 @@ async def process_and_save_relato(
         role=current_user.role,
     )
 
-    # 3️⃣ Decisão de domínio
+    # 3ï¸âƒ£ DecisÃ£o de domÃ­nio
     decision = decide(command=command, actor=actor, current_state=None)
 
     if not decision.allowed:
         raise HTTPException(status_code=400, detail=decision.reason)
 
-    # 4️⃣ Execução técnica dos efeitos
-    # Em um cenário real, as dependências seriam injetadas
+    # 4ï¸âƒ£ ExecuÃ§Ã£o tÃ©cnica dos efeitos
+    # Em um cenÃ¡rio real, as dependÃªncias seriam injetadas
     executor = RelatoEffectExecutor(
         persist_relato=persist_relato_adapter,
         enqueue_processing=enqueue_processing_adapter,
@@ -371,7 +371,7 @@ async def process_and_save_relato(
 
     executor.execute(effects=decision.effects)
 
-    # 5️⃣ Resposta HTTP
+    # 5ï¸âƒ£ Resposta HTTP
     return {
         "status": "sucesso",
         "message": "Relato recebido com sucesso.",
@@ -381,9 +381,9 @@ async def process_and_save_relato(
     
 async def listar_relatos_publicos_preview(limit: int = 50, status_filter: str = None) -> list:
     """
-    Retorna uma lista de relatos formatada para exibição pública (galeria).
-    Normaliza documentos legados que usam 'imagens' com URLs e também aceita
-    documentos que não tenham 'owner_user_id'.
+    Retorna uma lista de relatos formatada para exibiÃ§Ã£o pÃºblica (galeria).
+    Normaliza documentos legados que usam 'imagens' com URLs e tambÃ©m aceita
+    documentos que nÃ£o tenham 'owner_user_id'.
     """
     db = get_firestore_client()
     if not db:
@@ -398,7 +398,7 @@ async def listar_relatos_publicos_preview(limit: int = 50, status_filter: str = 
             data = doc.to_dict()
             doc_id = doc.id
 
-            # Heurística para decidir se mostramos o relato:
+            # HeurÃ­stica para decidir se mostramos o relato:
             # Mostrar se:
             #  - tem 'imagens' (legacy) ou 'imagens_ids'
             #  - tem 'microdepoimento' ou 'descricao'
@@ -413,7 +413,7 @@ async def listar_relatos_publicos_preview(limit: int = 50, status_filter: str = 
             if not (has_images or has_text):
                 continue
 
-            # Normalizar saída pública mínima
+            # Normalizar saÃ­da pÃºblica mÃ­nima
             safe = {
                 "id": data.get("id", doc_id),
                 "criado_em": data.get("criado_em") or data.get("timestamp") or None,
@@ -421,7 +421,7 @@ async def listar_relatos_publicos_preview(limit: int = 50, status_filter: str = 
                 "microdepoimento": data.get("microdepoimento") or (data.get("descricao")[:300] if data.get("descricao") else None),
                 "tags": data.get("tags_extraidas") or data.get("tags") or [],
                 # imagens: se for legacy 'imagens' (URLs) retornamos diretamente; se for imagens_ids,
-                # deixamos vazio (frontend vai buscar detalhes via outro endpoint autenticado se necessário)
+                # deixamos vazio (frontend vai buscar detalhes via outro endpoint autenticado se necessÃ¡rio)
                 "imagens": data.get("imagens") or None,
                 "status": data.get("status") or None,
             }
@@ -430,7 +430,7 @@ async def listar_relatos_publicos_preview(limit: int = 50, status_filter: str = 
         return resultados
 
     except Exception as e:
-        logger.exception("Erro ao listar relatos públicos para galeria.")
+        logger.exception("Erro ao listar relatos pÃºblicos para galeria.")
         raise HTTPException(status_code=500, detail=f"Erro ao acessar o Firestore: {str(e)}")
     
 
@@ -443,7 +443,7 @@ async def listar_relatos_publicos_galeria_publica_preview(
     only_public: bool = True
 ) -> List[RelatoPublicPreviewDTO]:
     """
-    Lista relatos públicos anonimizados para a galeria pública.
+    Lista relatos pÃºblicos anonimizados para a galeria pÃºblica.
 
     Retorna apenas relatos com public_visibility.status == "PUBLIC"
     e projeta para RelatoPublicPreviewDTO.
@@ -453,14 +453,14 @@ async def listar_relatos_publicos_galeria_publica_preview(
         # Use collection_group to query across all 'relatos' subcollections
         query = db.collection_group("relatos")
 
-        # Segurança: só público
+        # SeguranÃ§a: sÃ³ pÃºblico
         if only_public:
             query = query.where(filter=FieldFilter("public_visibility.status", "==", "PUBLIC"))
 
-        # Ordenação por criação (mais recentes primeiro)
+        # OrdenaÃ§Ã£o por criaÃ§Ã£o (mais recentes primeiro)
         query = query.order_by("created_at", direction=firestore.Query.DESCENDING)
 
-        # Paginação
+        # PaginaÃ§Ã£o
         offset = (page - 1) * limit
         query = query.limit(limit).offset(offset)
         
@@ -514,7 +514,7 @@ async def listar_relatos_publicos_galeria_publica_preview(
                 )
                 resultados.append(dto)
             except Exception:
-                # Ignora relatos com dados inválidos
+                # Ignora relatos com dados invÃ¡lidos
                 pass
         return resultados
 
@@ -527,15 +527,15 @@ async def listar_relatos_publicos_galeria_publica_preview(
             detail=f"Query requires a Firestore index. See logs for the creation URL. Error: {e.message}",
         )
     except Exception as e:
-        logger.error(f"Erro ao buscar relatos para galeria pública: {e}", exc_info=True)
+        logger.error(f"Erro ao buscar relatos para galeria pÃºblica: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error while fetching gallery.")
 
 def run_submission_effects(effects: list, executor: RelatoEffectExecutor):
-    """Executa os efeitos da submissão em background."""
+    """Executa os efeitos da submissÃ£o em background."""
     try:
         executor.execute(effects)
     except Exception as e:
-        logger.error(f"Erro ao executar efeitos da submissão em background: {e}", exc_info=True)
+        logger.error(f"Erro ao executar efeitos da submissÃ£o em background: {e}", exc_info=True)
 
 def parse_payload_json(payload: str) -> "RelatoDraftInput":
     try:

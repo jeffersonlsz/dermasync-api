@@ -1,4 +1,4 @@
-# app/services/effects/executors/enqueue_processing.py
+﻿# app/services/effects/executors/enqueue_processing.py
 import logging
 from datetime import datetime
 
@@ -10,12 +10,12 @@ logger = logging.getLogger(__name__)
 
 def execute_enqueue_processing(relato_id: str) -> EffectResult:
     """
-    Executor técnico do EnqueueProcessingEffect.
+    Executor tÃ©cnico do EnqueueProcessingEffect.
 
     Responsabilidade:
-    - Disparar processamento assíncrono
-    - NÃO executar jobs
-    - NÃO decidir quais jobs existem
+    - Disparar processamento assÃ­ncrono
+    - NÃƒO executar jobs
+    - NÃƒO decidir quais jobs existem
     """
 
     try:

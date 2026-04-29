@@ -1,4 +1,4 @@
-# app/domain/galeria/similarity/scorers/tags_overlap.py
+﻿# app/domain/galeria/similarity/scorers/tags_overlap.py
 
 from typing import List, Set
 
@@ -16,7 +16,7 @@ def jaccard_similarity(
     tags_b: List[str],
 ) -> float:
     """
-    Similaridade auditável com penalização por baixa cardinalidade.
+    Similaridade auditÃ¡vel com penalizaÃ§Ã£o por baixa cardinalidade.
     Evita que 1 tag gere score 1.0 absoluto.
     """
 
@@ -31,8 +31,8 @@ def jaccard_similarity(
 
     base_similarity = len(intersection) / len(union)
 
-    # Penalização por baixa informação
-    # mínimo de 3 tags para confiança total
+    # PenalizaÃ§Ã£o por baixa informaÃ§Ã£o
+    # mÃ­nimo de 3 tags para confianÃ§a total
     min_cardinality = min(len(set_a), len(set_b))
     confidence = min(min_cardinality / 3.0, 1.0)
 

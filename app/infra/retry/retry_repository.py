@@ -1,4 +1,4 @@
-# app/infra/retry/retry_repository.py
+﻿# app/infra/retry/retry_repository.py
 from typing import List
 import logging
 from datetime import datetime, timedelta
@@ -16,13 +16,13 @@ def load_failed_effect_results(
     limit: int = 100,
 ) -> List[EffectResult]:
     """
-    Carrega EffectResults falhos e elegíveis para retry.
-    NÃO decide retry.
+    Carrega EffectResults falhos e elegÃ­veis para retry.
+    NÃƒO decide retry.
     """
 
     db = get_firestore_client()
     if not db:
-        raise RuntimeError("Firestore client indisponível")
+        raise RuntimeError("Firestore client indisponÃ­vel")
 
     query = db.collection("effect_results").where("status", "in", [EffectStatus.ERROR.value, EffectStatus.RETRYING.value])
 

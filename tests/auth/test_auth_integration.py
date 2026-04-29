@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 from httpx import AsyncClient
 from app.firestore.client import get_firestore_client
 import os
@@ -22,14 +22,14 @@ async def test_fluxo_session_real_com_emuladores(client: AsyncClient, firebase_a
             json={"firebase_id_token": id_token}
         )
 
-        # 3. Validações da resposta
+        # 3. ValidaÃ§Ãµes da resposta
         assert response.status_code == 200
         data = response.json()
         assert data["user"]["email"] == email
         assert data["user"]["user_id"] == firebase_uid
         assert data["session"]["authenticated"] is True
         
-        # 4. Validação no Firestore: O perfil foi criado automaticamente?
+        # 4. ValidaÃ§Ã£o no Firestore: O perfil foi criado automaticamente?
         db = get_firestore_client()
         user_doc = db.collection("users").document(firebase_uid).get()
         assert user_doc.exists is True
@@ -37,7 +37,7 @@ async def test_fluxo_session_real_com_emuladores(client: AsyncClient, firebase_a
         
     except Exception as e:
         if "connection attempt timed out" in str(e) or "503" in str(e):
-            pytest.skip("Emuladores Firebase não detectados. Inicie-os com 'scripts/start_firestore_local.ps1'")
+            pytest.skip("Emuladores Firebase nÃ£o detectados. Inicie-os com 'scripts/start_firestore_local.ps1'")
         raise e
 
 @pytest.mark.asyncio
@@ -57,5 +57,5 @@ async def test_acesso_me_com_token_real(client: AsyncClient, firebase_auth_clien
         assert response.json()["email"] == email
     except Exception as e:
         if "connection attempt timed out" in str(e) or "503" in str(e):
-            pytest.skip("Emuladores Firebase não detectados.")
+            pytest.skip("Emuladores Firebase nÃ£o detectados.")
         raise e

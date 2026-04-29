@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+﻿from fastapi import APIRouter, Depends, status
 
 from app.auth.dependencies import get_current_user, require_roles
 from app.auth.schemas import User, UserRole
@@ -32,7 +32,7 @@ def run_enrich_metadata(
     Executa o ENRICH_METADATA mockado.
     Acesso restrito a administradores.
     """
-    logger.debug(f"Usuário {user.id} solicitou ENRICH_METADATA para relato {relato_id}")
+    logger.debug(f"UsuÃ¡rio {user.id} solicitou ENRICH_METADATA para relato {relato_id}")
     service = EnrichMetadataService(
         enrichment_repository=EnrichedMetadataRepository(),
         effect_repository=EffectResultRepository(),

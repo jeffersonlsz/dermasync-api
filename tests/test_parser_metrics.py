@@ -1,7 +1,7 @@
-# File: tests/test_parser_metrics.py
+﻿# File: tests/test_parser_metrics.py
 # tests/test_parser_metrics.py
 # -*- coding: utf-8 -*-
-# Este módulo contém testes para o parser de logs, gerador de diagramas Mermaid e métricas de latência.
+# Este mÃ³dulo contÃ©m testes para o parser de logs, gerador de diagramas Mermaid e mÃ©tricas de latÃªncia.
 
 
 import json
@@ -32,7 +32,7 @@ def test_parse_logs_groups(sample_events):
 
 def test_mermaid_generator(sample_events):
     diagram = to_sequence_diagram(sample_events).splitlines()
-    # Primeira linha: sequência Mermaid
+    # Primeira linha: sequÃªncia Mermaid
     assert diagram[0] == "sequenceDiagram"
     # Verifica uma das linhas geradas
     assert "frontend->>relato_service: POST /enviar-relato" in diagram
@@ -46,6 +46,6 @@ def test_compute_avg_latency(sample_events):
 
 def test_detect_slow_calls(sample_events):
     slow = detect_slow_calls(sample_events, threshold=1000)
-    # Apenas a operação extrair_tags (1522 ms) ultrapassa 1000
+    # Apenas a operaÃ§Ã£o extrair_tags (1522 ms) ultrapassa 1000
     assert len(slow) == 1
     assert slow[0]["operation"] == "extrair_tags"

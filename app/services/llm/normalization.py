@@ -1,9 +1,9 @@
-# app/services/llm/normalization.py
+﻿# app/services/llm/normalization.py
 
 def strip_code_fences(text: str) -> str:
     """
     Remove code fences ``` / ```json e prefixos residuais como 'json'.
-    Normalização de transporte apenas (sem semântica).
+    NormalizaÃ§Ã£o de transporte apenas (sem semÃ¢ntica).
     """
 
     text = text.strip()

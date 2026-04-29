@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 from unittest.mock import Mock
 
 from app.services.relato_effect_executor import RelatoEffectExecutor
@@ -143,5 +143,5 @@ def test_retry_unknown_effect_type_fails(executor):
         metadata={"effect_ref": "x"},
     )
 
-    with pytest.raises(ValueError, match="Retry não suportado"):
+    with pytest.raises(ValueError, match="Retry nÃ£o suportado"):
         executor.execute_by_result(effect_result=result, attempt=1)

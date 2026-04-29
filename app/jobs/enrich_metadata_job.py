@@ -1,4 +1,4 @@
-# app/jobs/enrich_metadata_job.py
+﻿# app/jobs/enrich_metadata_job.py
 from datetime import datetime
 import logging
 import time
@@ -49,7 +49,7 @@ class EnrichMetadataJob:
             return
 
         # -------------------------------------------------
-        # idempotência
+        # idempotÃªncia
         # -------------------------------------------------
 
         existing = self.effect_repo.fetch_by_relato_id(relato_id)
@@ -89,7 +89,7 @@ class EnrichMetadataJob:
 
                 try:
                     
-                    # TESTE: força falha nas duas primeiras tentativas
+                    # TESTE: forÃ§a falha nas duas primeiras tentativas
                     #if attempt < 3:
                     #    raise RuntimeError("Simulated LLM failure")
                     

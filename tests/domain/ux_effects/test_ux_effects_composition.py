@@ -1,4 +1,4 @@
-# tests/domain/ux_effects/test_ux_effect_public_contract.py
+﻿# tests/domain/ux_effects/test_ux_effect_public_contract.py
 import json
 
 from app.domain.ux_effects.processing_started import ProcessingStartedUXEffect
@@ -25,7 +25,7 @@ def test_multiple_ux_effects_preserve_order_and_contract():
                 "severity": "info",
                 "channel": "banner",
                 "timing": "deferred",
-                "message": "Seu relato está sendo processado. Isso pode levar alguns instantes.",
+                "message": "Seu relato estÃ¡ sendo processado. Isso pode levar alguns instantes.",
                 "metadata": {"relato_id": "relato_123"}
             },
             {
@@ -33,7 +33,7 @@ def test_multiple_ux_effects_preserve_order_and_contract():
                 "severity": "info",
                 "channel": "banner",
                 "timing": "immediate",
-                "message": "2 ações estão sendo repetidas.",
+                "message": "2 aÃ§Ãµes estÃ£o sendo repetidas.",
                 "metadata": {"relato_id": "relato_123"},
                 "failed_effects_count": 2
             },

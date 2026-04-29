@@ -1,18 +1,18 @@
-# app/services/readmodels/relato_progress.py
+﻿# app/services/readmodels/relato_progress.py
 
 from typing import Dict, List
 from app.firestore.client import get_firestore_client
 
 def fetch_relato_progress(relato_id: str) -> Dict:
     """
-    Projeção de leitura para UX/UI.
+    ProjeÃ§Ã£o de leitura para UX/UI.
 
-    Consolida EffectResults técnicos em um
-    estado simples, estável e consumível
+    Consolida EffectResults tÃ©cnicos em um
+    estado simples, estÃ¡vel e consumÃ­vel
     pela interface.
 
-    NÃO expõe EffectResult cru.
-    NÃO executa lógica de domínio.
+    NÃƒO expÃµe EffectResult cru.
+    NÃƒO executa lÃ³gica de domÃ­nio.
     """
 
     db = get_firestore_client()
@@ -35,7 +35,7 @@ def fetch_relato_progress(relato_id: str) -> Dict:
             "enqueued": False,
             "error": None,
         },
-        "errors": [],  # histórico resumido
+        "errors": [],  # histÃ³rico resumido
     }
 
     for doc in docs:
@@ -74,16 +74,16 @@ def fetch_relato_progress(relato_id: str) -> Dict:
 
 def progress_has_any_signal(progress: dict) -> bool:
     """
-    Indica se há qualquer evidência técnica
-    de que o relato existe ou já iniciou processamento.
+    Indica se hÃ¡ qualquer evidÃªncia tÃ©cnica
+    de que o relato existe ou jÃ¡ iniciou processamento.
 
-    Usado para decidir se /progress deve ser acessível.
+    Usado para decidir se /progress deve ser acessÃ­vel.
     """
 
     if not progress:
         return False
 
-    # Upload iniciado ou concluído
+    # Upload iniciado ou concluÃ­do
     if progress.get("upload_images", {}).get("done"):
         return True
 
@@ -97,7 +97,7 @@ def progress_has_any_signal(progress: dict) -> bool:
     if progress.get("processing", {}).get("error"):
         return True
 
-    # Histórico explícito de erros
+    # HistÃ³rico explÃ­cito de erros
     if progress.get("errors"):
         return True
 

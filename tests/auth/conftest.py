@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 import os
 import httpx
 from firebase_admin import auth
@@ -7,10 +7,10 @@ from app.firestore.client import get_firestore_client
 @pytest.fixture(scope="function")
 def firebase_auth_client():
     """
-    Retorna uma função para criar usuários no Auth Emulator e obter ID Tokens.
+    Retorna uma funÃ§Ã£o para criar usuÃ¡rios no Auth Emulator e obter ID Tokens.
     """
     async def _create_and_login(email: str, password: str = "password123"):
-        # 1. Cria usuário no Firebase Auth (Admin SDK funciona com o emulador)
+        # 1. Cria usuÃ¡rio no Firebase Auth (Admin SDK funciona com o emulador)
         try:
             try:
                 fb_user = auth.get_user_by_email(email)
@@ -21,7 +21,7 @@ def firebase_auth_client():
             fb_user = auth.create_user(email=email, password=password)
         except Exception as e:
             if "Failed to establish a connection" in str(e) or "UnavailableError" in str(type(e).__name__):
-                pytest.skip("Emulador Firebase Auth não disponível para criação de usuário.")
+                pytest.skip("Emulador Firebase Auth nÃ£o disponÃ­vel para criaÃ§Ã£o de usuÃ¡rio.")
             raise e
         
         # 2. Faz login via REST API do Emulador para obter o ID Token
@@ -31,7 +31,7 @@ def firebase_auth_client():
 
         async with httpx.AsyncClient() as client:
             try:
-                # No emulador, 'Bearer owner' permite especificar targetProjectId sem erros de permissão
+                # No emulador, 'Bearer owner' permite especificar targetProjectId sem erros de permissÃ£o
                 resp = await client.post(
                     url, 
                     json={
@@ -56,24 +56,24 @@ def firebase_auth_client():
                 }
             except Exception as e:
                 if "connection" in str(e).lower():
-                    pytest.skip("Emulador Firebase Auth não disponível para login REST.")
+                    pytest.skip("Emulador Firebase Auth nÃ£o disponÃ­vel para login REST.")
                 raise e
             
     return _create_and_login
 
 @pytest.fixture(autouse=True)
 def clean_firestore_users():
-    """Limpa a coleção de usuários antes de cada teste de integração de auth."""
+    """Limpa a coleÃ§Ã£o de usuÃ¡rios antes de cada teste de integraÃ§Ã£o de auth."""
     if os.getenv("FIREBASE_MODE") == "local":
         try:
             db = get_firestore_client()
             users_ref = db.collection("users")
-            # list_documents() pode falhar se o emulador firestore não estiver pronto
+            # list_documents() pode falhar se o emulador firestore nÃ£o estiver pronto
             docs = users_ref.list_documents()
             for doc in docs:
                 doc.delete()
         except Exception as e:
-            # Se falhar a limpeza por conexão, apenas ignora para não travar toda a suite
-            # (Os testes que dependem de estado limpo falharão ou darão skip individualmente)
-            print(f"Aviso: Não foi possível limpar Firestore Local: {e}")
+            # Se falhar a limpeza por conexÃ£o, apenas ignora para nÃ£o travar toda a suite
+            # (Os testes que dependem de estado limpo falharÃ£o ou darÃ£o skip individualmente)
+            print(f"Aviso: NÃ£o foi possÃ­vel limpar Firestore Local: {e}")
     yield

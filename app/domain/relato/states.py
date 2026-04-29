@@ -1,12 +1,12 @@
-# app/domain/relato/states.py
+﻿# app/domain/relato/states.py
 from enum import Enum
 
 class RelatoStatus(str, Enum):
     """
-    Fonte única de verdade para todos os estados possíveis de um relato.
-    Este enum representa todo o ciclo de vida semântico, técnico e ético de um relato.
+    Fonte Ãºnica de verdade para todos os estados possÃ­veis de um relato.
+    Este enum representa todo o ciclo de vida semÃ¢ntico, tÃ©cnico e Ã©tico de um relato.
     """
-    #DRAFT = "draft" - estado saiu na refatoração para suportar múltiplos estágios técnicos
+    #DRAFT = "draft" - estado saiu na refatoraÃ§Ã£o para suportar mÃºltiplos estÃ¡gios tÃ©cnicos
     CREATED = "created"
     PROCESSING = "processing"
     PROCESSED = "processed"

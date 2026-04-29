@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 from fastapi import status
 from httpx import AsyncClient
 
@@ -10,15 +10,15 @@ async def test_upload_imagem_tipo_invalido(
     client: AsyncClient, mock_current_user_usuario_logado
 ):
     """
-    Testa o upload de um tipo de arquivo de imagem não suportado.
+    Testa o upload de um tipo de arquivo de imagem nÃ£o suportado.
     """
-    # Cria um arquivo falso com conteúdo de texto em vez de imagem
+    # Cria um arquivo falso com conteÃºdo de texto em vez de imagem
     files = {"file": ("invalid_file.txt", b"this is not an image", "text/plain")} # Changed to bytes
     
     response = await client.post("/imagens/upload", files=files)
     
     assert response.status_code == status.HTTP_415_UNSUPPORTED_MEDIA_TYPE
-    assert "Tipo não suportado: text/plain" in response.json()["detail"]
+    assert "Tipo nÃ£o suportado: text/plain" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -26,9 +26,9 @@ async def test_upload_imagem_valido(
     client: AsyncClient, mock_current_user_usuario_logado, mocker
 ):
     """
-    Testa o upload de um arquivo de imagem válido (jpeg).
+    Testa o upload de um arquivo de imagem vÃ¡lido (jpeg).
     """
-    # Mock para salvar_imagem para evitar interações reais com Firebase
+    # Mock para salvar_imagem para evitar interaÃ§Ãµes reais com Firebase
     mocker.patch(
         "app.routes.imagens.salvar_imagem",
         return_value={"id": "mock_image_id_valid", "owner_user_id": "user_test_id"},

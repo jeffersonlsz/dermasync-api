@@ -1,10 +1,10 @@
-"""
-Testes para permissões de relato no domínio.
+﻿"""
+Testes para permissÃµes de relato no domÃ­nio.
 
-Este arquivo testa as permissões por tipo de ator, verificando:
-- Permissões de administrador vs usuário comum
-- Ações que requerem privilégios especiais
-- Garantia de que autorização é decisão de domínio
+Este arquivo testa as permissÃµes por tipo de ator, verificando:
+- PermissÃµes de administrador vs usuÃ¡rio comum
+- AÃ§Ãµes que requerem privilÃ©gios especiais
+- Garantia de que autorizaÃ§Ã£o Ã© decisÃ£o de domÃ­nio
 """
 
 from app.domain.relato.orchestrator import decide
@@ -37,7 +37,7 @@ def test_colaborador_pode_aprovar_relato():
 
 
 def test_usuario_comum_nao_pode_aprovar_relato():
-    """Testa que usuários comuns não podem aprovar relatos."""
+    """Testa que usuÃ¡rios comuns nÃ£o podem aprovar relatos."""
     actor = Actor(id="user-123", role=ActorRole.USER)
     command = ApproveRelatoPublic(relato_id="relato-456")
 
@@ -45,7 +45,7 @@ def test_usuario_comum_nao_pode_aprovar_relato():
 
     assert decision.allowed is False
     assert decision.next_state is None
-    assert decision.effects == []  # Não deve ter efeitos quando negado
+    assert decision.effects == []  # NÃ£o deve ter efeitos quando negado
     assert decision.reason is not None  # Reason should not be None when denied
 
 
@@ -74,7 +74,7 @@ def test_colaborador_pode_rejeitar_relato():
 
 
 def test_usuario_comum_nao_pode_rejeitar_relato():
-    """Testa que usuários comuns não podem rejeitar relatos."""
+    """Testa que usuÃ¡rios comuns nÃ£o podem rejeitar relatos."""
     actor = Actor(id="user-123", role=ActorRole.USER)
     command = RejectRelato(relato_id="relato-456")
 
@@ -82,7 +82,7 @@ def test_usuario_comum_nao_pode_rejeitar_relato():
 
     assert decision.allowed is False
     assert decision.next_state is None
-    assert decision.effects == []  # Não deve ter efeitos quando negado
+    assert decision.effects == []  # NÃ£o deve ter efeitos quando negado
     assert decision.reason is not None  # Reason should not be None when denied
 
 
@@ -111,7 +111,7 @@ def test_colaborador_pode_arquivar_relato():
 
 
 def test_usuario_comum_nao_pode_arquivar_relato():
-    """Testa que usuários comuns não podem arquivar relatos."""
+    """Testa que usuÃ¡rios comuns nÃ£o podem arquivar relatos."""
     actor = Actor(id="user-123", role=ActorRole.USER)
     command = ArchiveRelato(relato_id="relato-456")
 
@@ -119,5 +119,5 @@ def test_usuario_comum_nao_pode_arquivar_relato():
 
     assert decision.allowed is False
     assert decision.next_state is None
-    assert decision.effects == []  # Não deve ter efeitos quando negado
+    assert decision.effects == []  # NÃ£o deve ter efeitos quando negado
     assert decision.reason is not None  # Reason should not be None when denied

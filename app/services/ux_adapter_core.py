@@ -1,7 +1,7 @@
-# app/services/ux_adapter_core.py
+﻿# app/services/ux_adapter_core.py
 """
-Módulo central para adaptar diferentes tipos de efeitos (de domínio, de resultado)
-para o contrato canônico de UXEffect.
+MÃ³dulo central para adaptar diferentes tipos de efeitos (de domÃ­nio, de resultado)
+para o contrato canÃ´nico de UXEffect.
 """
 
 import logging
@@ -17,7 +17,7 @@ from app.domain.ux_effects.base import UXEffect, UXSeverity, UXChannel, UXTiming
 logger = logging.getLogger(__name__)
 
 # =========================================================
-# Contrato Canônico do UXEffect
+# Contrato CanÃ´nico do UXEffect
 # =========================================================
 
 
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # =========================================================
 # Adapter 1: DomainEffect -> UXEffect
-# Para ser usado ANTES da execução dos efeitos.
+# Para ser usado ANTES da execuÃ§Ã£o dos efeitos.
 # =========================================================
 
 DOMAIN_EFFECT_TO_UX_MAPPING = {
@@ -40,7 +40,7 @@ DOMAIN_EFFECT_TO_UX_MAPPING = {
     },
     "EnqueueProcessingEffect": {
         "subtype": "enqueue_processing",
-        "message": "Relato na fila para análise.",
+        "message": "Relato na fila para anÃ¡lise.",
     },
     "UpdateRelatoStatusEffect": {
         "subtype": "update_status",
@@ -49,7 +49,7 @@ DOMAIN_EFFECT_TO_UX_MAPPING = {
 }
 
 def domain_effect_to_ux_effect(effect) -> UXEffect | None:
-    """Adapta um efeito de domínio (antes de ser executado) para um UXEffect."""
+    """Adapta um efeito de domÃ­nio (antes de ser executado) para um UXEffect."""
     effect_name = effect.__class__.__name__
     mapping = DOMAIN_EFFECT_TO_UX_MAPPING.get(effect_name)
 
@@ -57,7 +57,7 @@ def domain_effect_to_ux_effect(effect) -> UXEffect | None:
         logger.debug("Ignoring non-UX domain effect: %s", effect_name)
         return None
 
-    # Efeitos de domínio representam o início de uma ação
+    # Efeitos de domÃ­nio representam o inÃ­cio de uma aÃ§Ã£o
     return UXEffect(
         type="processing_started",
         message=mapping["message"],
@@ -73,8 +73,8 @@ def domain_effect_to_ux_effect(effect) -> UXEffect | None:
 
 # =========================================================
 # Adapter 2: EffectResult -> UXEffectRecord
-# Movido de 'relatos_progress.py' para centralização.
-# Para ser usado DEPOIS da execução dos efeitos (com base em resultados persistidos).
+# Movido de 'relatos_progress.py' para centralizaÃ§Ã£o.
+# Para ser usado DEPOIS da execuÃ§Ã£o dos efeitos (com base em resultados persistidos).
 # =========================================================
 
 EFFECT_RESULT_TYPE_TO_SUBTYPE = {
@@ -88,8 +88,8 @@ def _default_message_for_result(subtype: str) -> str:
     return {
         "persist_relato": "Relato recebido com sucesso.",
         "enqueue_processing": "Relato enviado para processamento.",
-        "enrich_metadata": "Análise do relato concluída.",
-    }.get(subtype, "Processamento concluído.")
+        "enrich_metadata": "AnÃ¡lise do relato concluÃ­da.",
+    }.get(subtype, "Processamento concluÃ­do.")
 
 def effect_result_to_ux_effect(effect: EffectResult, relato_id: str) -> UXEffectRecord | None:
 

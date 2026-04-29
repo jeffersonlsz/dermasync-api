@@ -1,4 +1,4 @@
-import json
+﻿import json
 
 DADOS_VIDEOS_ENRIQUECIDOS = (
     "app/pipeline/dados/jsonl_enriquecidos/relatos_enriquecidos-20250609-v.jsonl"

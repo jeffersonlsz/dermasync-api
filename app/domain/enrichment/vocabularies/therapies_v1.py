@@ -1,26 +1,26 @@
-# app/domain/enrichment/vocabularies/therapies_v1.py
+﻿# app/domain/enrichment/vocabularies/therapies_v1.py
 
 """
-Vocabulário controlado de terapias relatadas pelo usuário.
+VocabulÃ¡rio controlado de terapias relatadas pelo usuÃ¡rio.
 
-Este módulo define APENAS categorias computáveis de intervenções mencionadas
-em relatos humanos. Não representa prescrição médica, recomendação clínica
-ou eficácia terapêutica real.
+Este mÃ³dulo define APENAS categorias computÃ¡veis de intervenÃ§Ãµes mencionadas
+em relatos humanos. NÃ£o representa prescriÃ§Ã£o mÃ©dica, recomendaÃ§Ã£o clÃ­nica
+ou eficÃ¡cia terapÃªutica real.
 
 Regras:
-- Vocabulário fechado (adições exigem versionamento)
+- VocabulÃ¡rio fechado (adiÃ§Ãµes exigem versionamento)
 - Sem marcas comerciais
 - Sem dosagens
-- Sem inferência clínica
-- Baseado em percepção do usuário
+- Sem inferÃªncia clÃ­nica
+- Baseado em percepÃ§Ã£o do usuÃ¡rio
 """
 
 # -----------------------------
-# Tipos de intervenção
+# Tipos de intervenÃ§Ã£o
 # -----------------------------
 
 ALLOWED_THERAPY_TYPES: set[str] = {
-    # Aplicações na pele
+    # AplicaÃ§Ãµes na pele
     "topico",
 
     # Medicamentos ingeridos
@@ -29,7 +29,7 @@ ALLOWED_THERAPY_TYPES: set[str] = {
     # Rotina de higiene / cuidados com a pele
     "higienico",
 
-    # Mudanças de hábito ou comportamento
+    # MudanÃ§as de hÃ¡bito ou comportamento
     "comportamental",
 
     # Quando o relato menciona algo fora do escopo inicial
@@ -37,11 +37,11 @@ ALLOWED_THERAPY_TYPES: set[str] = {
 }
 
 # -----------------------------
-# Substâncias / categorias amplas
+# SubstÃ¢ncias / categorias amplas
 # -----------------------------
 
 ALLOWED_SUBSTANCES: set[str] = {
-    # Classes farmacológicas amplas
+    # Classes farmacolÃ³gicas amplas
     "corticoide",
     "antihistaminico",
     "antibiotico",
@@ -51,31 +51,31 @@ ALLOWED_SUBSTANCES: set[str] = {
     "hidratante",
     "sabao_neutro",
 
-    # Alternativos / não farmacológicos
+    # Alternativos / nÃ£o farmacolÃ³gicos
     "fitoterapico",
     "oleo_natural",
 
-    # Quando não é possível classificar
+    # Quando nÃ£o Ã© possÃ­vel classificar
     "outro",
 }
 
 # -----------------------------
-# Resposta percebida pelo usuário
+# Resposta percebida pelo usuÃ¡rio
 # -----------------------------
 
 ALLOWED_RESPONSES: set[str] = {
-    # Percepção clara de melhora
+    # PercepÃ§Ã£o clara de melhora
     "melhora",
 
-    # Algum alívio, mas sintomas persistem
+    # Algum alÃ­vio, mas sintomas persistem
     "melhora_parcial",
 
-    # Nenhuma mudança percebida
+    # Nenhuma mudanÃ§a percebida
     "sem_resposta",
 
-    # Piora percebida após uso
+    # Piora percebida apÃ³s uso
     "piora",
 
-    # Relato menciona uso, mas não descreve resultado
+    # Relato menciona uso, mas nÃ£o descreve resultado
     "desconhecida",
 }

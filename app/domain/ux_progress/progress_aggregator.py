@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+﻿from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional
@@ -7,7 +7,7 @@ from app.services.effects.result import EffectResult, EffectStatus
 
 
 # ============================================================
-# Linguagem do domínio (Ubiquitous Language)
+# Linguagem do domÃ­nio (Ubiquitous Language)
 # ============================================================
 
 class StepState(str, Enum):
@@ -18,7 +18,7 @@ class StepState(str, Enum):
 
 
 # ============================================================
-# Modelos semânticos
+# Modelos semÃ¢nticos
 # ============================================================
 
 @dataclass
@@ -44,7 +44,7 @@ class UXProgress:
 
 
 # ============================================================
-# Contratos observáveis (vindos de fora do domínio UX)
+# Contratos observÃ¡veis (vindos de fora do domÃ­nio UX)
 # ============================================================
 
 
@@ -59,7 +59,7 @@ class UXStepDefinition:
 
 
 # ============================================================
-# Domain Service — Agregador de Progresso
+# Domain Service â€” Agregador de Progresso
 # ============================================================
 
 def aggregate_progress(
@@ -71,9 +71,9 @@ def aggregate_progress(
     """
     Agregador puro de progresso UX.
 
-    - Não executa efeitos
-    - Não conhece infraestrutura
-    - Deriva narrativa cognitiva a partir de evidências (EffectResult)
+    - NÃ£o executa efeitos
+    - NÃ£o conhece infraestrutura
+    - Deriva narrativa cognitiva a partir de evidÃªncias (EffectResult)
     """
 
     now = now or datetime.utcnow()
@@ -88,14 +88,14 @@ def aggregate_progress(
     steps: List[UXStep] = []
 
     # --------------------------------------------------------
-    # Inferência semântica de cada UXStep
+    # InferÃªncia semÃ¢ntica de cada UXStep
     # --------------------------------------------------------
     for definition in step_definitions:
         related_effects = effects_by_type.get(
             definition.completion_effect_type, []
         )
 
-        # Caso 1 — Nenhuma evidência ainda
+        # Caso 1 â€” Nenhuma evidÃªncia ainda
         if not related_effects:
             steps.append(
                 UXStep(
@@ -111,7 +111,7 @@ def aggregate_progress(
         success_effects = [e for e in related_effects if e.status == EffectStatus.SUCCESS]
         error_effects = [e for e in related_effects if e.status != EffectStatus.SUCCESS]
 
-        # Caso 2 — Sucesso observado (DONE)
+        # Caso 2 â€” Sucesso observado (DONE)
         if success_effects:
             first_event = min(related_effects, key=lambda e: e.created_at)
             last_success = max(success_effects, key=lambda e: e.created_at)
@@ -128,7 +128,7 @@ def aggregate_progress(
             )
             continue
 
-        # Caso 3 — Houve tentativa, mas não sucesso (ACTIVE)
+        # Caso 3 â€” Houve tentativa, mas nÃ£o sucesso (ACTIVE)
         first_event = min(related_effects, key=lambda e: e.created_at)
         last_error = max(error_effects, key=lambda e: e.created_at)
 
@@ -144,7 +144,7 @@ def aggregate_progress(
         )
 
     # --------------------------------------------------------
-    # Derivações globais (invariantes do agregado)
+    # DerivaÃ§Ãµes globais (invariantes do agregado)
     # --------------------------------------------------------
     total_weight = sum(step.weight for step in steps)
     done_weight = sum(
@@ -157,7 +157,7 @@ def aggregate_progress(
     is_complete = all(step.state == StepState.DONE for step in steps)
 
     # --------------------------------------------------------
-    # Summary — narrativa humana
+    # Summary â€” narrativa humana
     # --------------------------------------------------------
     if has_error:
         summary = next(
@@ -168,7 +168,7 @@ def aggregate_progress(
         summary = done_steps[-1].label if done_steps else "Relato recebido"
 
     # --------------------------------------------------------
-    # Retorno do agregado semântico
+    # Retorno do agregado semÃ¢ntico
     # --------------------------------------------------------
     return UXProgress(
         relato_id=relato_id,
@@ -184,9 +184,9 @@ def find_step(progress: UXProgress, step_id: str) -> Optional[UXStep]:
     """
     Retorna o UXStep correspondente ao step_id informado.
 
-    - Não lança exceção
-    - Não infere nada
-    - Expressa intenção semântica do domínio
+    - NÃ£o lanÃ§a exceÃ§Ã£o
+    - NÃ£o infere nada
+    - Expressa intenÃ§Ã£o semÃ¢ntica do domÃ­nio
     """
 
     for step in progress.steps:

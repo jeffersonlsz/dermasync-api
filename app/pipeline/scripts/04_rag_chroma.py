@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 import json
 import os
 import unicodedata
@@ -25,7 +25,7 @@ def inicializar_chroma():
 
 
 def normalizar_tag(tag: str) -> str:
-    # Remove acentos, lowercase, troca espaços por _
+    # Remove acentos, lowercase, troca espaÃ§os por _
     tag = unicodedata.normalize("NFD", tag)
     tag = tag.encode("ascii", "ignore").decode("utf-8")
     tag = tag.lower().strip().replace(" ", "_")
@@ -34,8 +34,8 @@ def normalizar_tag(tag: str) -> str:
 
 def expandir_tags(tags_raw) -> dict:
     """
-    Recebe uma lista de tags (ou string separada por vírgula) e retorna um dicionário com chaves booleanas.
-    Ex: ['Pomada', 'Xarope'] → {'tag_pomada': True, 'tag_xarope': True}
+    Recebe uma lista de tags (ou string separada por vÃ­rgula) e retorna um dicionÃ¡rio com chaves booleanas.
+    Ex: ['Pomada', 'Xarope'] â†’ {'tag_pomada': True, 'tag_xarope': True}
     """
     if isinstance(tags_raw, str):
         tags = [t.strip() for t in tags_raw.split(",") if t.strip()]
@@ -59,10 +59,10 @@ def popular_base(collection, segmentos, embed_model):
 
     ids = [f'{s["id_relato"]}_{s["segmento_id"]}' for s in segmentos]
 
-    print("📐 Gerando embeddings...")
+    print("ðŸ“ Gerando embeddings...")
     embeddings = embed_model.encode(documentos, show_progress_bar=True)
 
-    print("📤 Inserindo na base ChromaDB...")
+    print("ðŸ“¤ Inserindo na base ChromaDB...")
     collection.add(
         documents=documentos, metadatas=metadados, ids=ids, embeddings=embeddings
     )
@@ -75,13 +75,13 @@ def buscar_semelhantes(collection, query, embed_model, k=5):
 
 
 def montar_prompt(pergunta, resultados):
-    base = f"""Abaixo, seguem uns trechos de relatos de pessoas dos seus tratamentos para dermatite atópica:\n"""
+    base = f"""Abaixo, seguem uns trechos de relatos de pessoas dos seus tratamentos para dermatite atÃ³pica:\n"""
 
     for i in range(len(resultados["documents"][0])):
         texto = resultados["documents"][0][i]
         base += f"\nTrecho {i+1}: {texto}"
-    base += f"""\n\nCom o que você leu acima, reuna as informações em formato de texto direto, com parágrafos, com linguagem amigavel, sobre o que viu acima, mas sem perder nenhuma informação. 
-            E também responda esse questionamento ao final: {pergunta} \n\n"""
+    base += f"""\n\nCom o que vocÃª leu acima, reuna as informaÃ§Ãµes em formato de texto direto, com parÃ¡grafos, com linguagem amigavel, sobre o que viu acima, mas sem perder nenhuma informaÃ§Ã£o. 
+            E tambÃ©m responda esse questionamento ao final: {pergunta} \n\n"""
     return base
 
 
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     embed_model = SentenceTransformer("intfloat/multilingual-e5-base")
     collection, client = inicializar_chroma()
 
-    print("⚠️ Recriando base vetorial...")
+    print("âš ï¸ Recriando base vetorial...")
     client.delete_collection("segmentos")
     collection, _ = inicializar_chroma()
     segmentos = carregar_segmentos(
@@ -100,13 +100,13 @@ if __name__ == "__main__":
     )
     popular_base(collection, segmentos, embed_model)
 
-    print("🔍 Buscando casos semelhantes...")
+    print("ðŸ” Buscando casos semelhantes...")
     resultados = buscar_semelhantes(collection, "Dermatite no rosto", embed_model)
 
-    print("🧠 Enviando para LLM...")
+    print("ðŸ§  Enviando para LLM...")
     llm = get_llm_client("gemini")
     prompt = montar_prompt("Dermatite no rosto", resultados)
     resposta = llm.completar(prompt)
 
-    print("\n🗣️ Resposta gerada:\n")
+    print("\nðŸ—£ï¸ Resposta gerada:\n")
     print(resposta)

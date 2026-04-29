@@ -1,4 +1,4 @@
-# app/firestore/persistencia.py
+﻿# app/firestore/persistencia.py
 
 import logging
 from datetime import datetime, timezone
@@ -23,18 +23,18 @@ def salvar_relato_firestore(
     collection: str = "relatos",
 ) -> str:
     """
-    Persiste o relato no Firestore seguindo o contrato canônico do domínio.
+    Persiste o relato no Firestore seguindo o contrato canÃ´nico do domÃ­nio.
 
-    Este método é:
+    Este mÃ©todo Ã©:
     - idempotente (set por ID)
-    - explícito (sem dict genérico)
+    - explÃ­cito (sem dict genÃ©rico)
     - alinhado com FSM / Orchestrator
 
     Retorna o relato_id persistido.
     """
 
     logger.info(
-        "[PERSIST] Salvando relato %s na coleção '%s'",
+        "[PERSIST] Salvando relato %s na coleÃ§Ã£o '%s'",
         relato_id,
         collection,
     )

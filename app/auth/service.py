@@ -1,11 +1,11 @@
-"""
-Serviços de autenticação centrados em Firebase Auth + Firestore.
+﻿"""
+ServiÃ§os de autenticaÃ§Ã£o centrados em Firebase Auth + Firestore.
 
-Nota Técnica:
-Este serviço utiliza o Google Cloud Firestore SDK síncrono. Em um ambiente FastAPI de alta concorrência,
-isso pode causar bloqueio da event loop. Para o MVP, o impacto é mitigado pelo baixo volume de IO
-de autenticação, mas para escala massiva, recomenda-se a migração para 'google-cloud-firestore' async
-ou execução destas chamadas em threads separadas via 'run_in_executor'.
+Nota TÃ©cnica:
+Este serviÃ§o utiliza o Google Cloud Firestore SDK sÃ­ncrono. Em um ambiente FastAPI de alta concorrÃªncia,
+isso pode causar bloqueio da event loop. Para o MVP, o impacto Ã© mitigado pelo baixo volume de IO
+de autenticaÃ§Ã£o, mas para escala massiva, recomenda-se a migraÃ§Ã£o para 'google-cloud-firestore' async
+ou execuÃ§Ã£o destas chamadas em threads separadas via 'run_in_executor'.
 """
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ def verify_firebase_token(provider_token: str) -> dict[str, Any]:
             detail=AUTH_ERROR_MESSAGES["TOKEN_EXPIRED"],
         ) from exc
     except (auth.InvalidIdTokenError, Exception) as exc:
-        # Simplifica erros de validação para segurança e clareza
+        # Simplifica erros de validaÃ§Ã£o para seguranÃ§a e clareza
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=AUTH_ERROR_MESSAGES["FIREBASE_TOKEN_INVALID"],
@@ -84,15 +84,15 @@ def _build_user(uid: str, raw: dict[str, Any]) -> User:
 
 async def get_or_create_internal_user(firebase_data: dict[str, Any]) -> User:
     """
-    Resolve ou provisiona automaticamente o perfil do usuário em Firestore.
+    Resolve ou provisiona automaticamente o perfil do usuÃ¡rio em Firestore.
     """
-    db = get_firestore_client()  # Acesso explícito ao cliente
+    db = get_firestore_client()  # Acesso explÃ­cito ao cliente
     uid = firebase_data["firebase_uid"]
     user_ref = db.collection("users").document(uid)
     user_doc = user_ref.get()
 
     now = _utcnow()
-    # Dados básicos sempre sincronizados com o Firebase Auth
+    # Dados bÃ¡sicos sempre sincronizados com o Firebase Auth
     base_data = {
         "id": uid,
         "firebase_uid": uid,
@@ -106,7 +106,7 @@ async def get_or_create_internal_user(firebase_data: dict[str, Any]) -> User:
         user_data = user_doc.to_dict() or {}
         merged = {**user_data, **base_data}
         
-        # Garante integridade de campos obrigatórios se estiverem corrompidos
+        # Garante integridade de campos obrigatÃ³rios se estiverem corrompidos
         if not merged.get("created_at"):
             merged["created_at"] = now
         if not merged.get("role"):
@@ -127,7 +127,7 @@ async def get_or_create_internal_user(firebase_data: dict[str, Any]) -> User:
         user_ref.set(created)
         user = _build_user(uid, created)
 
-    # Validação única de ativação
+    # ValidaÃ§Ã£o Ãºnica de ativaÃ§Ã£o
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

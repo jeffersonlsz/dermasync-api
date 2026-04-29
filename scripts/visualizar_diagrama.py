@@ -1,4 +1,4 @@
-import webbrowser
+﻿import webbrowser
 from pathlib import Path
 
 TEMPLATE_HTML = """
@@ -24,7 +24,7 @@ TEMPLATE_HTML = """
 def gerar_html(mmd_path: str):
     caminho = Path(mmd_path)
     if not caminho.exists():
-        print(f"[ERRO] Arquivo {mmd_path} não encontrado.")
+        print(f"[ERRO] Arquivo {mmd_path} nÃ£o encontrado.")
         return
 
     conteudo = caminho.read_text(encoding="utf-8")

@@ -1,9 +1,9 @@
-from app.services.readmodels.relato_progress_ui import build_relato_progress_ui
+﻿from app.services.readmodels.relato_progress_ui import build_relato_progress_ui
 from app.services.effects.result import EffectStatus
 
 
 # =========================================================
-# TEST 1 — Progresso vazio
+# TEST 1 â€” Progresso vazio
 # =========================================================
 
 def test_progress_ui_empty():
@@ -27,7 +27,7 @@ def test_progress_ui_empty():
 
 
 # =========================================================
-# TEST 2 — Progresso parcial com erro
+# TEST 2 â€” Progresso parcial com erro
 # =========================================================
 
 def test_progress_ui_partial_with_error():
@@ -58,7 +58,7 @@ def test_progress_ui_partial_with_error():
 
 
 # =========================================================
-# TEST 3 — Progresso parcial sem erro
+# TEST 3 â€” Progresso parcial sem erro
 # =========================================================
 
 def test_progress_ui_in_progress():
@@ -84,7 +84,7 @@ def test_progress_ui_in_progress():
 
 
 # =========================================================
-# TEST 4 — Progresso completo
+# TEST 4 â€” Progresso completo
 # =========================================================
 
 def test_progress_ui_completed():
@@ -107,11 +107,11 @@ def test_progress_ui_completed():
     assert ui["status"] == "COMPLETED"
     assert ui["progress_pct"] == 100
     assert ui["failed"] == 0
-    assert "concluído" in ui["summary"].lower()
+    assert "concluÃ­do" in ui["summary"].lower()
 
 
 # =========================================================
-# TEST 5 — Robustez contra dados incompletos
+# TEST 5 â€” Robustez contra dados incompletos
 # =========================================================
 
 def test_progress_ui_with_missing_fields():

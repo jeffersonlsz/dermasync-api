@@ -1,4 +1,4 @@
-# tests/domain/ux_progress/test_ux_progress.py
+﻿# tests/domain/ux_progress/test_ux_progress.py
 from datetime import datetime
 
 from app.domain.ux_progress.progress_aggregator import StepState, aggregate_progress, find_step

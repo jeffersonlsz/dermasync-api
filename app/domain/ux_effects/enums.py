@@ -1,4 +1,4 @@
-from enum import Enum
+﻿from enum import Enum
 
 
 class UXSeverity(str, Enum):
@@ -14,7 +14,7 @@ class UXChannel(str, Enum):
     modal = "modal"
     inline = "inline"
     banner = "banner"
-    silent = "silent"  # logs, métricas, background UX
+    silent = "silent"  # logs, mÃ©tricas, background UX
 
 
 class UXTiming(str, Enum):

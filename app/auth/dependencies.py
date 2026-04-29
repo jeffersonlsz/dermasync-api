@@ -1,5 +1,5 @@
-"""
-Dependências de autenticação/autorizaçao com Firebase ID token como credencial oficial.
+﻿"""
+DependÃªncias de autenticaÃ§Ã£o/autorizaÃ§ao com Firebase ID token como credencial oficial.
 """
 from __future__ import annotations
 

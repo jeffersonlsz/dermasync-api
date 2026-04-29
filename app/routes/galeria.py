@@ -1,4 +1,4 @@
-# app/routes/galeria.py
+﻿# app/routes/galeria.py
 """
 Routes for the gallery.
 """
@@ -47,15 +47,15 @@ async def listar_relatos_preview_admin(
 
 @router.get(
     "/galeria/public",
-    summary="Galeria pública otimizada com thumbnails",
-    tags=["Galeria Pública"]
+    summary="Galeria pÃºblica otimizada com thumbnails",
+    tags=["Galeria PÃºblica"]
 )
 async def listar_galeria_publica_route(
     limit: int = Query(12, ge=1, le=24),
     page: int = Query(1, ge=1),
 ):
     """
-    Retorna a lista de relatos públicos para a galeria (v3 oficial).
+    Retorna a lista de relatos pÃºblicos para a galeria (v3 oficial).
     """
     return await listar_galeria_publica_v3(
         limit=limit,

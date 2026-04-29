@@ -1,4 +1,4 @@
-# tests/routes/test_relatos_progress.py
+﻿# tests/routes/test_relatos_progress.py
 
 import pytest
 from fastapi import status
@@ -9,7 +9,7 @@ from app.services.effects.result import EffectResult
 
 
 # =========================================================
-# TEST 1 — Sem autenticação
+# TEST 1 â€” Sem autenticaÃ§Ã£o
 # =========================================================
 
 @pytest.mark.asyncio
@@ -19,7 +19,7 @@ async def test_get_relato_progress_unauthenticated(client):
 
 
 # =========================================================
-# TEST 2 — Usuário sem acesso ao relato
+# TEST 2 â€” UsuÃ¡rio sem acesso ao relato
 # =========================================================
 
 @pytest.mark.asyncio
@@ -48,7 +48,7 @@ async def test_get_relato_progress_empty_allowed(
 
 
 # =========================================================
-# TEST 3 — Progresso vazio
+# TEST 3 â€” Progresso vazio
 # =========================================================
 
 @pytest.mark.asyncio
@@ -82,7 +82,7 @@ async def test_get_relato_progress_empty(
     assert response.status_code == 200
     assert data["progress_pct"] == 0
     
-    # Valida apenas os campos essenciais dos steps para evitar quebra por label volátil
+    # Valida apenas os campos essenciais dos steps para evitar quebra por label volÃ¡til
     assert len(data["steps"]) == 3
     step_ids = [s["step_id"] for s in data["steps"]]
     assert "persist_relato" in step_ids
@@ -91,7 +91,7 @@ async def test_get_relato_progress_empty(
 
 
 # =========================================================
-# TEST 4 — Progresso parcial com erro
+# TEST 4 â€” Progresso parcial com erro
 # =========================================================
 
 @pytest.mark.asyncio
@@ -104,7 +104,7 @@ async def test_get_relato_progress_partial_with_error(
         return {"id": "relato-123"}
 
     mock_effect_repo_instance = Mock()
-    # Usando ENQUEUE_PROCESSING que mapeia para persist_relato na lógica atual
+    # Usando ENQUEUE_PROCESSING que mapeia para persist_relato na lÃ³gica atual
     mock_effect_repo_instance.fetch_by_relato_id.return_value = [
         EffectResult.success(relato_id="relato-123", effect_type="ENQUEUE_PROCESSING"),
         EffectResult.error(relato_id="relato-123", effect_type="UPLOAD_IMAGES", error_message="failed"),
@@ -131,7 +131,7 @@ async def test_get_relato_progress_partial_with_error(
 
 
 # =========================================================
-# TEST 5 — Progresso completo
+# TEST 5 â€” Progresso completo
 # =========================================================
 
 @pytest.mark.asyncio
@@ -167,6 +167,6 @@ async def test_get_relato_progress_complete(
     data = response.json()
 
     assert response.status_code == 200
-    # O cálculo de 100% depende de todos os steps definidos no progress_projector estarem SUCCESS
+    # O cÃ¡lculo de 100% depende de todos os steps definidos no progress_projector estarem SUCCESS
     assert data["progress_pct"] == 100
     assert data["failed"] == 0

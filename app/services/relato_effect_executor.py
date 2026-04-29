@@ -1,4 +1,4 @@
-# app/services/relato_effect_executor.py
+﻿# app/services/relato_effect_executor.py
 """
 Docstring for app.services.relato_effect_executor
 """
@@ -24,10 +24,10 @@ from app.core.errors import RetryErrorMessages
 from app.services.effects.idempotency import effect_already_succeeded
 class RelatoEffectExecutor:
     """
-    Executa efeitos emitidos pelo domínio.
-    NÃO decide.
-    NÃO governa fluxo.
-    Instrumenta resultados técnicos (EffectResult).
+    Executa efeitos emitidos pelo domÃ­nio.
+    NÃƒO decide.
+    NÃƒO governa fluxo.
+    Instrumenta resultados tÃ©cnicos (EffectResult).
     """
 
     def __init__(
@@ -45,7 +45,7 @@ class RelatoEffectExecutor:
         self._emit_event = emit_event
         self._upload_images = upload_images
         self._update_relato_status = update_relato_status
-        # 🔒 atributo SEMPRE existe
+        # ðŸ”’ atributo SEMPRE existe
         self._rollback_images = rollback_images
 
     def execute(self, effects: list):
@@ -56,7 +56,7 @@ class RelatoEffectExecutor:
         try:
             for effect in effects:
                 # =====================================================
-                # Idempotência — skip se já executado com sucesso
+                # IdempotÃªncia â€” skip se jÃ¡ executado com sucesso
                 # =====================================================
                 effect_type = effect.__class__.__name__
 
@@ -73,7 +73,7 @@ class RelatoEffectExecutor:
                     effect_ref=effect_ref,
                 ):
                     logger.info(
-                        "Effect já executado com sucesso | skip | type=%s relato=%s ref=%s",
+                        "Effect jÃ¡ executado com sucesso | skip | type=%s relato=%s ref=%s",
                         effect_type,
                         effect.relato_id,
                         effect_ref,
@@ -190,7 +190,7 @@ class RelatoEffectExecutor:
                         executed_effects.append(effect)
 
                     except Exception as exc:
-                        logger.exception("Erro ao emitir evento de domínio")
+                        logger.exception("Erro ao emitir evento de domÃ­nio")
 
                         result = build_effect_result(
                             relato_id=effect.payload.get("relato_id") if effect.payload else None,
@@ -218,7 +218,7 @@ class RelatoEffectExecutor:
 
                         uploaded_image_ids = self._upload_images(
                             effect.relato_id,
-                            effect.image_refs,  # refs, não arquivos
+                            effect.image_refs,  # refs, nÃ£o arquivos
                         )
 
                         total_imgs = sum(len(v) if v else 0 for v in effect.image_refs.values())
@@ -240,7 +240,7 @@ class RelatoEffectExecutor:
                     except Exception as exc:
                         logger.exception("Erro no upload de imagens")
 
-                        # 🔥 ROLLBACK IMEDIATO DO EFEITO EM FALHA
+                        # ðŸ”¥ ROLLBACK IMEDIATO DO EFEITO EM FALHA
                         if self._rollback_images is not None:
                             try:
                                 logger.info(
@@ -313,10 +313,10 @@ class RelatoEffectExecutor:
 
         except Exception:
             # =====================================================
-            # ROLLBACK COMPENSATÓRIO (ordem inversa)
+            # ROLLBACK COMPENSATÃ“RIO (ordem inversa)
             # =====================================================
             logger.warning(
-                "Falha na execução de efeitos. Iniciando rollback compensatório | total_executados=%d",
+                "Falha na execuÃ§Ã£o de efeitos. Iniciando rollback compensatÃ³rio | total_executados=%d",
                 len(executed_effects),
             )
 
@@ -357,8 +357,8 @@ class RelatoEffectExecutor:
     ):
         """
         Reexecuta um efeito com base em um EffectResult anterior.
-        NÃO decide retry.
-        NÃO muda domínio.
+        NÃƒO decide retry.
+        NÃƒO muda domÃ­nio.
         """
 
         effect_type = effect_result.effect_type
@@ -371,7 +371,7 @@ class RelatoEffectExecutor:
             attempt,
         )
 
-        # Reconstrução mínima do efeito
+        # ReconstruÃ§Ã£o mÃ­nima do efeito
         if effect_type == "PERSIST_RELATO":
             effect_data = effect_result.metadata.get("effect_data", {})
             effect = PersistRelatoEffect(relato_id=relato_id, **effect_data)
@@ -390,7 +390,7 @@ class RelatoEffectExecutor:
             # TODO: suportar retry quando upload for idempotente (hash + versionamento)
             raise ValueError(RetryErrorMessages.UPLOAD_IMAGES_NOT_SUPPORTED.value)
         else:
-            raise ValueError(f"Retry não suportado para effect_type={effect_type}")
+            raise ValueError(f"Retry nÃ£o suportado para effect_type={effect_type}")
 
 
 

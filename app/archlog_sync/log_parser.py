@@ -1,10 +1,10 @@
-import json
+﻿import json
 import logging
 from collections import defaultdict
 
 from .schemas import LogEntry
 
-# Configuração do logger
+# ConfiguraÃ§Ã£o do logger
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
 )
@@ -18,7 +18,7 @@ def carregar_logs(caminho_arquivo):
             linhas = [LogEntry(**json.loads(linha)) for linha in f]
             return linhas
     except FileNotFoundError:
-        logger.error(f"Arquivo não encontrado: {caminho_arquivo}")
+        logger.error(f"Arquivo nÃ£o encontrado: {caminho_arquivo}")
         logger.exception("Erro ao carregar logs")
         return []
     finally:

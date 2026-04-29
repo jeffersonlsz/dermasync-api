@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 
 import typer
 
@@ -6,7 +6,7 @@ from app.observabilidade.log_parser import (agrupar_por_request_id,
                                             carregar_logs)
 from app.observabilidade.mermaid_generator import gerar_mermaid
 
-# Configuração do logger
+# ConfiguraÃ§Ã£o do logger
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
@@ -17,7 +17,7 @@ app = typer.Typer()
 
 @app.command()
 def generate(input: str):
-    logger.info(f"Iniciando geração de diagramas a partir do arquivo: {input}")
+    logger.info(f"Iniciando geraÃ§Ã£o de diagramas a partir do arquivo: {input}")
     logs = carregar_logs(input)
     logger.info(f"{len(logs)} logs carregados do arquivo {input}")
     fluxos = agrupar_por_request_id(logs)

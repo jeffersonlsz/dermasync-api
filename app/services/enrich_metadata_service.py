@@ -1,4 +1,4 @@
-# app/services/enrich_metadata_service.py
+﻿# app/services/enrich_metadata_service.py
 
 import json
 
@@ -21,12 +21,12 @@ logger = logging.getLogger(__name__)
 
 class EnrichMetadataService:
     """
-    Serviço cognitivo EXTRACT_COMPUTABLE_METADATA (v2).
+    ServiÃ§o cognitivo EXTRACT_COMPUTABLE_METADATA (v2).
 
     - Usa LLM local via Ollama
     - Prompt fechado e versionado
-    - Validação dura via Pydantic v2
-    - Integração preservada com dev_enrich
+    - ValidaÃ§Ã£o dura via Pydantic v2
+    - IntegraÃ§Ã£o preservada com dev_enrich
     - Nenhum fallback silencioso
     """
 
@@ -49,17 +49,17 @@ class EnrichMetadataService:
         try:
             # 1. Prompt fechado
             prompt = build_prompt(relato_text)
-            logger.debug(f"Prompt construído para relato {relato_id}: {prompt[:100]}...")
+            logger.debug(f"Prompt construÃ­do para relato {relato_id}: {prompt[:100]}...")
             # 2. LLM (infra)
             raw_output = self.llm_client.generate(prompt)
             logger.debug(f"Output bruto do LLM para relato {relato_id}: {raw_output[:100]}...")
-            # 3. Normalização de transporte
+            # 3. NormalizaÃ§Ã£o de transporte
             clean_output = strip_code_fences(raw_output)
             logger.debug(f"Output limpo do LLM para relato {relato_id}: {clean_output[:100]}...")
             # 4. Parse JSON
             parsed = json.loads(clean_output)
             logger.debug(f"Output JSON parseado para relato {relato_id}: {parsed}")
-            # 5. Validação dura
+            # 5. ValidaÃ§Ã£o dura
             enrichment = EnrichedMetadataV2.model_validate(
                 {
                     **parsed,
@@ -68,7 +68,7 @@ class EnrichMetadataService:
             )
 
             logger.debug(f"Enriquecimento validado para relato {relato_id}: {enrichment.model_dump()}")
-            # 6. Persistência
+            # 6. PersistÃªncia
             self.enrichment_repository.save(
                 relato_id=relato_id,
                 version=self.ENRICHMENT_VERSION,
@@ -90,7 +90,7 @@ class EnrichMetadataService:
                     },
                 )
             )
-            # TODO to be removed after monitoring: log detalhado do sucesso para análise
+            # TODO to be removed after monitoring: log detalhado do sucesso para anÃ¡lise
             #self.effect_repository.register_success(
             #    relato_id=relato_id,
             #    effect_type=self.EFFECT_TYPE,
@@ -102,7 +102,7 @@ class EnrichMetadataService:
             #)
             logger.debug(f"EffectResult de sucesso registrado para relato {relato_id}")
         except Exception as exc:
-            # Falha explícita (nada silencioso)
+            # Falha explÃ­cita (nada silencioso)
             self.effect_repository.register_failure(
                 EffectResult.error(
                     relato_id=relato_id,
@@ -115,7 +115,7 @@ class EnrichMetadataService:
                     },
                 )
             )
-            # TODO to be removed after monitoring: log detalhado da falha para análise (sem expor dados sensíveis)
+            # TODO to be removed after monitoring: log detalhado da falha para anÃ¡lise (sem expor dados sensÃ­veis)
             #self.effect_repository.register_failure(
             #    relato_id=relato_id,
             #    effect_type=self.EFFECT_TYPE,
@@ -127,7 +127,7 @@ class EnrichMetadataService:
                 raise
 
     # ------------------------------------------------------------------
-    # Classificação mínima de falhas (pode evoluir depois)
+    # ClassificaÃ§Ã£o mÃ­nima de falhas (pode evoluir depois)
     # ------------------------------------------------------------------
 
     def _is_retryable(self, exc: Exception) -> bool:
@@ -139,6 +139,6 @@ class EnrichMetadataService:
         if isinstance(exc, RuntimeError):
             return True
 
-        # Violação de schema = falha cognitiva definitiva
+        # ViolaÃ§Ã£o de schema = falha cognitiva definitiva
         return False
 

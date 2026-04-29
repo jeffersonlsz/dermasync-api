@@ -1,4 +1,4 @@
-# app/repositories/relato_repository.py
+﻿# app/repositories/relato_repository.py
 
 from typing import Optional, List, Dict
 from datetime import datetime
@@ -10,7 +10,7 @@ class RelatoRepository:
     """
     Camada de acesso a dados para relatos armazenados no Firestore.
 
-    Esta classe NÃO define o contrato de domínio do Relato.
+    Esta classe NÃƒO define o contrato de domÃ­nio do Relato.
     Ela apenas retorna os dados persistidos de forma estruturada.
     """
 
@@ -36,7 +36,7 @@ class RelatoRepository:
 
     def get_aprovados(self, limit: int = 50) -> List[Dict]:
         """
-        Retorna relatos aprovados para uso em feed público.
+        Retorna relatos aprovados para uso em feed pÃºblico.
         """
 
         query = (

@@ -1,4 +1,4 @@
-# app/services/effects/fetch_firestore.py
+﻿# app/services/effects/fetch_firestore.py
 from typing import List, Optional
 
 import logging
@@ -19,7 +19,7 @@ def fetch_effect_result_success(
 ) -> Optional[EffectResult]:
     """
     Busca no Firestore um EffectResult com success=True
-    para a chave de idempotência fornecida.
+    para a chave de idempotÃªncia fornecida.
     """
 
     db = get_firestore_client()
@@ -102,9 +102,9 @@ def fetch_failed_effects(
                 metadata=_metadata,
             ))
         except TypeError as exc:
-            # Defesa: não quebrar retry por dado legado
+            # Defesa: nÃ£o quebrar retry por dado legado
             logger.error(
-                "EffectResult inválido no Firestore | data=%s | erro=%s",
+                "EffectResult invÃ¡lido no Firestore | data=%s | erro=%s",
                 data,
                 exc,
             )

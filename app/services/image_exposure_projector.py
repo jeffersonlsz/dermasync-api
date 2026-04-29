@@ -1,4 +1,4 @@
-# app/services/image_exposure_projector.py
+﻿# app/services/image_exposure_projector.py
 
 from typing import Dict, List, Any
 
@@ -9,15 +9,15 @@ class ImageExposureProjector:
         self,
         *,
         stage: str,
-        images_refs: Dict[str, Any] | None,
+        image_refs: Dict[str, Any] | None,
     ) -> List[Dict[str, str]]:
 
-        if not images_refs:
+        if not image_refs:
             return []
 
-        before = images_refs.get("antes") or []
-        during = images_refs.get("durante") or []
-        after = images_refs.get("depois") or []
+        before = image_refs.get("antes") or []
+        during = image_refs.get("durante") or []
+        after = image_refs.get("depois") or []
 
         def ensure_list(value):
             if isinstance(value, list):

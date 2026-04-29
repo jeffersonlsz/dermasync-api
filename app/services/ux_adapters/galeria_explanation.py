@@ -1,4 +1,4 @@
-# app/services/ux_adapters/galeria_explanation.py
+﻿# app/services/ux_adapters/galeria_explanation.py
 from app.domain.galeria.eligibility import RelatoEligibilityDecision
 from app.domain.galeria.similarity.score import SimilarityScore
 from app.domain.ux_effects.cognitive_explanation import (
@@ -19,7 +19,7 @@ class GaleriaExplanationBuilder:
 
         effects = []
 
-        # Caso 1 — relato não elegível
+        # Caso 1 â€” relato nÃ£o elegÃ­vel
         if not eligibility.eligible:
             effects.append(
                 CognitiveExplanationEffect.explanation(
@@ -31,13 +31,13 @@ class GaleriaExplanationBuilder:
             )
             return effects
 
-        # Caso 2 — elegível, mas exige similaridade
+        # Caso 2 â€” elegÃ­vel, mas exige similaridade
         if eligibility.similarity_required and similarity:
             effects.append(
                 CognitiveExplanationEffect.explanation(
                     message=(
                         "Este relato foi selecionado por apresentar "
-                        "semelhança relevante com a sua experiência."
+                        "semelhanÃ§a relevante com a sua experiÃªncia."
                     ),
                     details={
                         "similarity_score": similarity.total,
@@ -50,10 +50,10 @@ class GaleriaExplanationBuilder:
             )
             return effects
 
-        # Caso 3 — elegível sem restrições
+        # Caso 3 â€” elegÃ­vel sem restriÃ§Ãµes
         effects.append(
             CognitiveExplanationEffect.explanation(
-                message="Este relato foi incluído por relevância geral.",
+                message="Este relato foi incluÃ­do por relevÃ¢ncia geral.",
                 details={
                     "reason": eligibility.reason,
                 },
@@ -71,7 +71,7 @@ class GaleriaExplanationBuilder:
         if similarity_score >= 0.85:
             return ExposureGuidanceEffect.guide(
                 stage=ExposureStage.FULL,
-                message="Este relato é altamente semelhante ao seu caso.",
+                message="Este relato Ã© altamente semelhante ao seu caso.",
             )
 
         if similarity_score >= 0.70:
@@ -88,12 +88,12 @@ class GaleriaExplanationBuilder:
     def _reason_message(self, reason: str) -> str:
         return {
             "relato_not_approved": (
-                "Alguns relatos ainda passam por validação antes de serem exibidos."
+                "Alguns relatos ainda passam por validaÃ§Ã£o antes de serem exibidos."
             ),
             "staff_only": (
-                "Este conteúdo é restrito à equipe de curadoria."
+                "Este conteÃºdo Ã© restrito Ã  equipe de curadoria."
             ),
             "relato_not_visible_for_staff": (
-                "Este relato ainda não está disponível para visualização."
+                "Este relato ainda nÃ£o estÃ¡ disponÃ­vel para visualizaÃ§Ã£o."
             ),
-        }.get(reason, "Este conteúdo não está disponível no momento.")
+        }.get(reason, "Este conteÃºdo nÃ£o estÃ¡ disponÃ­vel no momento.")

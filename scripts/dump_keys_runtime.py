@@ -1,8 +1,8 @@
-# dump_keys_runtime.py
+﻿# dump_keys_runtime.py
 import importlib
 from pprint import pprint
 
-# imports dinâmicos (forçam carregamento dos módulos)
+# imports dinÃ¢micos (forÃ§am carregamento dos mÃ³dulos)
 sec = importlib.import_module("app.auth.security")
 dep = importlib.import_module("app.auth.dependencies")
 cfg = None

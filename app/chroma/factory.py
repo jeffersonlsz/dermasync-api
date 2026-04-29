@@ -1,4 +1,4 @@
-# app/db/database.py
+﻿# app/db/database.py
 import chromadb
 from sentence_transformers import SentenceTransformer
 
@@ -31,5 +31,5 @@ class DBResourceFactory:
             self._model = SentenceTransformer("intfloat/multilingual-e5-base")
 
 
-# Instância singleton global
+# InstÃ¢ncia singleton global
 db_factory = DBResourceFactory()

@@ -1,4 +1,4 @@
-from collections import Counter
+﻿from collections import Counter
 
 from app.chroma.factory import db_factory as factory
 
@@ -25,7 +25,7 @@ def obter_tags_populares(top_n=10):
 
 
 if __name__ == "__main__":
-    # Teste rápido da função
+    # Teste rÃ¡pido da funÃ§Ã£o
 
     populares = contar_tags()
     for tag, count in populares:

@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 from unittest.mock import MagicMock, patch
 from fastapi import HTTPException, status
 from app.auth.service import verify_firebase_token, get_or_create_internal_user

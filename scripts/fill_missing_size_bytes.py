@@ -1,9 +1,9 @@
-# scripts/fill_missing_size_bytes.py
+﻿# scripts/fill_missing_size_bytes.py
 import sys
 import os
 
-# Adiciona o diretório raiz do projeto ao sys.path
-# para que os módulos da 'app' possam ser encontrados.
+# Adiciona o diretÃ³rio raiz do projeto ao sys.path
+# para que os mÃ³dulos da 'app' possam ser encontrados.
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
 

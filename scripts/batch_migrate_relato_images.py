@@ -1,10 +1,10 @@
-"""
-Batch de migração de imagens legadas em relatos.
+﻿"""
+Batch de migraÃ§Ã£o de imagens legadas em relatos.
 
 - Converte campo legado `imagens` em documentos na collection `imagens`
 - Cria `imagens_ref` no relato
-- NÃO remove dados legados
-- NÃO recria se já migrado
+- NÃƒO remove dados legados
+- NÃƒO recria se jÃ¡ migrado
 
 Flags:
 --limit N
@@ -91,7 +91,7 @@ def run_batch(limit: int | None, dry_run: bool):
 
     print(f"Encontrados {len(relatos)} relatos candidatos.")
     if dry_run:
-        print("⚠️ DRY-RUN ATIVO")
+        print("âš ï¸ DRY-RUN ATIVO")
 
     migrated = 0
     skipped = 0
@@ -105,13 +105,13 @@ def run_batch(limit: int | None, dry_run: bool):
         print(f"\n[RELATO] {relato_id}")
 
         if "imagens_ref" in data:
-            print("  → já migrado, pulando")
+            print("  â†’ jÃ¡ migrado, pulando")
             skipped += 1
             continue
 
         imagens_legado = data.get("imagens")
         if not imagens_legado:
-            print("  → sem imagens legadas")
+            print("  â†’ sem imagens legadas")
             skipped += 1
             continue
 

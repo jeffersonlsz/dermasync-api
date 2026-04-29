@@ -1,4 +1,4 @@
-# app/services/feed/feed_mapper.py
+﻿# app/services/feed/feed_mapper.py
 from app.schema.relato import RelatoFullOutput, RelatoPublicPreviewDTO, ImagePreviewsDTO
 
 
@@ -8,10 +8,10 @@ def relato_full_to_preview(relato: RelatoFullOutput) -> RelatoPublicPreviewDTO:
 
     previews = None
 
-    if relato.images_refs:
+    if relato.image_refs:
         previews = ImagePreviewsDTO(
-            before=relato.images_refs.get("antes"),
-            after=relato.images_refs.get("depois")
+            before=relato.image_refs.get("antes"),
+            after=relato.image_refs.get("depois")
         )
 
     return RelatoPublicPreviewDTO(

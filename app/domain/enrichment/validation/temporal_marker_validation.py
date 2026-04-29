@@ -1,4 +1,4 @@
-# app/domain/enrichment/validation/temporal_marker_validation.py
+﻿# app/domain/enrichment/validation/temporal_marker_validation.py
 
 from app.domain.enrichment.vocabularies.temporal_markers_v1 import (
     ALLOWED_TEMPORAL_MARKERS
@@ -10,8 +10,8 @@ def validate_temporal_markers(markers: list[str], mode: ValidationMode) -> list[
     """
     Valida marcadores temporais conforme o modo.
 
-    STRICT  → erro se marcador inválido
-    RELAXED → aceita qualquer string
+    STRICT  â†’ erro se marcador invÃ¡lido
+    RELAXED â†’ aceita qualquer string
     """
 
     if mode == ValidationMode.STRICT:

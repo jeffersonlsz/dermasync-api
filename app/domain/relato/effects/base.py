@@ -1,10 +1,10 @@
-﻿# app/domain/relato/effects/base.py
+# app/domain/relato/effects/base.py
 from abc import ABC
 
 
 class Effect(ABC):
     """
-    Efeito declarativo emitido pelo domÃ­nio.
-    NÃ£o executa nada.
+    Efeito declarativo emitido pelo dom�nio.
+    N�o executa nada.
     """
     pass

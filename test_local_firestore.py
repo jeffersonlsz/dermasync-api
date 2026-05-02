@@ -1,4 +1,4 @@
-﻿from app.firestore.client import get_firestore_client
+from app.firestore.client import get_firestore_client
 
 db = get_firestore_client()
 

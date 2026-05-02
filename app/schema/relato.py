@@ -1,4 +1,4 @@
-﻿# app/schema/relato.py
+# app/schema/relato.py
 from typing import List, Optional, Dict, Literal
 from datetime import datetime
 from pydantic import BaseModel, Field
@@ -31,18 +31,18 @@ class RelatoStatusOutput(BaseModel):
     last_error: Optional[str] = None
     
 class RelatoPublicoOutput(BaseModel):
-    id: str = Field(..., description="ID Ãºnico do relato no sistema.")
+    id: str = Field(..., description="ID �nico do relato no sistema.")
     timestamp: datetime = Field(..., description="Data de envio do relato.")
     micro_depoimento: Optional[str] = Field(None, description="Breve resumo do relato gerado por LLM.")
-    solucao_encontrada: Optional[str] = Field(None, description="SoluÃ§Ã£o encontrada ou recomendada (gerado por LLM).")
+    solucao_encontrada: Optional[str] = Field(None, description="Solu��o encontrada ou recomendada (gerado por LLM).")
     imagens_ids: dict = Field(..., description="IDs das imagens associadas ao relato.")
     
 class RelatoFullOutput(BaseModel):
-    id: str = Field(..., description="ID Ãºnico do relato no sistema.")
+    id: str = Field(..., description="ID �nico do relato no sistema.")
     #id_relato_cliente: str = Field(..., description="Nome base para identificar esse relato")
-    owner_id: str = Field(..., description="ID do usuÃ¡rio proprietÃ¡rio do relato.")
+    owner_id: str = Field(..., description="ID do usu�rio propriet�rio do relato.")
     created_at: datetime = Field(..., description="Data de envio do relato.")
-    conteudo_original: str = Field(..., description="Texto original enviado pelo usuÃ¡rio.")
+    conteudo_original: str = Field(..., description="Texto original enviado pelo usu�rio.")
     classificacao_etaria: Optional[str] = None
     idade: Optional[str] = None
     genero: Optional[str] = None
@@ -51,9 +51,9 @@ class RelatoFullOutput(BaseModel):
     regioes_afetadas: List[str] = []
     status: str = Field(..., description="Status do ciclo de vida do relato.")
     micro_depoimento: Optional[str] = Field(None, description="Breve resumo do relato gerado por LLM.")
-    solucao_encontrada: Optional[str] = Field(None, description="SoluÃ§Ã£o encontrada ou recomendada (gerado por LLM).")
+    solucao_encontrada: Optional[str] = Field(None, description="Solu��o encontrada ou recomendada (gerado por LLM).")
     processing: Optional[Dict] = Field(None, description="Dados sobre o estado do processamento em background.")
-    last_error: Optional[str] = Field(None, description="Ãšltimo erro registrado durante o processamento.")
+    last_error: Optional[str] = Field(None, description="Último erro registrado durante o processamento.")
 
 class ConsentimentoSchema(BaseModel):
     public_display: bool
@@ -115,28 +115,28 @@ class ImagePreviewsDTO(BaseModel):
 
 class RelatoPublicPreviewDTO(BaseModel):
     """
-    DTO pÃºblico e anonimizando para exibiÃ§Ã£o na galeria pÃºblica.
+    DTO p�blico e anonimizando para exibi��o na galeria p�blica.
     """
-    id: str = Field(..., description="Identificador pÃºblico do relato")
+    id: str = Field(..., description="Identificador p�blico do relato")
     excerpt: str = Field(
         ...,
         max_length=120,
         description="Trecho curto e anonimizado do relato"
     )
     age_range: Optional[str] = Field(
-        None, description="Faixa etÃ¡ria (ex: '30-39')"
+        None, description="Faixa et�ria (ex: '30-39')"
     )
     duration: Optional[str] = Field(
-        None, description="DuraÃ§Ã£o aproximada do caso (ex: '3 meses')"
+        None, description="Dura��o aproximada do caso (ex: '3 meses')"
     )
     tags: Optional[List[str]] = Field(
         default_factory=list,
-        description="Tags pÃºblicas associadas ao relato"
+        description="Tags p�blicas associadas ao relato"
     )
     image_previews: Optional[ImagePreviewsDTO] = Field(
         None,
         description="Miniaturas de imagens de preview (antes/depois)"
     )
     created_at: datetime = Field(
-        ..., description="Data de criaÃ§Ã£o do relato (UTC)"
+        ..., description="Data de cria��o do relato (UTC)"
     )

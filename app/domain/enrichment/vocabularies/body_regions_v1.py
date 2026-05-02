@@ -1,17 +1,17 @@
-﻿# app/domain/enrichment/vocabularies/body_regions_v1.py
+# app/domain/enrichment/vocabularies/body_regions_v1.py
 
 """
-VocabulÃ¡rio controlado de regiÃµes corporais.
+Vocabul�rio controlado de regi�es corporais.
 
 Objetivo:
-- Normalizar localizaÃ§Ãµes anatÃ´micas citadas em relatos
-- Permitir agregaÃ§Ã£o, filtro e similaridade
-- Evitar identificaÃ§Ã£o pessoal ou granularidade excessiva
+- Normalizar localiza��es anat�micas citadas em relatos
+- Permitir agrega��o, filtro e similaridade
+- Evitar identifica��o pessoal ou granularidade excessiva
 
 Regras:
 - Sem lateralidade (direita/esquerda)
-- Sem regiÃµes microanatÃ´micas
-- VocabulÃ¡rio fechado
+- Sem regi�es microanat�micas
+- Vocabul�rio fechado
 """
 
 ALLOWED_BODY_REGIONS: set[str] = {

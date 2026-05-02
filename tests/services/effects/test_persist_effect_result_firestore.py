@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 import uuid
 from datetime import datetime
 from unittest.mock import MagicMock, patch
@@ -9,8 +9,8 @@ from app.services.effects.result import EffectResult
 def test_persist_effect_result_firestore_accepts_uuid_fields():
     """
     Garantia arquitetural:
-    - UUIDs NÃƒO podem vazar como objetos para o Firestore
-    - PersistÃªncia NÃƒO pode lanÃ§ar exceÃ§Ã£o
+    - UUIDs NÃO podem vazar como objetos para o Firestore
+    - Persist�ncia NÃO pode lan�ar exce��o
     """
 
     relato_id_str = str(uuid.uuid4())
@@ -37,11 +37,11 @@ def test_persist_effect_result_firestore_accepts_uuid_fields():
         "app.services.effects.persist_firestore.get_firestore_client",
         return_value=fake_db,
     ):
-        # ðŸš¨ ESTE CALL DEVE FALHAR HOJE
-        # ðŸš¨ E PASSAR APÃ“S A CORREÃ‡ÃƒO
+        # 🚨 ESTE CALL DEVE FALHAR HOJE
+        # 🚨 E PASSAR APÓS A CORREÇÃO
         persist_effect_result_firestore(fake_result)
 
-    # Se chegou atÃ© aqui, NÃƒO lanÃ§ou exceÃ§Ã£o
+    # Se chegou at� aqui, NÃO lan�ou exce��o
     assert True
 
 
@@ -49,7 +49,7 @@ def test_persist_effect_result_firestore_rejects_raw_uuid_values():
     """
     Contrato:
     - Nenhum uuid.UUID pode chegar cru ao Firestore
-    - PersistÃªncia deve normalizar antes de set()
+    - Persist�ncia deve normalizar antes de set()
     """
 
     relato_id_str = str(uuid.uuid4())
@@ -140,7 +140,7 @@ def test_persist_effect_result_firestore_normalizes_uuid_before_persisting():
     ):
         persist_effect_result_firestore(fake_result)
 
-    # ðŸ”¥ Agora validamos semanticamente
+    # 🔥 Agora validamos semanticamente
     assert isinstance(captured_data["relato_id"], str)
     assert isinstance(captured_data["metadata"]["image_id"], str)
 

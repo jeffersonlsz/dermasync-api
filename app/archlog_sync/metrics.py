@@ -1,7 +1,7 @@
-﻿# File: app/archlog_sync/metrics.py
+# File: app/archlog_sync/metrics.py
 # -*- coding: utf-8 -*-
 """
-Este mÃ³dulo contÃ©m funÃ§Ãµes para calcular mÃ©tricas de latÃªncia e detectar chamadas lentas a partir de eventos de log.
+Este m�dulo cont�m fun��es para calcular m�tricas de lat�ncia e detectar chamadas lentas a partir de eventos de log.
 """
 
 

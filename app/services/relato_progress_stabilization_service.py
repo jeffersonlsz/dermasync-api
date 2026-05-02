@@ -1,4 +1,4 @@
-﻿# app/services/relato_progress_stabilization_service.py
+# app/services/relato_progress_stabilization_service.py
 from datetime import datetime
 from typing import Dict
 
@@ -17,8 +17,8 @@ class RelatoProgressStabilizationService:
     """
     Job sob demanda para estabilizar progresso de um relato.
 
-    - Pode ser chamado vÃ¡rias vezes
-    - Ã‰ idempotente
+    - Pode ser chamado v�rias vezes
+    - É idempotente
     - Nunca executa effects
     """
 
@@ -33,20 +33,20 @@ class RelatoProgressStabilizationService:
     def get_or_compute_progress(self, relato_id: str):
         logger.debug(f"Getting or computing progress for relato_id: {relato_id}")
         # --------------------------------------------------
-        # 1. Tenta snapshot estÃ¡vel
+        # 1. Tenta snapshot est�vel
         # --------------------------------------------------
         snapshot = self.snapshot_repository.get_by_relato_id(relato_id)
 
         if snapshot and snapshot.is_stable:
-            return snapshot  # retorno rÃ¡pido
+            return snapshot  # retorno r�pido
 
         # --------------------------------------------------
-        # 2. LÃª efeitos
+        # 2. L� efeitos
         # --------------------------------------------------
         effect_results = self.effect_repository.fetch_by_relato_id(relato_id)
         logger.debug(f"Fetched {len(effect_results)} effect results for relato_id: {relato_id}")
         # --------------------------------------------------
-        # 3. Agrega progresso (domÃ­nio)
+        # 3. Agrega progresso (dom�nio)
         # --------------------------------------------------
         step_definitions = default_step_definitions()
 
@@ -65,7 +65,7 @@ class RelatoProgressStabilizationService:
         )
         logger.debug(f"Progress stability for relato_id {relato_id}: {is_stable}")
         # --------------------------------------------------
-        # 5. Persiste snapshot (se estÃ¡vel)
+        # 5. Persiste snapshot (se est�vel)
         # --------------------------------------------------
         if is_stable:
             logger.debug(f"Persisting stable ProgressSnapshot for relato_id: {relato_id}")
@@ -87,7 +87,7 @@ class RelatoProgressStabilizationService:
         return progress
 
     # ------------------------------------------------------
-    # Regra de estabilidade (nÃºcleo conceitual)
+    # Regra de estabilidade (n�cleo conceitual)
     # ------------------------------------------------------
     def _is_progress_stable(
         self,
@@ -95,8 +95,8 @@ class RelatoProgressStabilizationService:
         step_definitions,
     ) -> bool:
         """
-        Um progresso Ã© estÃ¡vel quando todas as intenÃ§Ãµes (effects)
-        tiveram sucesso no Ãºltimo evento observado.
+        Um progresso � est�vel quando todas as inten��es (effects)
+        tiveram sucesso no �ltimo evento observado.
         """
 
         last_effect_by_type: Dict[str, bool] = {}

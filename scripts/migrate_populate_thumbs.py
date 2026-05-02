@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Migration helper: varre collection 'imagens' e tenta popular fields:
   - thumb_path (string) -> caminho preferencial do thumbnail no bucket
@@ -17,7 +17,7 @@ from typing import List, Optional
 from datetime import datetime
 import time
 
-# Adiciona o diretÃ³rio raiz do projeto ao sys.path para encontrar o pacote 'app'
+# Adiciona o diret�rio raiz do projeto ao sys.path para encontrar o pacote 'app'
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
 
@@ -32,7 +32,7 @@ logging.basicConfig(
 logger = logging.getLogger("migrate_populate_thumbs")
 
 
-# HeurÃ­sticas de candidates para thumbs (ordem importante)
+# Heur�sticas de candidates para thumbs (ordem importante)
 THUMB_CANDIDATES_TEMPLATES = [
     "{id}/thumb_{orig}",            # thumb original naming
     "{id}/thumb_{basename}",        # thumb using basename only
@@ -54,14 +54,14 @@ def _basename(filename: str) -> str:
 
 def find_existing_blob(bucket, path: str) -> bool:
     """
-    Verifica existÃªncia de blob. Retorna True se existe.
+    Verifica exist�ncia de blob. Retorna True se existe.
     Usa .exists() synchronous method.
     """
     try:
         blob = bucket.blob(path)
         return blob.exists()
     except Exception as e:
-        logger.exception("Erro ao checar existÃªncia do blob %s: %s", path, e)
+        logger.exception("Erro ao checar exist�ncia do blob %s: %s", path, e)
         return False
 
 
@@ -77,7 +77,7 @@ def candidate_paths_for_item(item: dict) -> List[str]:
     for t in THUMB_CANDIDATES_TEMPLATES:
         candidate = t.format(id=idv, orig=orig, basename=basename)
         candidates.append(candidate)
-    # tambÃ©m inclua storage_path's variants if present
+    # tamb�m inclua storage_path's variants if present
     sp = item.get("storage_path") or ""
     if sp:
         # candidate thumb near storage_path: replace filename with thumb.jpg

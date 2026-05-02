@@ -1,4 +1,4 @@
-﻿# app/domain/galeria/visibility_policy.py
+# app/domain/galeria/visibility_policy.py
 from dataclasses import dataclass
 from enum import Enum
 from typing import Set

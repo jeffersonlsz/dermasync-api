@@ -1,4 +1,4 @@
-﻿# app/domain/ux_effects/processing_started.py
+# app/domain/ux_effects/processing_started.py
 """
 Docstring for app.domain.ux_effects.processing_started
 
@@ -36,7 +36,7 @@ class ProcessingStartedUXEffect(UXEffect):
             severity=UXSeverity.INFO,
             channel=UXChannel.BANNER,
             timing=UXTiming.DEFERRED,
-            message="Seu relato estÃ¡ sendo processado. Isso pode levar alguns instantes."
-            or "Seu relato estÃ¡ sendo processado. Isso pode levar alguns instantes.",
+            message="Seu relato est� sendo processado. Isso pode levar alguns instantes."
+            or "Seu relato est� sendo processado. Isso pode levar alguns instantes.",
             metadata={"relato_id": relato_id},
         )

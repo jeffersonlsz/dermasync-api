@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from datetime import datetime
 from google.cloud import firestore
 from app.repositories.effect_result_repository import EffectResultRepository

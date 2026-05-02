@@ -1,12 +1,12 @@
-﻿"""
-Rotas oficiais de autenticaÃ§Ã£o simplificadas.
+"""
+Rotas oficiais de autentica��o simplificadas.
 
 Fluxo:
 1. Frontend autentica no Firebase Auth externo.
-2. Backend cria sessÃ£o lÃ³gica via POST /auth/session (valida Firebase ID token).
-3. Backend identifica usuÃ¡rio via GET /auth/me.
+2. Backend cria sess�o l�gica via POST /auth/session (valida Firebase ID token).
+3. Backend identifica usu�rio via GET /auth/me.
 
-Nota: Logout Ã© puramente client-side (Firebase signOut).
+Nota: Logout � puramente client-side (Firebase signOut).
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from app.auth.schemas import (
 )
 from app.auth.service import get_or_create_internal_user, verify_firebase_token
 
-router = APIRouter(prefix="/auth", tags=["AutenticaÃ§Ã£o"])
+router = APIRouter(prefix="/auth", tags=["Autentica��o"])
 
 
 def _build_session_response(user: User) -> SessionResponse:
@@ -46,15 +46,15 @@ def _build_session_response(user: User) -> SessionResponse:
 @router.post("/session", response_model=SessionResponse)
 async def create_session(request: SessionRequest):
     """
-    Cria uma sessÃ£o lÃ³gica no backend a partir de um Firebase ID Token vÃ¡lido.
-    Se o usuÃ¡rio nÃ£o existir no banco interno, ele Ã© criado.
+    Cria uma sess�o l�gica no backend a partir de um Firebase ID Token v�lido.
+    Se o usu�rio n�o existir no banco interno, ele � criado.
     """
     firebase_data = verify_firebase_token(request.firebase_id_token)
     user = await get_or_create_internal_user(firebase_data)
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="UsuÃ¡rio inativo.",
+            detail="Usu�rio inativo.",
         )
     return _build_session_response(user)
 
@@ -62,6 +62,6 @@ async def create_session(request: SessionRequest):
 @router.get("/me", response_model=User)
 async def get_me(current_user: User = Depends(get_current_user)):
     """
-    Retorna o perfil completo do usuÃ¡rio autenticado.
+    Retorna o perfil completo do usu�rio autenticado.
     """
     return current_user

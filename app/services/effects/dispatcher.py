@@ -1,4 +1,4 @@
-﻿"""
+"""
 Module dispatcher.py.
 """
 
@@ -37,7 +37,7 @@ def dispatch_effect(effect, deps: dict) -> bool:
         effect_ref=effect_ref,
     ):
         logger.info(
-            "Effect jÃ¡ executado com sucesso | skip | type=%s relato=%s ref=%s",
+            "Effect j� executado com sucesso | skip | type=%s relato=%s ref=%s",
             effect_type,
             effect.relato_id,
             effect_ref,

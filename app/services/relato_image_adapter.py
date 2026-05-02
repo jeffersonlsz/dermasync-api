@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 from typing import List, Optional
 from fastapi import UploadFile
 
@@ -22,8 +22,8 @@ def upload_relato_images(
     imagens: dict,
 ):
     """
-    Adapter tÃ©cnico de upload de imagens.
-    NÃƒO altera estado do relato.
+    Adapter t�cnico de upload de imagens.
+    NÃO altera estado do relato.
     """
 
     for papel, arquivos in imagens.items():
@@ -56,9 +56,9 @@ def upload_relato_images(
     imagens: dict,
 ):
     """
-    Adapter tÃ©cnico de upload de imagens.
-    Espera imagens jÃ¡ MATERIALIZADAS (bytes).
-    NÃƒO altera estado do relato.
+    Adapter t�cnico de upload de imagens.
+    Espera imagens j� MATERIALIZADAS (bytes).
+    NÃO altera estado do relato.
     """
 
     logger.debug(

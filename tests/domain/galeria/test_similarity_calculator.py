@@ -1,4 +1,4 @@
-﻿from app.domain.galeria.similarity.calculator import SimilarityCalculator
+from app.domain.galeria.similarity.calculator import SimilarityCalculator
 from app.domain.galeria.similarity.policy import SimilarityPolicy
 from app.domain.galeria.similarity.axes import SimilarityAxis
 
@@ -31,8 +31,8 @@ def test_similarity_policy_v1_weights_sum_to_one():
 def test_jaccard_similarity_basic():
     from app.domain.galeria.similarity.scorers.tags_overlap import jaccard_similarity
 
-    a = ["coceira", "vermelhidÃ£o"]
-    b = ["coceira", "descamaÃ§Ã£o"]
+    a = ["coceira", "vermelhid�o"]
+    b = ["coceira", "descama��o"]
 
     assert jaccard_similarity(a, b) == round(1 / 3, 4)
 

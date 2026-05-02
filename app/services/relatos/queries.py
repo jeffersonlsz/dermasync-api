@@ -1,4 +1,4 @@
-﻿"""
+"""
 Module queries.py.
 """
 
@@ -30,7 +30,7 @@ async def listar_relatos():
             data = doc.to_dict()
             data["id"] = doc.id
             resultados.append(data)
-        logger.info(f"Listagem de relatos concluÃ­da , total de {len(resultados)} relatos encontrados")
+        logger.info(f"Listagem de relatos conclu�da , total de {len(resultados)} relatos encontrados")
         return resultados
     except Exception as e:
         raise Exception(f"Erro ao acessar o Firestore: {str(e)}")
@@ -51,7 +51,7 @@ async def get_relatos_by_owner_id(owner_user_id: str) -> list:
             data = doc.to_dict()
             data["id"] = doc.id
             resultados.append(data)
-        logger.info(f"Listagem de relatos para owner {owner_user_id} concluÃ­da, total de {len(resultados)} relatos encontrados.")
+        logger.info(f"Listagem de relatos para owner {owner_user_id} conclu�da, total de {len(resultados)} relatos encontrados.")
         return resultados
     except Exception as e:
         logger.exception(f"Erro ao listar relatos para owner {owner_user_id}.")
@@ -67,7 +67,7 @@ async def get_relato_by_id(relato_id: str, requesting_user: User) -> Union[Relat
     doc = await asyncio.to_thread(doc_ref.get)
 
     if not doc.exists:
-        raise HTTPException(status_code=404, detail="Relato nÃ£o encontrado.")
+        raise HTTPException(status_code=404, detail="Relato n�o encontrado.")
 
     relato_data = doc.to_dict()
     relato_data['id'] = doc.id
@@ -84,15 +84,15 @@ async def get_relato_by_id(relato_id: str, requesting_user: User) -> Union[Relat
         elif is_public:
             return RelatoPublicoOutput(**mapped_data)
         else:
-            raise HTTPException(status_code=403, detail="Acesso negado. Relato privado ou nÃ£o publicado.")
+            raise HTTPException(status_code=403, detail="Acesso negado. Relato privado ou n�o publicado.")
     except Exception as e:
         logger.error(f"Pydantic validation error for relato {relato_id}: {e}")
         logger.error(f"Data passed to Pydantic: {mapped_data}")
-        raise HTTPException(status_code=500, detail="Erro de validaÃ§Ã£o de dados internos.")
+        raise HTTPException(status_code=500, detail="Erro de valida��o de dados internos.")
 
 async def list_pending_moderation_relatos(requesting_user: User) -> list:
     if requesting_user.role not in ["admin", "colaborador"]:
-        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores e colaboradores podem listar relatos pendentes de moderaÃ§Ã£o.")
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores e colaboradores podem listar relatos pendentes de modera��o.")
 
     db = get_firestore_client()
     if not db:
@@ -106,10 +106,10 @@ async def list_pending_moderation_relatos(requesting_user: User) -> list:
             data = doc.to_dict()
             data["id"] = doc.id
             resultados.append(data)
-        logger.info(f"Listagem de relatos pendentes de moderaÃ§Ã£o concluÃ­da, total de {len(resultados)} relatos encontrados.")
+        logger.info(f"Listagem de relatos pendentes de modera��o conclu�da, total de {len(resultados)} relatos encontrados.")
         return resultados
     except Exception as e:
-        logger.exception("Erro ao listar relatos pendentes de moderaÃ§Ã£o.")
+        logger.exception("Erro ao listar relatos pendentes de modera��o.")
         raise HTTPException(status_code=500, detail=f"Erro ao acessar o Firestore: {str(e)}")
 
 async def listar_relatos_publicos_preview(limit: int = 50, status_filter: str = None) -> list:
@@ -127,7 +127,7 @@ async def listar_relatos_publicos_preview(limit: int = 50, status_filter: str = 
                 resultados.append(safe)
         return resultados
     except Exception as e:
-        logger.exception("Erro ao listar relatos pÃºblicos para galeria.")
+        logger.exception("Erro ao listar relatos p�blicos para galeria.")
         raise HTTPException(status_code=500, detail=f"Erro ao acessar o Firestore: {str(e)}")
 
 async def listar_relatos_publicos_galeria_publica_preview(*, limit: int, page: int, only_public: bool = True) -> List[RelatoPublicPreviewDTO]:
@@ -155,5 +155,5 @@ async def listar_relatos_publicos_galeria_publica_preview(*, limit: int, page: i
         logger.error(f"Firestore query requires an index: {e.message}")
         raise HTTPException(status_code=500, detail=f"Query requires a Firestore index. See logs for the creation URL. Error: {e.message}")
     except Exception as e:
-        logger.error(f"Erro ao buscar relatos para galeria pÃºblica: {e}", exc_info=True)
+        logger.error(f"Erro ao buscar relatos para galeria p�blica: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error while fetching gallery.")

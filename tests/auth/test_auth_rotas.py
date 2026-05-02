@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timezone
+from datetime import datetime, timezone
 
 import pytest
 from fastapi import HTTPException, status
@@ -56,7 +56,7 @@ async def test_get_me_com_token(client: AsyncClient, mock_current_user_usuario_l
     response = await client.get("/auth/me")
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["display_name"] == "UsuÃ¡rio de Teste"
+    assert data["display_name"] == "Usu�rio de Teste"
 
 
 @pytest.mark.asyncio
@@ -109,7 +109,7 @@ async def test_create_session_usuario_inativo(client: AsyncClient, mocker):
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert response.json() == {"detail": "UsuÃ¡rio inativo."}
+    assert response.json() == {"detail": "Usu�rio inativo."}
 
 
 @pytest.mark.asyncio

@@ -1,4 +1,4 @@
-﻿# app/jobs/enrich_metadata_job.py
+# app/jobs/enrich_metadata_job.py
 from datetime import datetime
 import logging
 import time
@@ -19,7 +19,7 @@ class EnrichMetadataJob:
     EFFECT_TYPE = "ENRICH_METADATA"
 
     ENRICHMENT_VERSION = "v2"
-    MODEL_USED = "poc-gemma-gaia:latest"
+    MODEL_USED = "qwen3:4b"
     PROMPT_VERSION = "extract_computable_metadata_v1_relaxed"
     
     
@@ -49,7 +49,7 @@ class EnrichMetadataJob:
             return
 
         # -------------------------------------------------
-        # idempotÃªncia
+        # idempot�ncia
         # -------------------------------------------------
 
         existing = self.effect_repo.fetch_by_relato_id(relato_id)
@@ -89,12 +89,12 @@ class EnrichMetadataJob:
 
                 try:
                     
-                    # TESTE: forÃ§a falha nas duas primeiras tentativas
+                    # TESTE: for�a falha nas duas primeiras tentativas
                     #if attempt < 3:
                     #    raise RuntimeError("Simulated LLM failure")
                     
                     enriched_data = run_enrich_metadata_llm(
-                        relato_text=relato.text,
+                        relato_text=relato['conteudo_original'],
                     )
 
                     break
@@ -121,7 +121,8 @@ class EnrichMetadataJob:
                             },
                         )
                     )
-
+                    enriched_data = run_enrich_metadata_llm(
+                        relato_text="Corrija o JSON abaixo:\n" + relato['conteudo_original'],)
                     attempt += 1
                     time.sleep(self.RETRY_DELAY_SECONDS)
 

@@ -1,12 +1,12 @@
-﻿# app/schema/relato_final.py
+# app/schema/relato_final.py
 
 from pydantic import BaseModel, Field
 
 
 class RelatoFinalInput(BaseModel):
     """
-    Schema completo e canÃ´nico do domÃ­nio.
-    SÃ³ deve ser validado quando o relato for processado/finalizado.
+    Schema completo e can�nico do dom�nio.
+    S� deve ser validado quando o relato for processado/finalizado.
     """
 
     consentimento: bool = Field(
@@ -16,17 +16,17 @@ class RelatoFinalInput(BaseModel):
 
     idade: str = Field(
         ...,
-        description="Idade do usuÃ¡rio"
+        description="Idade do usu�rio"
     )
 
     sexo: str = Field(
         ...,
-        description="Sexo/gÃªnero do usuÃ¡rio"
+        description="Sexo/g�nero do usu�rio"
     )
 
     tempo_doenca: str = Field(
         ...,
-        description="Tempo de convivÃªncia com a dermatite"
+        description="Tempo de conviv�ncia com a dermatite"
     )
 
     descricao: str = Field(

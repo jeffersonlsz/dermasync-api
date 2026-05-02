@@ -1,4 +1,4 @@
-﻿# app/services/relato_processing_adapter.py
+# app/services/relato_processing_adapter.py
 
 import logging
 from concurrent.futures import ThreadPoolExecutor
@@ -19,7 +19,7 @@ def _run_enrich_job(relato_id: str) -> None:
     """
     Executa o job real de enriquecimento.
 
-    Esta funÃ§Ã£o roda dentro de uma thread worker.
+    Esta fun��o roda dentro de uma thread worker.
     """
     logger.info("[relato_worker] iniciando processamento relato_id=%s", relato_id)
 
@@ -33,7 +33,7 @@ def _run_enrich_job(relato_id: str) -> None:
         job.run(relato_id)
 
         logger.info(
-            "[relato_worker] processamento concluÃ­do relato_id=%s",
+            "[relato_worker] processamento conclu�do relato_id=%s",
             relato_id,
         )
 
@@ -47,9 +47,9 @@ def _run_enrich_job(relato_id: str) -> None:
 
 def enqueue_relato_processing(relato_id: str) -> None:
     """
-    Adapter tÃ©cnico de processamento assÃ­ncrono do relato.
+    Adapter t�cnico de processamento ass�ncrono do relato.
 
-    EvoluÃ§Ã£o arquitetural planejada:
+    Evolu��o arquitetural planejada:
 
     MVP:
         ThreadPoolExecutor
@@ -60,5 +60,5 @@ def enqueue_relato_processing(relato_id: str) -> None:
 
     logger.info("[enqueue_relato_processing] relato_id=%s", relato_id)
 
-    # agenda execuÃ§Ã£o assÃ­ncrona
+    # agenda execu��o ass�ncrona
     _executor.submit(_run_enrich_job, relato_id)

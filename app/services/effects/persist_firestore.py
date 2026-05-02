@@ -1,4 +1,4 @@
-﻿# app/services/effects/persist_firestore.py
+# app/services/effects/persist_firestore.py
 import logging
 import uuid
 from datetime import datetime
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def normalize_firestore_value(value: Any) -> Any:
     """
-    Normaliza recursivamente valores para serem compatÃ­veis com o Firestore.
+    Normaliza recursivamente valores para serem compat�veis com o Firestore.
     Converte UUIDs para strings e percorre dicts e lists.
     """
     if isinstance(value, uuid.UUID):
@@ -21,7 +21,7 @@ def normalize_firestore_value(value: Any) -> Any:
         return {k: normalize_firestore_value(v) for k, v in value.items()}
     if isinstance(value, list):
         return [normalize_firestore_value(v) for v in value]
-    # MantÃ©m outros tipos primitivos (str, int, bool, None, datetime)
+    # Mant�m outros tipos primitivos (str, int, bool, None, datetime)
     return value
 
 
@@ -29,10 +29,10 @@ def persist_effect_result_firestore(
     result: EffectResult,
 ) -> None:
     """
-    Persiste o resultado tÃ©cnico de execuÃ§Ã£o de um efeito.
+    Persiste o resultado t�cnico de execu��o de um efeito.
 
-    NÃƒO lanÃ§a exceÃ§Ã£o.
-    NÃƒO interfere no fluxo.
+    NÃO lan�a exce��o.
+    NÃO interfere no fluxo.
     """
 
     db = get_firestore_client()
@@ -75,7 +75,7 @@ def persist_effect_result_firestore(
         )
 
     except Exception as exc:
-        # âš ï¸ Nunca quebrar o fluxo principal
+        # ⚠️ Nunca quebrar o fluxo principal
         logger.error(
             "[EFFECT_RESULT] app.services.effects.persist_firestore.persist_effect_result_firestore(...) Falha ao persistir | type=%s erro=%s",
             result.effect_type,

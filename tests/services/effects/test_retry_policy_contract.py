@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from datetime import datetime
 
 from app.services.effects.retry_policy import RetryPolicy

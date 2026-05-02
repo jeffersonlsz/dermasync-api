@@ -1,4 +1,4 @@
-﻿"""
+"""
 Module mappers.py.
 """
 
@@ -19,7 +19,7 @@ def parse_payload_json(payload: str) -> "RelatoDraftInput":
         )
 
 def extract_canonical_relato(data: dict, doc_id: str) -> dict:
-    """Extrai e resolve o contrato interno canÃ´nico de um relato."""
+    """Extrai e resolve o contrato interno can�nico de um relato."""
     timestamp_raw = data.get("created_at") or data.get("timestamp") or data.get("criado_em")
     if isinstance(timestamp_raw, str):
         try:

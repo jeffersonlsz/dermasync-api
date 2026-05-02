@@ -1,4 +1,4 @@
-﻿# app/domain/relato/effects/upload.py
+# app/domain/relato/effects/upload.py
 from dataclasses import dataclass
 
 from .base import Effect
@@ -8,4 +8,4 @@ from .base import Effect
 class UploadImagesEffect(Effect):
     relato_id: str
     #imagens: dict  # {"antes": [...], "durante": [...], "depois": [...]} removido - apenas refs agora
-    image_refs: dict[str, list[str]]  # âœ… refs, nÃ£o arquivos
+    image_refs: dict[str, list[str]]  # ✅ refs, n�o arquivos

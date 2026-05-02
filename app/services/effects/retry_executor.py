@@ -1,4 +1,4 @@
-﻿# app/services/effects/retry_executor.py
+# app/services/effects/retry_executor.py
 
 from datetime import datetime
 
@@ -12,7 +12,7 @@ def retry_effect(effect_result_id: str) -> EffectResult:
     original = load_effect_result(effect_result_id)
 
     if original.status == original.status.SUCCESS:
-        raise ValueError("EffectResult jÃ¡ foi executado com sucesso")
+        raise ValueError("EffectResult j� foi executado com sucesso")
 
     effect_ref = original.metadata.get("effect_ref")
     if not effect_ref:
@@ -20,7 +20,7 @@ def retry_effect(effect_result_id: str) -> EffectResult:
 
     executor = get_effect_executor(effect_ref)
     if not executor:
-        raise ValueError(f"Efeito nÃ£o suportado para retry: {effect_ref}")
+        raise ValueError(f"Efeito n�o suportado para retry: {effect_ref}")
 
     try:
         executor(original.metadata)

@@ -1,4 +1,4 @@
-﻿# app/services/relato_progress_service.py
+# app/services/relato_progress_service.py
 from typing import List
 from datetime import datetime
 
@@ -15,8 +15,8 @@ class RelatoProgressService:
 
     Responsabilidade:
     - Orquestrar fontes de dados
-    - Chamar o domÃ­nio
-    - NÃƒO conter regras de domÃ­nio
+    - Chamar o dom�nio
+    - NÃO conter regras de dom�nio
     """
 
     def __init__(self, effect_repository):

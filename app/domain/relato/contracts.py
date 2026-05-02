@@ -1,4 +1,4 @@
-﻿# app/domain/relato/contracts.py
+# app/domain/relato/contracts.py
 from dataclasses import dataclass, field
 from typing import List, Any, Optional
 from enum import Enum

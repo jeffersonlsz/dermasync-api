@@ -1,4 +1,4 @@
-﻿# scripts/migrate_fill_image_metadata.py
+# scripts/migrate_fill_image_metadata.py
 import sys
 import os
 from datetime import datetime, timezone
@@ -7,17 +7,17 @@ import hashlib
 from PIL import Image
 import argparse
 
-# Adiciona o diretÃ³rio raiz do projeto ao sys.path
-# para que os mÃ³dulos da 'app' possam ser encontrados.
+# Adiciona o diret�rio raiz do projeto ao sys.path
+# para que os m�dulos da 'app' possam ser encontrados.
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
 
-# reutilizar os clientes que seu app jÃ¡ inicializa
+# reutilizar os clientes que seu app j� inicializa
 from app.firestore.client import get_firestore_client, get_storage_bucket
 
 def get_args():
     p = argparse.ArgumentParser()
-    p.add_argument("--apply", action="store_true", help="Aplicar (por padrÃ£o dry-run).")
+    p.add_argument("--apply", action="store_true", help="Aplicar (por padr�o dry-run).")
     return p.parse_args()
 
 def main(apply=False):
@@ -42,11 +42,11 @@ def main(apply=False):
             try:
                 exists = blob.exists()
             except Exception as e:
-                print(f"[WARN] nÃ£o pÃ´de checar blob.exists() para {sp}: {e}")
+                print(f"[WARN] n�o p�de checar blob.exists() para {sp}: {e}")
                 exists = False
 
             if exists:
-                # metadata disponÃ­veis
+                # metadata dispon�veis
                 try:
                     if "size_bytes" not in d:
                         changes["size_bytes"] = int(blob.size) if blob.size is not None else None
@@ -55,7 +55,7 @@ def main(apply=False):
                 except Exception as e:
                     print("Warn metadados:", e)
 
-                # tentar baixar e extrair dimensÃµes + sha256 (cuidado: custo/tempo)
+                # tentar baixar e extrair dimens�es + sha256 (cuidado: custo/tempo)
                 try:
                     data = blob.download_as_bytes()
                     img = Image.open(io.BytesIO(data))
@@ -66,7 +66,7 @@ def main(apply=False):
                     if "sha256" not in d:
                         changes["sha256"] = hashlib.sha256(data).hexdigest()
                 except Exception as e:
-                    print(f"[WARN] nÃ£o foi possÃ­vel inspecionar blob {sp}: {e}")
+                    print(f"[WARN] n�o foi poss�vel inspecionar blob {sp}: {e}")
 
         # normalizar created_at / updated_at
         if "created_at" not in d and "criado_em" in d:

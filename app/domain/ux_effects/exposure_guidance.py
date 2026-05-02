@@ -1,4 +1,4 @@
-﻿# app/domain/ux_effects/exposure_guidance.py
+# app/domain/ux_effects/exposure_guidance.py
 from app.domain.ux_effects.base import UXEffect
 from app.domain.ux_effects.enums import UXSeverity, UXChannel, UXTiming, ExposureStage
 

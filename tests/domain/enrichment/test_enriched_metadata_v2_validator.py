@@ -1,4 +1,4 @@
-﻿# tests/domain/enrichment/test_enriched_metadata_v2_validator.py
+# tests/domain/enrichment/test_enriched_metadata_v2_validator.py
 
 import pytest
 from app.domain.enrichment.schemas.enriched_metadata_v2 import EnrichedMetadataV2

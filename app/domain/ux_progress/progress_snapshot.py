@@ -1,4 +1,4 @@
-﻿from dataclasses import dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict
 
@@ -6,12 +6,12 @@ from typing import Dict
 @dataclass(frozen=True)
 class ProgressSnapshot:
     """
-    Snapshot derivado e estÃ¡vel do progresso de um relato.
+    Snapshot derivado e est�vel do progresso de um relato.
 
     IMPORTANTE:
-    - NÃ£o Ã© fonte de verdade
-    - NÃ£o substitui EffectResult
-    - NÃ£o contÃ©m lÃ³gica de domÃ­nio
+    - N�o � fonte de verdade
+    - N�o substitui EffectResult
+    - N�o cont�m l�gica de dom�nio
     """
 
     relato_id: str

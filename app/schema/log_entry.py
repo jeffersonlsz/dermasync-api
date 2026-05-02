@@ -1,4 +1,4 @@
-﻿# app/schema/log_entry.py
+# app/schema/log_entry.py
 # This module defines the schema for log entries in the application.
 
 from datetime import datetime

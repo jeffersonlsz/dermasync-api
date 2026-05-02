@@ -1,9 +1,9 @@
-﻿# tests/services/test_executor_idempotency.py
+# tests/services/test_executor_idempotency.py
 
 def test_executor_skips_effect_if_already_succeeded(monkeypatch):
     """
-    Prova que o executor NÃƒO executa novamente
-    um efeito que jÃ¡ possui EffectResult success=True.
+    Prova que o executor NÃO executa novamente
+    um efeito que j� possui EffectResult success=True.
     """
 
     from app.services.relato_effect_executor import RelatoEffectExecutor
@@ -20,10 +20,10 @@ def test_executor_skips_effect_if_already_succeeded(monkeypatch):
         return ["img-1", "img-2"]
 
     # -----------------------------
-    # Simula idempotÃªncia ativa
+    # Simula idempot�ncia ativa
     # -----------------------------
     def fake_effect_already_succeeded(*, relato_id, effect_type, effect_ref):
-        # Simula que o efeito JÃ FOI executado com sucesso
+        # Simula que o efeito JÁ FOI executado com sucesso
         return True
 
     monkeypatch.setattr(
@@ -52,14 +52,14 @@ def test_executor_skips_effect_if_already_succeeded(monkeypatch):
     ]
 
     # -----------------------------
-    # ExecuÃ§Ã£o
+    # Execu��o
     # -----------------------------
     executor.execute(effects)
 
     # -----------------------------
-    # Assertiva CRÃTICA
+    # Assertiva CRÍTICA
     # -----------------------------
     assert upload_call_count == 0, (
-        "Upload NÃƒO deveria ser chamado se o efeito "
-        "jÃ¡ foi executado com sucesso anteriormente"
+        "Upload NÃO deveria ser chamado se o efeito "
+        "j� foi executado com sucesso anteriormente"
     )

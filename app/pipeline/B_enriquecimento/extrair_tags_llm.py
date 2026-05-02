@@ -1,1 +1,1 @@
-﻿# ExtraÃ§Ã£o de tags e tÃ³picos gerais de relatos usando LLM
+# Extra��o de tags e t�picos gerais de relatos usando LLM

@@ -1,4 +1,4 @@
-﻿# app/core/projections/progress_projector.py
+# app/core/projections/progress_projector.py
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
@@ -42,7 +42,7 @@ PIPELINE_STEPS = [
     },
     {
         "step_id": "enqueue_processing",
-        "label": "Preparando anÃ¡lise...",
+        "label": "Preparando an�lise...",
         "weight": 1,
     },
     {
@@ -135,7 +135,7 @@ def _build_summary(effects: List[UXEffectRecord], steps: List[StepProgress]) -> 
         if step.state == "error" and step.error_message:
             return step.error_message
 
-    # Ãšltimo effect de progresso
+    # Último effect de progresso
     progress_effects = [
         e for e in effects if e.channel == "progress"
     ]
@@ -145,7 +145,7 @@ def _build_summary(effects: List[UXEffectRecord], steps: List[StepProgress]) -> 
 
     # Fallbacks
     if all(step.state == "done" for step in steps):
-        return "Processamento concluÃ­do."
+        return "Processamento conclu�do."
 
     return "Processando..."
 

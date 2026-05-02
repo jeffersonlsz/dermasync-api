@@ -1,4 +1,4 @@
-﻿# app/domain/enrichment/prompts/extract_computable_metadata_v2.py
+# app/domain/enrichment/prompts/extract_computable_metadata_v2.py
 
 from app.domain.enrichment.vocabularies.tags_v1 import ALLOWED_TAGS
 from app.domain.enrichment.vocabularies.signals_v1 import (
@@ -21,30 +21,30 @@ PROMPT_VERSION = "extract_computable_metadata_v2_structured"
 
 def build_prompt(relato_text: str) -> str:
     """
-    Prompt otimizado para extraÃ§Ã£o de metadados clÃ­nicos estruturados.
-    VersÃ£o 2 - Foco em clareza, estrutura XML e regras explÃ­citas.
+    Prompt otimizado para extra��o de metadados cl�nicos estruturados.
+    Vers�o 2 - Foco em clareza, estrutura XML e regras expl�citas.
 
-    EstratÃ©gias:
-    - Persona clara e especÃ­fica.
-    - Estrutura com tags XML-like para delimitar seÃ§Ãµes.
-    - InstruÃ§Ãµes consolidadas e regras de "o que nÃ£o fazer" explÃ­citas.
-    - Guia para o score de confianÃ§a.
-    - Schema e vocabulÃ¡rios controlados mantidos.
+    Estrat�gias:
+    - Persona clara e espec�fica.
+    - Estrutura com tags XML-like para delimitar se��es.
+    - Instru��es consolidadas e regras de "o que n�o fazer" expl�citas.
+    - Guia para o score de confian�a.
+    - Schema e vocabul�rios controlados mantidos.
     """
 
     prompt_template = f"""
 <system_goal>
-VocÃª Ã© um analista de dados clÃ­nicos especializado em dermatologia. Sua tarefa Ã© extrair informaÃ§Ãµes estruturadas de um relato de paciente e formatÃ¡-las como um Ãºnico objeto JSON. Aderir estritamente ao schema e vocabulÃ¡rios fornecidos Ã© mandatÃ³rio.
+Voc� � um analista de dados cl�nicos especializado em dermatologia. Sua tarefa � extrair informa��es estruturadas de um relato de paciente e format�-las como um �nico objeto JSON. Aderir estritamente ao schema e vocabul�rios fornecidos � mandat�rio.
 </system_goal>
 
 <rules>
-1.  **Formato de SaÃ­da**: Sua Ãºnica saÃ­da deve ser um objeto JSON vÃ¡lido, comeÃ§ando com `{{` e terminando com `}}`.
-2.  **Sem Texto Adicional**: NÃ£o inclua nenhum texto, explicaÃ§Ã£o, ou markdown (como ` ```json `) antes ou depois do JSON.
-3.  **AderÃªncia ao Schema**: Siga exatamente o schema JSON fornecido na seÃ§Ã£o `<output_schema>`. NÃ£o invente, remova ou altere campos.
-4.  **VocabulÃ¡rio Controlado**: Utilize APENAS os valores exatos das listas `ALLOWED_*` fornecidas na seÃ§Ã£o `<allowed_vocabularies>`. A grafia deve ser idÃªntica.
-5.  **Campos Vazios**: Se nenhuma informaÃ§Ã£o relevante for encontrada para um campo que espera uma lista (ex: "tags", "signals"), retorne uma lista vazia `[]`. Para campos de string (ex: resumos), retorne uma string vazia `""` se nÃ£o aplicÃ¡vel.
-6.  **Booleanos**: NÃ£o use valores booleanos (`true`/`false`).
-7.  **Score de ConfianÃ§a**: O campo `extraction` em `confidence` deve ser um float entre 0.0 e 1.0, refletindo sua confianÃ§a na precisÃ£o da extraÃ§Ã£o. Use 1.0 para certeza total, 0.5 para incerteza moderada, e 0.1 para baixa confianÃ§a.
+1.  **Formato de Sa�da**: Sua �nica sa�da deve ser um objeto JSON v�lido, come�ando com `{{` e terminando com `}}`.
+2.  **Sem Texto Adicional**: N�o inclua nenhum texto, explica��o, ou markdown (como ` ```json `) antes ou depois do JSON.
+3.  **Ader�ncia ao Schema**: Siga exatamente o schema JSON fornecido na se��o `<output_schema>`. N�o invente, remova ou altere campos.
+4.  **Vocabul�rio Controlado**: Utilize APENAS os valores exatos das listas `ALLOWED_*` fornecidas na se��o `<allowed_vocabularies>`. A grafia deve ser id�ntica.
+5.  **Campos Vazios**: Se nenhuma informa��o relevante for encontrada para um campo que espera uma lista (ex: "tags", "signals"), retorne uma lista vazia `[]`. Para campos de string (ex: resumos), retorne uma string vazia `""` se n�o aplic�vel.
+6.  **Booleanos**: N�o use valores booleanos (`true`/`false`).
+7.  **Score de Confian�a**: O campo `extraction` em `confidence` deve ser um float entre 0.0 e 1.0, refletindo sua confian�a na precis�o da extra��o. Use 1.0 para certeza total, 0.5 para incerteza moderada, e 0.1 para baixa confian�a.
 </rules>
 
 <allowed_vocabularies>
@@ -103,7 +103,7 @@ Paciente relata piora da pele com o sol e estresse. Usa pomada Protopic de vez e
   }},
   "summaries": {{
     "public": "Relato de paciente com piora da pele devido ao sol e estresse, com tratamento para coceira no rosto.",
-    "clinical": "Prurido facial de baixa intensidade e frequÃªncia ocasional, com boa resposta a inibidor de calcineurina tÃ³pico. Gatilhos incluem sol e estresse."
+    "clinical": "Prurido facial de baixa intensidade e frequ�ncia ocasional, com boa resposta a inibidor de calcineurina t�pico. Gatilhos incluem sol e estresse."
   }},
   "confidence": {{
     "extraction": 0.9
@@ -117,7 +117,7 @@ Paciente relata piora da pele com o sol e estresse. Usa pomada Protopic de vez e
 </text_to_analyze>
 
 <final_instruction>
-Agora, analise o relato do paciente na seÃ§Ã£o `<text_to_analyze>` e gere o objeto JSON correspondente.
+Agora, analise o relato do paciente na se��o `<text_to_analyze>` e gere o objeto JSON correspondente.
 </final_instruction>
 """
     return prompt_template.strip()

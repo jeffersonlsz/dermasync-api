@@ -1,4 +1,4 @@
-﻿# app/config.py
+# app/config.py
 import os
 from typing import List
 
@@ -9,7 +9,7 @@ ALLOWED_ORIGINS: List[str] = [
     "http://localhost:3000",
 ]
 
-# ConfiguraÃ§Ãµes do Firebase
+# Configura��es do Firebase
 FIREBASE_MODE = os.getenv("FIREBASE_MODE", "prod").lower()
 FIREBASE_STORAGE_BUCKET = os.getenv("FIREBASE_STORAGE_BUCKET")
 GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")
@@ -17,3 +17,7 @@ GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")
 # Ambiente
 ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+# LLM Config
+OLLAMA_MODEL_NAME = os.getenv("OLLAMA_MODEL_NAME", "gemma4:latest")
+LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.2"))

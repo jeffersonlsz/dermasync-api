@@ -1,4 +1,4 @@
-﻿import json
+import json
 
 import chromadb
 from chromadb.config import Settings

@@ -1,4 +1,4 @@
-﻿# app/services/dev_effect_injector_service.py
+# app/services/dev_effect_injector_service.py
 from datetime import datetime
 from typing import Optional
 
@@ -7,12 +7,12 @@ from google.cloud import firestore
 
 class DevEffectInjectorService:
     """
-    ServiÃ§o DEV para injetar EffectResult diretamente na base.
+    Servi�o DEV para injetar EffectResult diretamente na base.
 
-    ATENÃ‡ÃƒO:
+    ATENÇÃO:
     - Uso exclusivo para desenvolvimento / testes
-    - NÃ£o contÃ©m lÃ³gica de domÃ­nio
-    - NÃ£o executa efeitos reais
+    - N�o cont�m l�gica de dom�nio
+    - N�o executa efeitos reais
     """
 
     def __init__(self, firestore_client: firestore.Client | None = None):

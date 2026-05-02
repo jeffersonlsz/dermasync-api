@@ -1,4 +1,4 @@
-﻿# app/services/image_exposure_projector.py
+# app/services/image_exposure_projector.py
 
 from typing import Dict, List, Any
 

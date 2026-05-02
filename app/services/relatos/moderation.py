@@ -1,4 +1,4 @@
-﻿"""
+"""
 Module moderation.py.
 """
 
@@ -22,7 +22,7 @@ async def moderate_relato(relato_id: str, action: str, current_user: User) -> di
     doc = await asyncio.to_thread(doc_ref.get)
 
     if not doc.exists:
-        raise HTTPException(status_code=404, detail="Relato nÃ£o encontrado.")
+        raise HTTPException(status_code=404, detail="Relato n�o encontrado.")
 
     relato_data = doc.to_dict()
     current_status_str = relato_data.get("status")
@@ -39,7 +39,7 @@ async def moderate_relato(relato_id: str, action: str, current_user: User) -> di
 
     command = command_map.get(action.lower())
     if not command:
-        raise HTTPException(status_code=400, detail=f"AÃ§Ã£o de moderaÃ§Ã£o invÃ¡lida: '{action}'. VÃ¡lidas: approve, reject, archive.")
+        raise HTTPException(status_code=400, detail=f"A��o de modera��o inv�lida: '{action}'. V�lidas: approve, reject, archive.")
 
     actor = Actor(id=current_user.id, role=current_user.role)
 

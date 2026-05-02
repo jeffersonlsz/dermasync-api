@@ -1,4 +1,4 @@
-﻿# app/domain/relato/effects/rebuild.py
+# app/domain/relato/effects/rebuild.py
 from app.services.effects.result import EffectResult
 from .persist import PersistRelatoEffect
 from .upload import UploadImagesEffect
@@ -23,7 +23,7 @@ def rebuild_effect_from_result(result: EffectResult):
         case "UPLOAD_IMAGES":
             return UploadImagesEffect(
                 relato_id=result.relato_id,
-                imagens={},  # imagens jÃ¡ persistidas / metadata futura
+                imagens={},  # imagens j� persistidas / metadata futura
             )
 
         case "ENQUEUE_PROCESSING":
@@ -48,5 +48,5 @@ def rebuild_effect_from_result(result: EffectResult):
 
         case _:
             raise ValueError(
-                f"Efeito nÃ£o suportado para retry: {result.effect_type}"
+                f"Efeito n�o suportado para retry: {result.effect_type}"
             )

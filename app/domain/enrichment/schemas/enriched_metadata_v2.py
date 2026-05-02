@@ -1,4 +1,4 @@
-﻿# app/domain/enrichment/schemas/enriched_metadata_v2.py
+# app/domain/enrichment/schemas/enriched_metadata_v2.py
 from pydantic import BaseModel, Field, model_validator, field_validator
 from typing import List, Literal
 
@@ -56,11 +56,11 @@ class ComputableMetadata(BaseModel):
     body_regions: List[str]
     temporal_markers: List[str]
 
-    # ðŸ”’ CONTROLE DE RIGOR
+    # 🔒 CONTROLE DE RIGOR
     validation_mode: ValidationMode = ValidationMode.RELAXED
 
     # -------------------------
-    # VALIDADORES SEMÃ‚NTICOS
+    # VALIDADORES SEMÂNTICOS
     # -------------------------
 
     @field_validator("tags")
@@ -117,7 +117,7 @@ class EnrichedMetadataV2(BaseModel):
     summaries: dict
     confidence: Confidence
 
-    # ðŸ”’ MODO GLOBAL (default STRICT)
+    # 🔒 MODO GLOBAL (default STRICT)
     validation_mode: ValidationMode = ValidationMode.RELAXED
 
     @field_validator("computable")

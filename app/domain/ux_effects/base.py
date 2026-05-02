@@ -1,4 +1,4 @@
-﻿from dataclasses import dataclass, field
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict
 
@@ -32,7 +32,7 @@ class UXEffect:
     metadata: Dict = field(default_factory=dict)
 
     # -----------------
-    # Helpers semÃ¢nticos
+    # Helpers sem�nticos
     # -----------------
 
     def is_blocking(self) -> bool:

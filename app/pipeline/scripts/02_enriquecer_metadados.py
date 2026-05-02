@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 import json
 import os
 from datetime import datetime
@@ -21,12 +21,12 @@ def salvar_jsonl(lista, caminho_saida):
 
 def gerar_prompt(texto):
     return (
-        "Extraia idade, gÃªnero, principais sintomas, regiÃµes do corpo afetadas, medicamentos e duraÃ§Ã£o de uso, produtos naturais e terapias realizadas. "
-        "Ignore nomes prÃ³prios. Responda apenas em JSON, se nÃ£o encontrou o dado, preencha com 'ausente':\n"
+        "Extraia idade, g�nero, principais sintomas, regi�es do corpo afetadas, medicamentos e dura��o de uso, produtos naturais e terapias realizadas. "
+        "Ignore nomes pr�prios. Responda apenas em JSON, se n�o encontrou o dado, preencha com 'ausente':\n"
         '{"idade": ..., "genero": ..., "sintomas": [...], "regioes_afetadas": [...], '
         '"produtos_naturais": [...], "terapias_realizadas": [...], '
         '"medicamentos": [{"nome": "...", "frequencia": "...", "duracao": "..."}]}, '
-        '"resumo_descritivo: "aqui Ã© um resumo pequeno sobre o que o texto diz, para servir como titulo e subtitulo"   \n\n'
+        '"resumo_descritivo: "aqui � um resumo pequeno sobre o que o texto diz, para servir como titulo e subtitulo"   \n\n'
         f"TEXTO:\n{texto}"
     )
 
@@ -68,7 +68,7 @@ def processar_relatos(relatos, llm, src="local-youtube"):
                 saida[-1]["link"] = item.get("link", None)
 
         except Exception as e:
-            print(f"âŒ Erro no relato {item['nome_arquivo']}: {e}")
+            print(f"❌ Erro no relato {item['nome_arquivo']}: {e}")
     return saida
 
 
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     llm = get_llm_client("gemini", NOME_MODELO)
     relatos = carregar_jsonl(DIRETORIO_JSONS_BRUTOS + "/relatos-20250609-v.jsonl")
     if not relatos:
-        print("â— Nenhum relato encontrado no arquivo JSONL.")
+        print("❗ Nenhum relato encontrado no arquivo JSONL.")
         exit(1)
 
     resultados = processar_relatos(relatos, llm, "local-youtube")
@@ -90,4 +90,4 @@ if __name__ == "__main__":
     )
     # os.makedirs(os.path.dirname(output_path), exist_ok=True)
     salvar_jsonl(resultados, output_path)
-    print(f"âœ… Arquivo salvo em {output_path}")
+    print(f"✅ Arquivo salvo em {output_path}")

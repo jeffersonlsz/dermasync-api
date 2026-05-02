@@ -1,4 +1,4 @@
-﻿# scripts/create_new_user.py
+# scripts/create_new_user.py
 import argparse
 import sys
 import os
@@ -9,8 +9,8 @@ from datetime import datetime, timezone
 # python scripts/create_new_user.py --email admin.teste@dermasync.com --password Admin123! --name "Admin Teste" --role admin
 # Colaborador
 # python scripts/create_new_user.py --email colaborador.teste@dermasync.com --password Colab123! --name "Colaborador Teste" --role colaborador
-# UsuÃ¡rio Logado
-# python scripts/create_new_user.py --email usuario.teste@dermasync.com --password Usuario123! --name "UsuÃ¡rio Teste" --role usuario_logado
+# Usu�rio Logado
+# python scripts/create_new_user.py --email usuario.teste@dermasync.com --password Usuario123! --name "Usu�rio Teste" --role usuario_logado
 
 # 1. Configurar path ANTES de importar app
 sys.path.append(str(Path(__file__).parent.parent))
@@ -18,7 +18,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from dotenv import load_dotenv
 load_dotenv()
 
-# 2. Agora os imports de app sÃ£o seguros
+# 2. Agora os imports de app s�o seguros
 from firebase_admin import auth
 from app.firestore.client import init_firebase, get_firestore_client
 
@@ -27,7 +27,7 @@ def create_user(email, password, name, role):
     init_firebase()
     db = get_firestore_client()
 
-    print(f"[*] Criando usuÃ¡rio: {email} | Role: {role}")
+    print(f"[*] Criando usu�rio: {email} | Role: {role}")
 
     try:
         # Criar no Firebase Auth
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--email", required=True)
     parser.add_argument("--password", required=True)
-    parser.add_argument("--name", default="Novo UsuÃ¡rio")
+    parser.add_argument("--name", default="Novo Usu�rio")
     parser.add_argument("--role", choices=["admin", "colaborador", "usuario_logado"], default="usuario_logado")
     
     args = parser.parse_args()

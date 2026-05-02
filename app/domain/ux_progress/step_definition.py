@@ -1,4 +1,4 @@
-﻿from typing import List
+from typing import List
 from .progress_aggregator import UXStepDefinition
 
 from typing import List
@@ -6,12 +6,12 @@ from .progress_aggregator import UXStepDefinition
 
 def default_step_definitions() -> List[UXStepDefinition]:
     """
-    Define o fluxo cognitivo padrÃ£o do envio de um relato.
+    Define o fluxo cognitivo padr�o do envio de um relato.
 
     IMPORTANTE:
-    - Isso nÃ£o descreve execuÃ§Ã£o tÃ©cnica
-    - Isso descreve a narrativa que o usuÃ¡rio percebe
-    - A ordem importa (percepÃ§Ã£o temporal)
+    - Isso n�o descreve execu��o t�cnica
+    - Isso descreve a narrativa que o usu�rio percebe
+    - A ordem importa (percep��o temporal)
     """
 
     return [

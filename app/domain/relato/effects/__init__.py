@@ -1,4 +1,4 @@
-﻿# app/domain/relato/effects/__init__.py
+# app/domain/relato/effects/__init__.py
 from .persist import PersistRelatoEffect
 from .upload import UploadImagesEffect
 from .enqueue import EnqueueProcessingEffect

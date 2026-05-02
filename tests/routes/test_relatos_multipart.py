@@ -1,4 +1,4 @@
-﻿from app.domain.relato.states import RelatoStatus
+from app.domain.relato.states import RelatoStatus
 from app.main import app
 from app.auth.schemas import User
 from app.auth.dependencies import get_current_user
@@ -28,7 +28,7 @@ def test_post_relatos_with_real_multipart_upload():
     client = TestClient(app)
 
     # -----------------------------------
-    # Payload vÃ¡lido (schema real)
+    # Payload v�lido (schema real)
     # -----------------------------------
     payload = {
         "descricao": "Relato com imagem real",
@@ -37,7 +37,7 @@ def test_post_relatos_with_real_multipart_upload():
     }
 
     # -----------------------------------
-    # Arquivo real em memÃ³ria
+    # Arquivo real em mem�ria
     # -----------------------------------
     fake_image_bytes = BytesIO(b"fake-image-bytes-123")
     fake_image_bytes.name = "antes.jpg"
@@ -65,7 +65,7 @@ def test_post_relatos_with_real_multipart_upload():
             )
 
             # -----------------------------------
-            # AsserÃ§Ãµes crÃ­ticas
+            # Asser��es cr�ticas
             # -----------------------------------
             assert response.status_code == 201
 
@@ -73,7 +73,7 @@ def test_post_relatos_with_real_multipart_upload():
             assert body["data"]["relato_id"] is not None
             assert body["data"]["status"] == RelatoStatus.CREATED.value
 
-            # executor foi chamado â†’ domÃ­nio permitiu
+            # executor foi chamado → dom�nio permitiu
             exec_instance.execute.assert_called_once()
 
     finally:
@@ -127,13 +127,13 @@ def test_upload_failure_triggers_rollback():
 @pytest.mark.integration
 def test_effect_result_persist_and_fetch_success():
     """
-    Teste de integraÃ§Ã£o real com Firestore.
-    Prova que EffectResult Ã© persistido e recuperÃ¡vel
-    pela chave de idempotÃªncia.
+    Teste de integra��o real com Firestore.
+    Prova que EffectResult � persistido e recuper�vel
+    pela chave de idempot�ncia.
     """
 
     if not os.getenv("RUN_FIRESTORE_INTEGRATION"):
-        pytest.skip("Defina RUN_FIRESTORE_INTEGRATION=1 para executar integraÃƒÂ§ÃƒÂ£o real com Firestore.")
+        pytest.skip("Defina RUN_FIRESTORE_INTEGRATION=1 para executar integraÃ§Ã£o real com Firestore.")
 
     from app.services.effects.persist_firestore import persist_effect_result_firestore
     from app.services.effects.fetch_firestore import fetch_effect_result_success
@@ -145,7 +145,7 @@ def test_effect_result_persist_and_fetch_success():
         metadata={"total_images": 2, "effect_ref": "relato-test-001"},
     )
 
-    # PersistÃªncia real
+    # Persist�ncia real
     persist_effect_result_firestore(effect)
 
     # Busca real

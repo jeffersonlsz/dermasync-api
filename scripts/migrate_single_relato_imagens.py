@@ -1,8 +1,8 @@
-﻿"""
-GeraÃ§Ã£o idempotente de thumbnails para imagens jÃ¡ associadas a um relato.
-- NÃƒO cria imagens
-- NÃƒO altera relato
-- Apenas gera thumbnail se nÃ£o existir
+"""
+Gera��o idempotente de thumbnails para imagens j� associadas a um relato.
+- NÃO cria imagens
+- NÃO altera relato
+- Apenas gera thumbnail se n�o existir
 """
 
 from firebase_admin import credentials, firestore, storage, initialize_app
@@ -94,7 +94,7 @@ def generate_thumbnails_for_relato(relato_id: str):
             continue
 
         if thumb_path:
-            print(f"[OK] thumbnail jÃ¡ existe â†’ {img.id}")
+            print(f"[OK] thumbnail j� existe → {img.id}")
             continue
 
         filename = os.path.basename(original_path)
@@ -112,7 +112,7 @@ def generate_thumbnails_for_relato(relato_id: str):
                 "timestamps.updated_at": now_iso()
             })
 
-            print(f"[DONE] thumbnail criada â†’ {thumb_path}")
+            print(f"[DONE] thumbnail criada → {thumb_path}")
 
         except Exception as e:
             print(f"[ERROR] imagem {img.id}: {e}")

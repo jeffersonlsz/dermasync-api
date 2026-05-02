@@ -1,4 +1,4 @@
-﻿# app/services/feed/feed_mapper.py
+# app/services/feed/feed_mapper.py
 from app.schema.relato import RelatoFullOutput, RelatoPublicPreviewDTO, ImagePreviewsDTO
 
 

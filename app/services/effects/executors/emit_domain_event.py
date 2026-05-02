@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 from datetime import datetime
 
 from app.services.effects.result import EffectResult
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def execute_emit_domain_event(metadata: dict) -> EffectResult:
     """
-    Executor tÃ©cnico de EMIT_DOMAIN_EVENT.
+    Executor t�cnico de EMIT_DOMAIN_EVENT.
     """
 
     relato_id = metadata["relato_id"]

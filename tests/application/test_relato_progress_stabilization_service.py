@@ -1,4 +1,4 @@
-﻿# app/services/relato_progress_stabilization_service.py
+# app/services/relato_progress_stabilization_service.py
 from datetime import datetime
 from unittest.mock import Mock
 

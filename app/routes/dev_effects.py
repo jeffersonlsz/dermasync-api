@@ -1,13 +1,13 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.auth.dependencies import get_current_user, require_roles
+from app.auth.dependencies import require_admin
 from app.auth.schemas import User, UserRole
 from app.services.dev_effect_injector_service import DevEffectInjectorService
 
 router = APIRouter(
     prefix="/dev",
     tags=["DEV - Effects"],
-    dependencies=[Depends(require_roles([UserRole.ADMIN]))]
+    dependencies=[Depends(require_admin)]
 )
 
 
@@ -19,7 +19,7 @@ def create_mock_effect(
     relato_id: str,
     effect_type: str,
     success: bool = True,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_admin),
 ):
     """
     Cria um EffectResult mockado diretamente no Firestore.

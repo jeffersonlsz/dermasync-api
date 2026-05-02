@@ -1,10 +1,10 @@
-﻿from app.services.effects.retry_classifier import RetryFailureType
+from app.services.effects.retry_classifier import RetryFailureType
 
 
 def classify_failure(exc: Exception) -> RetryFailureType:
     """
-    ClassificaÃ§Ã£o tÃ©cnica da falha.
-    NÃƒO lanÃ§a exceÃ§Ã£o.
+    Classifica��o t�cnica da falha.
+    NÃO lan�a exce��o.
     """
 
     if isinstance(exc, TimeoutError):

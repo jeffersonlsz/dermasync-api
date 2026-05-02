@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timezone
+from datetime import datetime, timezone
 from typing import Optional, Dict
 import logging
 
@@ -16,8 +16,8 @@ def persist_relato_firestore(
     payload: Optional[Dict],
 ):
     """
-    Adapter de persistÃªncia real no Firestore.
-    NÃƒO contÃ©m regra de negÃ³cio.
+    Adapter de persist�ncia real no Firestore.
+    NÃO cont�m regra de neg�cio.
     """
 
     db = get_firestore_client()
@@ -31,7 +31,7 @@ def persist_relato_firestore(
         "updated_at": now,
     }
 
-    # Se for criaÃ§Ã£o, adiciona created_at
+    # Se for cria��o, adiciona created_at
     if status == RelatoStatus.CREATED:
         data["created_at"] = now
 

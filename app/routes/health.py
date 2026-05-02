@@ -1,4 +1,4 @@
-﻿"""
+"""
 Production-grade healthcheck module for DermaSync.
 
 Provides one health endpoint:

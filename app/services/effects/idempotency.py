@@ -1,4 +1,4 @@
-﻿from app.services.effects.result import EffectResult
+from app.services.effects.result import EffectResult
 from app.services.effects.fetch_firestore import fetch_effect_result_success
 
 
@@ -9,8 +9,8 @@ def effect_already_succeeded(
     effect_ref: str,
 ) -> bool:
     """
-    Retorna True se jÃ¡ existe um EffectResult success=True
-    para a mesma chave de idempotÃªncia.
+    Retorna True se j� existe um EffectResult success=True
+    para a mesma chave de idempot�ncia.
     """
     result: EffectResult | None = fetch_effect_result_success(
         relato_id=relato_id,

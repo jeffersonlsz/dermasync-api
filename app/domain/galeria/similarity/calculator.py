@@ -1,4 +1,4 @@
-﻿# app/domain/galeria/similarity/calculator.py
+# app/domain/galeria/similarity/calculator.py
 
 from typing import Dict
 from .axes import SimilarityAxis
@@ -9,7 +9,7 @@ from .score import SimilarityScore
 class SimilarityCalculator:
     """
     Combina scores parciais por eixo em um score final composicional.
-    Aplica penalizaÃ§Ã£o baseada na quantidade de evidÃªncia disponÃ­vel.
+    Aplica penaliza��o baseada na quantidade de evid�ncia dispon�vel.
     """
 
     def calculate(
@@ -23,7 +23,7 @@ class SimilarityCalculator:
 
         breakdown = {}
         base_total = 0.0
-        active_weight_sum = 0.0  # soma dos pesos que realmente contribuÃ­ram
+        active_weight_sum = 0.0  # soma dos pesos que realmente contribu�ram
 
         for axis, weight in policy.weights.items():
             axis_score = partial_scores.get(axis, 0.0)
@@ -37,15 +37,15 @@ class SimilarityCalculator:
             breakdown[axis] = round(weighted, 4)
             base_total += weighted
 
-            # eixo sÃ³ conta como evidÃªncia se tiver score > 0
+            # eixo s� conta como evid�ncia se tiver score > 0
             if axis_score > 0.0:
                 active_weight_sum += weight
 
-        # confidence âˆˆ [0,1]
-        # representa quanta parte da polÃ­tica teve evidÃªncia
+        # confidence ∈ [0,1]
+        # representa quanta parte da pol�tica teve evid�ncia
         confidence = active_weight_sum
 
-        # score final ajustado por evidÃªncia
+        # score final ajustado por evid�ncia
         final_total = round(base_total * confidence, 4)
 
         return SimilarityScore(

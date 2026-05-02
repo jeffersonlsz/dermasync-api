@@ -1,9 +1,9 @@
-﻿import json
+import json
 import logging
 import sys
 
 #
-# Para logs diferentes por ambiente (dev, prod, test): use uma variÃ¡vel de ambiente e
+# Para logs diferentes por ambiente (dev, prod, test): use uma vari�vel de ambiente e
 # condicional
 #
 

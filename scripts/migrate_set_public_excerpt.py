@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timezone
+from datetime import datetime, timezone
 from firebase_admin import credentials, firestore, initialize_app
 import os
 
@@ -8,8 +8,8 @@ SERVICE_ACCOUNT_PATH = os.getenv(
     "dermasync-key.json"
 )
 
-COLLECTION_NAME = "relatos"  # ajuste se necessÃ¡rio
-DRY_RUN = False              # âš ï¸ TESTE PRIMEIRO COM True
+COLLECTION_NAME = "relatos"  # ajuste se necess�rio
+DRY_RUN = False              # ⚠️ TESTE PRIMEIRO COM True
 BATCH_SIZE = 400
 EXCERPT_MAX_LEN = 120
 # =========================================
@@ -25,7 +25,7 @@ def now_iso():
 
 def extract_narrative(doc: dict) -> str | None:
     """
-    CompatÃ­vel com relatos legados e novos
+    Compat�vel com relatos legados e novos
     """
     if isinstance(doc.get("conteudo_original"), str):
         return doc["conteudo_original"]
@@ -57,8 +57,8 @@ def build_public_excerpt(doc: dict) -> dict | None:
 
 
 def migrate():
-    print(f"\nðŸš€ Backfill de public_excerpt (schema-aware)")
-    print(f"ColeÃ§Ã£o: {COLLECTION_NAME}")
+    print(f"\n🚀 Backfill de public_excerpt (schema-aware)")
+    print(f"Cole��o: {COLLECTION_NAME}")
     print(f"Dry run: {DRY_RUN}\n")
 
     docs = db.collection(COLLECTION_NAME).stream()
@@ -92,14 +92,14 @@ def migrate():
             batch.commit()
             batch = db.batch()
             batch_count = 0
-            print(f"âœ” Commit parcial | atualizados={updated}")
+            print(f"✔ Commit parcial | atualizados={updated}")
 
     if not DRY_RUN and batch_count > 0:
         batch.commit()
 
     print("\n=== RESULTADO FINAL ===")
     print(f"Atualizados: {updated}")
-    print(f"Ignorados (jÃ¡ tinham): {skipped}")
+    print(f"Ignorados (j� tinham): {skipped}")
     print(f"Falharam (sem narrativa): {failed}")
 
 

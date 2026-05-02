@@ -1,11 +1,11 @@
-﻿"""
-Testes para a criaÃ§Ã£o de relato no domÃ­nio.
+"""
+Testes para a cria��o de relato no dom�nio.
 
-Este arquivo testa a intenÃ§Ã£o de criar um relato, verificando:
-- CriaÃ§Ã£o vÃ¡lida a partir de estado inicial (None)
-- Negativa de criaÃ§Ã£o quando relato jÃ¡ existe
-- Efeitos retornados na decisÃ£o
-- TransiÃ§Ãµes de estado corretas
+Este arquivo testa a inten��o de criar um relato, verificando:
+- Cria��o v�lida a partir de estado inicial (None)
+- Negativa de cria��o quando relato j� existe
+- Efeitos retornados na decis�o
+- Transi��es de estado corretas
 """
 
 from app.domain.relato.orchestrator import decide
@@ -28,11 +28,11 @@ def test_criar_relato_estado_inicial():
     assert decision.reason is None
     assert decision.previous_state is None
     assert decision.next_state == RelatoStatus.CREATED
-    assert len(decision.effects) > 0  # Deve ter efeitos de persistÃªncia e upload
+    assert len(decision.effects) > 0  # Deve ter efeitos de persist�ncia e upload
 
 
 def test_negar_criacao_relato_existente():
-    """Testa que nÃ£o Ã© possÃ­vel criar um relato se ele jÃ¡ existe (estado nÃ£o Ã© None)."""
+    """Testa que n�o � poss�vel criar um relato se ele j� existe (estado n�o � None)."""
     actor = Actor(id="user-123", role=ActorRole.USER)
     command = CreateRelato(
         relato_id="relato-456",
@@ -45,7 +45,7 @@ def test_negar_criacao_relato_existente():
     assert decision.allowed is False
     assert decision.previous_state == RelatoStatus.CREATED
     assert decision.next_state is None
-    assert decision.effects == []  # NÃ£o deve ter efeitos quando negado
+    assert decision.effects == []  # N�o deve ter efeitos quando negado
     assert decision.reason is not None  # Reason should not be None when denied
     
     
@@ -64,14 +64,14 @@ def test_post_relatos_success_runs_domain_and_executes_effects():
         role="usuario_logado"
     )
 
-    # ðŸ”‘ override correto do Depends
+    # 🔑 override correto do Depends
     app.dependency_overrides[get_current_user] = lambda: mock_user
 
     client = TestClient(app)
 
-    # âœ… payload MINIMAMENTE vÃ¡lido segundo RelatoDraftInput
+    # ✅ payload MINIMAMENTE v�lido segundo RelatoDraftInput
     payload = {
-        "descricao": "Relato vÃ¡lido",
+        "descricao": "Relato v�lido",
         "consentimento": True,
         "idade": 35
     }
@@ -95,10 +95,10 @@ def test_post_relatos_success_runs_domain_and_executes_effects():
             assert body["data"]["relato_id"] is not None
             assert body["data"]["status"] == RelatoStatus.CREATED.value
 
-            # ðŸ”¥ garantia arquitetural
+            # 🔥 garantia arquitetural
             mock_executor_instance.execute.assert_called_once()
     finally:
-        # limpeza obrigatÃ³ria
+        # limpeza obrigat�ria
         app.dependency_overrides.clear()
 
 
@@ -195,7 +195,7 @@ def test_create_relato_emits_typed_effects():
     command = CreateRelato(
         relato_id="relato-1",
         owner_id="user-123",
-        conteudo="Relato vÃ¡lido",
+        conteudo="Relato v�lido",
         image_refs={"antes": [], "durante": [], "depois": []},
     )
 
@@ -215,7 +215,7 @@ def test_create_relato_initial_state_is_created():
         command=CreateRelato(
         relato_id="relato-1",
         owner_id="user-123",
-        conteudo="Relato vÃ¡lido",
+        conteudo="Relato v�lido",
         image_refs={"antes": [], "durante": [], "depois": []},
     ),
         actor=Actor(id="user-123", role=ActorRole.USER),

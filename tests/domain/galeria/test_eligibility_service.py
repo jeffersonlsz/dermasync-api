@@ -1,4 +1,4 @@
-﻿from app.domain.galeria.user_profile import (
+from app.domain.galeria.user_profile import (
     UserCognitiveProfile,
     UserRole,
     ExposureLevel,

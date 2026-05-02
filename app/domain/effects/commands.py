@@ -1,4 +1,4 @@
-﻿# app/domain/effects/commands.py
+# app/domain/effects/commands.py
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -6,12 +6,12 @@ from typing import Any, Optional
 @dataclass(frozen=True)
 class EffectCommand:
     """
-    Representa uma ORDEM executÃ¡vel emitida pelo domÃ­nio
+    Representa uma ORDEM execut�vel emitida pelo dom�nio
     ou derivada de um EffectResult para retry.
 
-    NÃƒO Ã© histÃ³rico.
-    NÃƒO Ã© resultado.
-    Ã‰ intenÃ§Ã£o de execuÃ§Ã£o.
+    NÃO � hist�rico.
+    NÃO � resultado.
+    É inten��o de execu��o.
     """
 
     type: str

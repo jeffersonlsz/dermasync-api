@@ -1,12 +1,12 @@
-﻿# tests/routes/test_relatos_post.py
+# tests/routes/test_relatos_post.py
 """
-Testes para a rota canÃ´nica de criaÃ§Ã£o de relatos POST /relatos.
+Testes para a rota can�nica de cria��o de relatos POST /relatos.
 
-Este arquivo testa o contrato HTTP da rota de criaÃ§Ã£o de relatos, verificando:
-- Sucesso com status 201 quando domÃ­nio permite
-- Bloqueio com status 403 quando domÃ­nio nega
-- Erro 400 quando consentimento nÃ£o Ã© informado
-- Chamada ao executor de efeitos apenas quando decisÃ£o Ã© permitida
+Este arquivo testa o contrato HTTP da rota de cria��o de relatos, verificando:
+- Sucesso com status 201 quando dom�nio permite
+- Bloqueio com status 403 quando dom�nio nega
+- Erro 400 quando consentimento n�o � informado
+- Chamada ao executor de efeitos apenas quando decis�o � permitida
 """
 
 import json
@@ -81,7 +81,7 @@ def test_post_relatos_success():
 
 
 def test_post_relatos_denied_by_domain():
-    """Testa que a rota retorna 403 quando o domÃ­nio nega a criaÃ§Ã£o."""
+    """Testa que a rota retorna 403 quando o dom�nio nega a cria��o."""
     # Mock dependencies
     mock_user = User(
         id="user-123", 
@@ -93,7 +93,7 @@ def test_post_relatos_denied_by_domain():
     # Mock the domain decision (denied)
     mock_decision = Decision(
         allowed=False,
-        reason="Relato jÃ¡ existe.",
+        reason="Relato j� existe.",
         next_state=None,
         previous_state=RelatoStatus.CREATED,
         effects=[]  # No effects when denied
@@ -130,7 +130,7 @@ def test_post_relatos_denied_by_domain():
 
 
 def test_post_relatos_missing_consentimento():
-    """Testa que a rota retorna 400 quando consentimento nÃ£o Ã© informado."""
+    """Testa que a rota retorna 400 quando consentimento n�o � informado."""
     # Mock dependencies
     mock_user = User(
         id="user-123", 
@@ -162,12 +162,12 @@ def test_post_relatos_missing_consentimento():
     # Assertions
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     response_data = response.json()
-    assert "Consentimento Ã© obrigatÃ³rio" in response_data["detail"]
+    assert "Consentimento � obrigat�rio" in response_data["detail"]
     app.dependency_overrides.clear()
 
 
 def test_post_relatos_no_consentimento_field():
-    """Testa que a rota retorna 400 quando campo consentimento estÃ¡ ausente."""
+    """Testa que a rota retorna 400 quando campo consentimento est� ausente."""
     # Mock dependencies
     mock_user = User(
         id="user-123", 
@@ -203,7 +203,7 @@ def test_post_relatos_no_consentimento_field():
 
 
 def test_post_relatos_executor_not_called_when_denied():
-    """Testa que o executor de efeitos NÃƒO Ã© chamado quando decision.allowed == False."""
+    """Testa que o executor de efeitos NÃO � chamado quando decision.allowed == False."""
     # Mock dependencies
     mock_user = User(
         id="user-123", 
@@ -215,7 +215,7 @@ def test_post_relatos_executor_not_called_when_denied():
     # Mock the domain decision (denied)
     mock_decision = Decision(
         allowed=False,
-        reason="Relato jÃ¡ existe.",
+        reason="Relato j� existe.",
         next_state=None,
         previous_state=RelatoStatus.CREATED,
         effects=[]  # No effects when denied

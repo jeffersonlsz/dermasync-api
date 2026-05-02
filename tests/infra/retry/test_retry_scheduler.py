@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 from app.infra.retry.retry_scheduler import RetryScheduler
 from app.services.effects.retry_decision import RetryDecision
 from app.services.relato_effect_executor import RelatoEffectExecutor

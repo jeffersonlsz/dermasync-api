@@ -1,4 +1,4 @@
-﻿# app/services/effects/retry_effect_executor.py
+# app/services/effects/retry_effect_executor.py
 from app.domain.effects.commands import EffectCommand
 from app.infra.effects.registry import resolve
 

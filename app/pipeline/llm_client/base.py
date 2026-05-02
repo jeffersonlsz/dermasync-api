@@ -1,4 +1,4 @@
-﻿from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod
 
 class LLMClient(ABC):
 
@@ -17,9 +17,9 @@ def get_llm_client(provedor, nome_modelo):
         return GeminiClient(model_name=nome_modelo)
     elif provedor == "openai":
         # from .openai_client import OpenAIClient
-        return NotImplementedError("IntegraÃ§Ã£o com OpenAI ainda nÃ£o implementada")
+        return NotImplementedError("Integra��o com OpenAI ainda n�o implementada")
         # return OpenAIClient()
     elif provedor == "local":
-        raise NotImplementedError("IntegraÃ§Ã£o com modelo local ainda nÃ£o implementada")
+        raise NotImplementedError("Integra��o com modelo local ainda n�o implementada")
     else:
         raise ValueError(f"Provedor desconhecido: {provedor}")

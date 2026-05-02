@@ -1,4 +1,4 @@
-﻿"""
+"""
 Comprehensive route tests for POST /relatos.
 
 This file tests the HTTP contract for creating relatos, focusing on:
@@ -233,7 +233,7 @@ class TestPostRelatosDomainDenial:
         # Create a denied decision
         denied_decision = Decision(
             allowed=False,
-            reason="Relato jÃ¡ existe.",
+            reason="Relato j� existe.",
             previous_state=RelatoStatus.CREATED,
             next_state=None,
             effects=[],
@@ -264,7 +264,7 @@ class TestPostRelatosDomainDenial:
 
         denied_decision = Decision(
             allowed=False,
-            reason="TransiÃ§Ã£o invÃ¡lida: create a partir de processing.",
+            reason="Transi��o inv�lida: create a partir de processing.",
             previous_state=RelatoStatus.PROCESSING,
             next_state=None,
             effects=[],
@@ -282,7 +282,7 @@ class TestPostRelatosDomainDenial:
 
             data = response.json()
             assert "detail" in data
-            assert data["detail"] == "TransiÃ§Ã£o invÃ¡lida: create a partir de processing."
+            assert data["detail"] == "Transi��o inv�lida: create a partir de processing."
         finally:
             app.dependency_overrides.clear()
 
@@ -307,7 +307,7 @@ class TestPostRelatosDomainDenial:
             with patch("app.routes.relatos.decide") as mock_decide:
                 mock_decide.return_value = Decision(
                     allowed=False,
-                    reason="Relato jÃ¡ existe.",
+                    reason="Relato j� existe.",
                     previous_state=RelatoStatus.CREATED,
                 )
 
@@ -351,7 +351,7 @@ class TestPostRelatosValidationErrors:
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             data = response.json()
             assert "detail" in data
-            assert "Consentimento Ã© obrigatÃ³rio" in data["detail"]
+            assert "Consentimento � obrigat�rio" in data["detail"]
         finally:
             app.dependency_overrides.clear()
 
@@ -483,7 +483,7 @@ class TestPostRelatosExecutorBehavior:
 
         denied_decision = Decision(
             allowed=False,
-            reason="Relato jÃ¡ existe.",
+            reason="Relato j� existe.",
             previous_state=RelatoStatus.CREATED,
             next_state=None,
             effects=[],

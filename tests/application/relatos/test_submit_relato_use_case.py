@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import HTTPException, status
 from fastapi.datastructures import UploadFile
@@ -105,7 +105,7 @@ async def test_submit_relato_sucesso(
     files_durante = [MagicMock(spec=UploadFile), MagicMock(spec=UploadFile)]
     files_depois = []
 
-    # ExecuÃ§Ã£o
+    # Execu��o
     result = await use_case.execute(
         payload=valid_payload,
         imagens_antes=files_antes,
@@ -121,7 +121,7 @@ async def test_submit_relato_sucesso(
     # Verifica chamadas de upload
     assert mock_salvar_uploads.call_count == 3
     
-    # Verifica chamada de decisÃ£o de domÃ­nio
+    # Verifica chamada de decis�o de dom�nio
     mock_decide.assert_called_once()
     call_args = mock_decide.call_args[1]
     
@@ -141,7 +141,7 @@ async def test_submit_relato_sucesso(
     assert actor.id == "user-123"
     assert actor.role == "paciente"
 
-    # Verifica se o executor foi acionado com os efeitos da decisÃ£o
+    # Verifica se o executor foi acionado com os efeitos da decis�o
     use_case.executor.execute.assert_called_once_with(["effect1", "effect2"])
 
     # Verifica contrato de resposta preservado
@@ -174,9 +174,9 @@ async def test_submit_relato_sem_consentimento(
         )
 
     assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
-    assert "Consentimento Ã© obrigatÃ³rio" in exc_info.value.detail
+    assert "Consentimento � obrigat�rio" in exc_info.value.detail
     
-    # Executor nÃ£o deve ter sido chamado
+    # Executor n�o deve ter sido chamado
     use_case.executor.execute.assert_not_called()
 
 
@@ -200,10 +200,10 @@ async def test_submit_relato_dominio_nega_criacao(
         return []
     mock_salvar_uploads.side_effect = mock_upload_coro
 
-    # DomÃ­nio nega
+    # Dom�nio nega
     mock_decision = MagicMock(spec=Decision)
     mock_decision.allowed = False
-    mock_decision.reason = "UsuÃ¡rio jÃ¡ possui um relato em rascunho"
+    mock_decision.reason = "Usu�rio j� possui um relato em rascunho"
     mock_decide.return_value = mock_decision
 
     with pytest.raises(HTTPException) as exc_info:
@@ -217,7 +217,7 @@ async def test_submit_relato_dominio_nega_criacao(
         )
 
     assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
-    assert "UsuÃ¡rio jÃ¡ possui um relato em rascunho" in exc_info.value.detail
+    assert "Usu�rio j� possui um relato em rascunho" in exc_info.value.detail
     
-    # Executor nÃ£o deve ser chamado se o domÃ­nio negou
+    # Executor n�o deve ser chamado se o dom�nio negou
     use_case.executor.execute.assert_not_called()

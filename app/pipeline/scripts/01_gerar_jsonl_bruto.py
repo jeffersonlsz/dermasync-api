@@ -1,4 +1,4 @@
-﻿# scripts/01_gerar_jsonl_bruto.py
+# scripts/01_gerar_jsonl_bruto.py
 
 import argparse
 import json
@@ -14,7 +14,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from google.cloud import firestore
 
-# ===== FUNÃ‡Ã•ES DE LIMPEZA =====
+# ===== FUNÇÕES DE LIMPEZA =====
 
 
 def remover_emojis(texto: str) -> str:
@@ -26,8 +26,8 @@ def remover_emojis(texto: str) -> str:
 def limpar_texto(texto: str) -> str:
     texto = remover_emojis(texto)
     texto = re.sub(r"[^\w\s.,!?-]", "", texto)  # Remove caracteres especiais
-    texto = re.sub(r"\s+", " ", texto)  # Remove mÃºltiplos espaÃ§os
-    texto = re.sub(r"\.(?=\S)", ". ", texto)  # Garante espaÃ§o apÃ³s ponto
+    texto = re.sub(r"\s+", " ", texto)  # Remove m�ltiplos espa�os
+    texto = re.sub(r"\.(?=\S)", ". ", texto)  # Garante espa�o ap�s ponto
     return texto.strip()
 
 
@@ -50,7 +50,7 @@ def extrair_firestore_documentos(colecao: str):
             {
                 "origem": "firestore",
                 "id_relato": doc.id,
-                "nome_arquivo": f"{doc.id}.txt",  # Nome fictÃ­cio para compatibilidade
+                "nome_arquivo": f"{doc.id}.txt",  # Nome fict�cio para compatibilidade
                 "data_modificacao": (
                     doc.update_time.isoformat() if doc.update_time else None
                 ),
@@ -84,7 +84,7 @@ def processar_diretorios(diretorios, source="local-youtube"):
             saida.append(
                 {
                     "origem": "local-youtube",
-                    "id_relato": arquivo.stem,  # Nome do arquivo sem extensÃ£o
+                    "id_relato": arquivo.stem,  # Nome do arquivo sem extens�o
                     "nome_arquivo": arquivo.name,
                     "data_modificacao": data_mod,
                     "conteudo": texto_limpo,
@@ -128,22 +128,22 @@ if __name__ == "__main__":
         },
     ]
 
-    print("ðŸ“‚ Lendo arquivos dos diretÃ³rios:", diretorios)
+    print("📂 Lendo arquivos dos diret�rios:", diretorios)
     # registros = processar_diretorios(diretorios, 'local-youtube')
-    # print(f"ðŸ“„ Encontrados {len(registros)} registros nos diretÃ³rios.")
+    # print(f"📄 Encontrados {len(registros)} registros nos diret�rios.")
     # for i, registro in enumerate(registros):
     #    print(f"{i+1:03d} - {registro['id_relato']} - {registro['link']}...")
 
-    # print("ðŸ“‚ Lendo documentos do Firestore...")
+    # print("📂 Lendo documentos do Firestore...")
     # colecao_firestore = "jornadas"
     # registros_firestore = extrair_firestore_documentos(colecao_firestore)
     # hoje = datetime.now().strftime("%Y%m%d")
     # output_path = f"app/pipeline/dados/jsonl_brutos/relatos-{hoje}-v.jsonl"
     # os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    # print(f"ðŸ’¾ Salvando {len(registros) + len(registros_firestore) } registros em {output_path}")
+    # print(f"💾 Salvando {len(registros) + len(registros_firestore) } registros em {output_path}")
     # salvar_jsonl(registros + registros_firestore, output_path)
-    # print(f"ðŸ’¾ Salvando {len(registros)} registros em {output_path}")
+    # print(f"💾 Salvando {len(registros)} registros em {output_path}")
     # salvar_jsonl(registros, output_path)
 
-    # print("âœ… Finalizado com sucesso.")
+    # print("✅ Finalizado com sucesso.")

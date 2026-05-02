@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 from typing import Optional
 
 from google.cloud import firestore
@@ -12,7 +12,7 @@ class ProgressSnapshotRepository:
     """
     Repository de snapshots de progresso (Firestore).
 
-    Guarda apenas estados estÃ¡veis.
+    Guarda apenas estados est�veis.
     """
 
     COLLECTION_NAME = "relato_progress_snapshots"

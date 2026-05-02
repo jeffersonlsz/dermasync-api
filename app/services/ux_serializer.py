@@ -1,4 +1,4 @@
-﻿# app/services/ux_serializer.py
+# app/services/ux_serializer.py
 from typing import List, Any
 from app.services.ux_adapter_core import  UXEffect, domain_effect_to_ux_effect
 
@@ -6,7 +6,7 @@ from app.services.ux_adapter_core import  UXEffect, domain_effect_to_ux_effect
 def serialize_ux_effects(effects: List[Any]) -> List[dict]:
     """
     Serializa uma lista de efeitos (DomainEffect ou UXEffect)
-    para um formato de dicionÃ¡rio JSON-friendly.
+    para um formato de dicion�rio JSON-friendly.
     """
     serialized_list = []
     for effect in effects:

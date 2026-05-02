@@ -1,4 +1,4 @@
-﻿"""
+"""
 Comprehensive domain tests for relato creation.
 
 This file tests the domain decision logic for creating relatos, focusing on:

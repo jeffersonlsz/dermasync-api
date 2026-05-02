@@ -1,4 +1,4 @@
-﻿# app/infra/retry/retry_scheduler.py
+# app/infra/retry/retry_scheduler.py
 import logging
 from typing import Iterable
 
@@ -12,9 +12,9 @@ logger = logging.getLogger(__name__)
 
 class RetryScheduler:
     """
-    Orquestrador tÃ©cnico de retries.
-    NÃƒO conhece domÃ­nio.
-    NÃƒO cria efeitos.
+    Orquestrador t�cnico de retries.
+    NÃO conhece dom�nio.
+    NÃO cria efeitos.
     """
 
     def __init__(
@@ -42,7 +42,7 @@ class RetryScheduler:
 
             enriched = self._retry_engine.decide(result)
 
-            # Persistimos a decisÃ£o, SEMPRE
+            # Persistimos a decis�o, SEMPRE
             persist_effect_result_firestore(enriched)
 
             if enriched.status == EffectStatus.RETRYING:

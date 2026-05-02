@@ -1,4 +1,4 @@
-﻿# app/archlog_sync/parser.py
+# app/archlog_sync/parser.py
 # -*- coding: utf-8 -*-
 import json
 import logging

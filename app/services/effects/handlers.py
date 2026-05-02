@@ -1,4 +1,4 @@
-﻿"""
+"""
 Module handlers.py.
 """
 
@@ -85,7 +85,7 @@ def handle_emit_domain_event(effect: EmitDomainEventEffect, deps: dict) -> None:
             }
         )
     except Exception as exc:
-        logger.exception("Erro ao emitir evento de domÃ­nio")
+        logger.exception("Erro ao emitir evento de dom�nio")
         record_effect_result(
             relato_id=relato_id,
             effect_type="EMIT_EVENT",

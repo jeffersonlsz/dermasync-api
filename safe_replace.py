@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 
 def replace_in_file(filepath):
     with open(filepath, 'r', encoding='utf-8') as f:

@@ -1,4 +1,4 @@
-﻿# app/repositories/effect_result_repository.py
+# app/repositories/effect_result_repository.py
 from typing import List
 from datetime import datetime, timedelta
 
@@ -6,13 +6,13 @@ from google.cloud import firestore
 
 from app.services.effects.result import EffectResult, EffectStatus
 """
-âš ï¸ EffectResultRepository
+⚠️ EffectResultRepository
 
-Este repositÃ³rio persiste fatos de execuÃ§Ã£o (LEGADO).
-Ele NÃƒO representa UX Effects canÃ´nicos.
+Este reposit�rio persiste fatos de execu��o (LEGADO).
+Ele NÃO representa UX Effects can�nicos.
 
-UX Effects sÃ£o derivados via adapters
-e projeÃ§Ãµes semÃ¢nticas.
+UX Effects s�o derivados via adapters
+e proje��es sem�nticas.
 """
 
 
@@ -27,7 +27,7 @@ class EffectResultRepository:
     Responsabilidades:
     - Buscar documentos por relato_id
     - Converter Firestore -> EffectResult
-    - NÃƒO conter lÃ³gica de domÃ­nio
+    - NÃO conter l�gica de dom�nio
     """
 
     def __init__(self, firestore_client: firestore.Client | None = None):
@@ -106,8 +106,8 @@ class EffectResultRepository:
         """
         Registra um EffectResult com falha.
 
-        - NÃƒO lanÃ§a exceÃ§Ã£o
-        - NÃƒO contÃ©m lÃ³gica de domÃ­nio
+        - NÃO lan�a exce��o
+        - NÃO cont�m l�gica de dom�nio
         - Apenas persiste o fato ocorrido
         """
         persist_effect_result_firestore(effect_result)
@@ -121,7 +121,7 @@ class EffectResultRepository:
         """
         Registra um EffectResult bem-sucedido.
 
-        Este Ã© o caminho canÃ´nico para efeitos concluÃ­dos com sucesso.
+        Este � o caminho can�nico para efeitos conclu�dos com sucesso.
         """
         persist_effect_result_firestore(effect_result)
         

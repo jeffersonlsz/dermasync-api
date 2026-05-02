@@ -1,4 +1,4 @@
-﻿# app/services/effects/failure_context.py
+# app/services/effects/failure_context.py
 from dataclasses import dataclass
 from typing import Optional
 
@@ -6,8 +6,8 @@ from typing import Optional
 @dataclass(frozen=True)
 class FailureContext:
     """
-    Contexto mÃ­nimo de falha tÃ©cnica.
-    NÃƒO depende de EffectResult.
+    Contexto m�nimo de falha t�cnica.
+    NÃO depende de EffectResult.
     """
 
     effect_type: str

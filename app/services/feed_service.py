@@ -1,4 +1,4 @@
-﻿from app.auth.schemas import User
+from app.auth.schemas import User
 from app.repositories.relato_repository import RelatoRepository
 from app.schema.feed_item import FeedItem
 from app.schema.relato import RelatoFullOutput
@@ -72,7 +72,7 @@ class FeedService:
 
         feed = []
 
-        # primeiro: relatos do prÃ³prio usuÃ¡rio
+        # primeiro: relatos do pr�prio usu�rio
         for r in relatos_usuario:
 
             preview = relato_full_to_preview(r, hide_after=False)

@@ -1,4 +1,4 @@
-﻿# app/domain/galeria/similarity/axes.py
+# app/domain/galeria/similarity/axes.py
 from enum import Enum
 
 

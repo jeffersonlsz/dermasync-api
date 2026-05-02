@@ -1,4 +1,4 @@
-﻿from app.services.effects.retry_policy import DefaultRetryPolicy
+from app.services.effects.retry_policy import DefaultRetryPolicy
 from app.services.effects.retry_classifier import RetryFailureType
 
 

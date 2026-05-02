@@ -1,4 +1,4 @@
-﻿# run_tests.py
+# run_tests.py
 import importlib.util
 import json
 import os
@@ -9,7 +9,7 @@ import webbrowser
 
 
 def limpar_relatorios_antigos():
-    print("Limpando relatÃ³rios anteriores...")
+    print("Limpando relat�rios anteriores...")
     for path in ["htmlcov", "report.json", "logs_testes.jsonl"]:
         if os.path.isdir(path):
             shutil.rmtree(path)
@@ -30,12 +30,12 @@ def _build_pytest_command():
     if has_cov:
         cmd.extend(["--cov=app", "--cov-report=html"])
     else:
-        print("Aviso: plugin pytest-cov nÃ£o encontrado. Cobertura HTML serÃ¡ ignorada.")
+        print("Aviso: plugin pytest-cov n�o encontrado. Cobertura HTML ser� ignorada.")
 
     if has_json_report:
         cmd.extend(["--json-report", "--json-report-file=report.json"])
     else:
-        print("Aviso: plugin pytest-json-report nÃ£o encontrado. report.json nÃ£o serÃ¡ gerado.")
+        print("Aviso: plugin pytest-json-report n�o encontrado. report.json n�o ser� gerado.")
 
     return cmd
 
@@ -51,10 +51,10 @@ def rodar_pytest():
 def abrir_htmlcov():
     index_path = os.path.abspath("htmlcov/index.html")
     if not os.path.exists(index_path):
-        print("\nRelatÃ³rio de cobertura HTML nÃ£o foi gerado.")
+        print("\nRelat�rio de cobertura HTML n�o foi gerado.")
         return
 
-    print(f"\nAbrindo relatÃ³rio de cobertura: {index_path}")
+    print(f"\nAbrindo relat�rio de cobertura: {index_path}")
     try:
         webbrowser.open(f"file://{index_path}")
     except Exception as exc:
@@ -63,7 +63,7 @@ def abrir_htmlcov():
 
 def mostrar_resumo_teste():
     if not os.path.exists("report.json"):
-        print("Arquivo report.json nÃ£o encontrado.")
+        print("Arquivo report.json n�o encontrado.")
         return
 
     try:
@@ -89,9 +89,9 @@ def main():
     abrir_htmlcov()
 
     if exit_code != 0:
-        print("\nExecuÃ§Ã£o finalizada com falhas.")
+        print("\nExecu��o finalizada com falhas.")
     else:
-        print("\nExecuÃ§Ã£o finalizada com sucesso.")
+        print("\nExecu��o finalizada com sucesso.")
 
     raise SystemExit(exit_code)
 

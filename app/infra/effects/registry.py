@@ -1,4 +1,4 @@
-﻿# app/infra/effects/registry.py
+# app/infra/effects/registry.py
 from typing import Callable, Dict, Protocol
 
 
@@ -11,7 +11,7 @@ _EFFECT_EXECUTORS: Dict[str, EffectExecutor] = {}
 
 def register(effect_type: str, executor: EffectExecutor) -> None:
     if not effect_type:
-        raise ValueError("effect_type invÃ¡lido")
+        raise ValueError("effect_type inv�lido")
 
     _EFFECT_EXECUTORS[effect_type] = executor
 

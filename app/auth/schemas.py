@@ -1,5 +1,5 @@
-﻿"""
-DefiniÃ§Ã£o de modelos de dados (schemas) para AutenticaÃ§Ã£o e UsuÃ¡rios.
+"""
+Defini��o de modelos de dados (schemas) para Autentica��o e Usu�rios.
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 class UserRole(str, Enum):
     """
-    PapÃ©is de acesso permitidos no sistema.
+    Pap�is de acesso permitidos no sistema.
     """
     ADMIN = "admin"
     COLABORADOR = "colaborador"
@@ -21,21 +21,21 @@ class UserRole(str, Enum):
 
 class User(BaseModel):
     """
-    Modelo completo do usuÃ¡rio no banco interno.
+    Modelo completo do usu�rio no banco interno.
     """
-    id: str = Field(..., description="ID Ãºnico interno (usr_...)")
+    id: str = Field(..., description="ID �nico interno (usr_...)")
     firebase_uid: str = Field(..., description="UID vinculado ao Firebase Auth")
-    email: Optional[str] = Field(None, description="EndereÃ§o de e-mail principal")
-    display_name: Optional[str] = Field(None, description="Nome de exibiÃ§Ã£o")
+    email: Optional[str] = Field(None, description="Endere�o de e-mail principal")
+    display_name: Optional[str] = Field(None, description="Nome de exibi��o")
     avatar_url: Optional[str] = Field(None, description="URL da foto de perfil")
-    role: UserRole = Field(UserRole.USUARIO_LOGADO, description="NÃ­vel de acesso")
-    is_active: bool = Field(True, description="Define se o usuÃ¡rio tem acesso ao sistema")
+    role: UserRole = Field(UserRole.USUARIO_LOGADO, description="N�vel de acesso")
+    is_active: bool = Field(True, description="Define se o usu�rio tem acesso ao sistema")
     
     # Metadados de perfil
-    idade_aprox: Optional[int] = Field(None, description="Idade aproximada para personalizaÃ§Ã£o")
+    idade_aprox: Optional[int] = Field(None, description="Idade aproximada para personaliza��o")
     principais_areas_pele: List[str] = Field(
         default_factory=list, 
-        description="Lista de Ã¡reas da pele de maior interesse"
+        description="Lista de �reas da pele de maior interesse"
     )
     
     created_at: Optional[datetime] = None
@@ -44,25 +44,25 @@ class User(BaseModel):
 
 class UserPublicProfile(BaseModel):
     """
-    Perfil pÃºblico seguro para retorno em endpoints de sessÃ£o e listagem.
+    Perfil p�blico seguro para retorno em endpoints de sess�o e listagem.
     """
-    user_id: str = Field(..., description="ID Ãºnico interno")
+    user_id: str = Field(..., description="ID �nico interno")
     email: Optional[str] = None
     display_name: Optional[str] = None
     avatar_url: Optional[str] = None
-    role: UserRole = Field(..., description="Papel do usuÃ¡rio no sistema")
+    role: UserRole = Field(..., description="Papel do usu�rio no sistema")
 
 
 class SessionRequest(BaseModel):
     """
-    SolicitaÃ§Ã£o de abertura de sessÃ£o via Firebase Token.
+    Solicita��o de abertura de sess�o via Firebase Token.
     """
     firebase_id_token: str
 
 
 class SessionState(BaseModel):
     """
-    Estado temporal da sessÃ£o.
+    Estado temporal da sess�o.
     """
     authenticated: bool = True
     issued_at: datetime
@@ -70,7 +70,7 @@ class SessionState(BaseModel):
 
 class SessionResponse(BaseModel):
     """
-    Resposta padrÃ£o apÃ³s criaÃ§Ã£o de sessÃ£o bem-sucedida.
+    Resposta padr�o ap�s cria��o de sess�o bem-sucedida.
     """
     user: UserPublicProfile
     session: SessionState

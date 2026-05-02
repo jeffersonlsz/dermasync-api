@@ -1,4 +1,4 @@
-﻿# tests/services/test_ux_effects.py
+# tests/services/test_ux_effects.py
 
 from app.domain.ux_effects.retry import RetryUXEffect
 from app.services.ux_serializer import serialize_ux_effects

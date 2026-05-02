@@ -1,11 +1,11 @@
-﻿from datetime import datetime, timezone
+from datetime import datetime, timezone
 from firebase_admin import credentials, firestore, initialize_app
 import os
 
 # ===== CONFIG =====
 SERVICE_ACCOUNT_PATH = os.getenv(
     "GOOGLE_APPLICATION_CREDENTIALS",
-    "dermasync-key.json"  # ajuste se necessÃ¡rio
+    "dermasync-key.json"  # ajuste se necess�rio
 )
 
 COLLECTION_NAME = "relatos"  # ou "galeria"
@@ -22,7 +22,7 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat()
 
 def migrate():
-    print(f"\nðŸ”Ž Iniciando migraÃ§Ã£o em '{COLLECTION_NAME}' (dry_run={DRY_RUN})")
+    print(f"\n🔎 Iniciando migra��o em '{COLLECTION_NAME}' (dry_run={DRY_RUN})")
 
     docs = db.collection(COLLECTION_NAME).stream()
 
@@ -56,14 +56,14 @@ def migrate():
             batch.commit()
             batch = db.batch()
             batch_count = 0
-            print(f"âœ” Commit parcial ({updated} atualizados)")
+            print(f"✔ Commit parcial ({updated} atualizados)")
 
     if not DRY_RUN and batch_count > 0:
         batch.commit()
 
-    print("\n=== MIGRAÃ‡ÃƒO FINALIZADA ===")
+    print("\n=== MIGRAÇÃO FINALIZADA ===")
     print(f"Atualizados: {updated}")
-    print(f"Ignorados (jÃ¡ tinham campo): {skipped}")
+    print(f"Ignorados (j� tinham campo): {skipped}")
 
 if __name__ == "__main__":
     migrate()

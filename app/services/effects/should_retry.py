@@ -1,4 +1,4 @@
-﻿# app/services/effects/should_retry.py
+# app/services/effects/should_retry.py
 from app.services.effects.result import EffectResult
 from app.services.effects.classify_retry import classify_retry
 
@@ -6,8 +6,8 @@ from app.services.effects.classify_retry import classify_retry
 def should_retry(effect: EffectResult) -> bool:
     """
     Camada fina para uso por executores / UX.
-    NÃƒO contÃ©m regra.
-    NÃƒO contÃ©m heurÃ­stica.
+    NÃO cont�m regra.
+    NÃO cont�m heur�stica.
     """
     decision = classify_retry(effect)
     return decision.should_retry

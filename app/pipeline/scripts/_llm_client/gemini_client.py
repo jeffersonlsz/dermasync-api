@@ -1,10 +1,10 @@
-﻿import os
+import os
 
 import google.generativeai as genai
 # from config import GEMINI_API_KEY
 from dotenv import load_dotenv
 
-load_dotenv()  # Carrega variÃ¡veis de ambiente do arquivo .env
+load_dotenv()  # Carrega vari�veis de ambiente do arquivo .env
 
 
 class GeminiClient:
@@ -12,7 +12,7 @@ class GeminiClient:
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
         if not os.getenv("GEMINI_API_KEY"):
             raise RuntimeError(
-                "âŒ VariÃ¡vel de ambiente 'GEMINI_API_KEY' nÃ£o encontrada."
+                "❌ Vari�vel de ambiente 'GEMINI_API_KEY' n�o encontrada."
             )
         self.model = genai.GenerativeModel(model_name)
 

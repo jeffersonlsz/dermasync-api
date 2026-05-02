@@ -1,13 +1,13 @@
-﻿# app/domain/relato/intents.py
+# app/domain/relato/intents.py
 from enum import Enum
 
 
 class RelatoIntent(str, Enum):
     """
-    IntenÃ§Ãµes semÃ¢nticas possÃ­veis sobre um Relato.
+    Inten��es sem�nticas poss�veis sobre um Relato.
 
-    Uma intenÃ§Ã£o representa O QUE se deseja fazer,
-    nÃ£o QUEM faz nem COMO serÃ¡ executado.
+    Uma inten��o representa O QUE se deseja fazer,
+    n�o QUEM faz nem COMO ser� executado.
     """
 
     CREATE = "create"

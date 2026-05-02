@@ -1,5 +1,5 @@
-ï»¿"""
-DependÃƒÂªncias de autenticaÃƒÂ§ÃƒÂ£o/autorizaÃƒÂ§ao com Firebase ID token como credencial oficial.
+"""
+Dependências de autenticação/autorizaçao com Firebase ID token como credencial oficial.
 """
 from __future__ import annotations
 
@@ -63,17 +63,37 @@ async def get_current_user(
 
 
 def require_roles(roles: List[str]):
-    async def role_checker(current_user: User = Depends(get_current_user)) -> None:
+    async def role_checker(current_user: User = Depends(get_current_user)) -> User:
         if current_user.role not in roles:
             raise _forbidden("ROLE_MISMATCH")
+        return current_user
 
     return role_checker
 
 
+import os
+
+async def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    """
+    Dependência explícita que garante que o usuário possui o papel de admin.
+    Verifica 'role' e uma whitelist temporária de e-mails.
+    """
+    admin_emails = os.getenv("ADMIN_EMAILS", "").split(",")
+    admin_emails = [email.strip() for email in admin_emails if email.strip()]
+
+    is_admin_role = current_user.role == "admin"
+    is_whitelisted = current_user.email in admin_emails
+
+    if not (is_admin_role or is_whitelisted):
+        raise _forbidden("ROLE_MISMATCH")
+    return current_user
+
+
 def require_authenticated():
-    async def auth_checker(current_user: User = Depends(get_current_user)) -> None:
+    async def auth_checker(current_user: User = Depends(get_current_user)) -> User:
         if current_user.role == "anon":
             raise _forbidden("USER_INACTIVE")
+        return current_user
 
     return auth_checker
 

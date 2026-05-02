@@ -1,9 +1,9 @@
-﻿"""
-Batch idempotente de geraÃ§Ã£o de thumbnails para imagens no Firestore.
+"""
+Batch idempotente de gera��o de thumbnails para imagens no Firestore.
 
-- NÃƒO cria documentos
-- NÃƒO remove dados
-- NÃƒO altera relatos
+- NÃO cria documentos
+- NÃO remove dados
+- NÃO altera relatos
 - Apenas gera thumbnail se storage.thumb_path estiver vazio
 
 Flags:
@@ -90,7 +90,7 @@ def run_batch(limit: int | None, dry_run: bool):
 
     print(f"Encontradas {len(docs)} imagens sem thumbnail.")
     if dry_run:
-        print("âš ï¸ DRY-RUN ATIVO: nenhuma alteraÃ§Ã£o serÃ¡ feita.")
+        print("⚠️ DRY-RUN ATIVO: nenhuma altera��o ser� feita.")
 
     processed = 0
     skipped = 0
@@ -113,7 +113,7 @@ def run_batch(limit: int | None, dry_run: bool):
         print(f"[PROCESS] {doc.id}")
 
         if dry_run:
-            print(f"  â†’ geraria thumbnail em {thumb_path}")
+            print(f"  → geraria thumbnail em {thumb_path}")
             processed += 1
             continue
 

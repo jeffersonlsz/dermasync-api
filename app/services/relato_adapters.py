@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 from datetime import datetime, timezone
 from typing import Dict, List
 
@@ -9,20 +9,20 @@ from app.services.relato_processing_adapter import enqueue_relato_processing
 logger = logging.getLogger(__name__)
 
 """
-Adapters sÃ£o tradutores finais.
-Eles sÃ³ aceitam dados jÃ¡ â€œdomesticadosâ€.
+Adapters s�o tradutores finais.
+Eles s� aceitam dados j� “domesticados”.
 
 Regras ABSOLUTAS:
-âŒ Sem bytes
-âŒ Sem UUID
-âŒ Sem Enum cru
-âŒ Sem payloads grandes
-âŒ Sem estruturas ambÃ­guas
-âœ… Apenas strings, listas de strings e timestamps
+❌ Sem bytes
+❌ Sem UUID
+❌ Sem Enum cru
+❌ Sem payloads grandes
+❌ Sem estruturas amb�guas
+✅ Apenas strings, listas de strings e timestamps
 """
 
 # =====================================================
-# PersistÃªncia do relato base
+# Persist�ncia do relato base
 # =====================================================
 def persist_relato_adapter(
     relato_id: str,
@@ -32,8 +32,8 @@ def persist_relato_adapter(
     image_refs: Dict[str, List[str]],
 ) -> None:
     """
-    Adapter de persistÃªncia de relato.
-    Aceita apenas dados serializÃ¡veis e leves.
+    Adapter de persist�ncia de relato.
+    Aceita apenas dados serializ�veis e leves.
     """
 
     logger.info(
@@ -65,7 +65,7 @@ def upload_images_adapter(
     image_refs_by_stage: dict[str, list[str]],
 ) -> list[str]:
     """
-    Adapter responsÃ¡vel por registrar referÃªncias de imagens associadas a um relato.
+    Adapter respons�vel por registrar refer�ncias de imagens associadas a um relato.
 
     Retorna:
       Lista flat de image_ids persistidos
@@ -106,7 +106,7 @@ def upload_images_adapter(
 
 
 # =====================================================
-# AtualizaÃ§Ã£o de status
+# Atualiza��o de status
 # =====================================================
 def update_relato_status_adapter(relato_id: str, new_status: RelatoStatus):
     """
@@ -135,16 +135,16 @@ def update_relato_status_adapter(relato_id: str, new_status: RelatoStatus):
 
 
 # =====================================================
-# Adapters ainda nÃ£o implementados (intencionais)
+# Adapters ainda n�o implementados (intencionais)
 # =====================================================
 def enqueue_processing_adapter(relato_id: str) -> None:
     """
-    Adapter que conecta o domÃ­nio ao processamento assÃ­ncrono real.
+    Adapter que conecta o dom�nio ao processamento ass�ncrono real.
 
     Responsabilidade:
     - disparar o job
-    - NÃƒO atualizar status diretamente
-    - NÃƒO persistir EffectResult aqui
+    - NÃO atualizar status diretamente
+    - NÃO persistir EffectResult aqui
     """
 
     logger.info(

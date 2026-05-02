@@ -1,4 +1,4 @@
-﻿# app/services/effects/executors/persist_relato.py
+# app/services/effects/executors/persist_relato.py
 import logging
 from datetime import datetime
 
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 def execute_persist_relato(metadata: dict) -> EffectResult:
     """
-    Executor tÃ©cnico de PERSIST_RELATO.
+    Executor t�cnico de PERSIST_RELATO.
     """
 
     relato_id = metadata["relato_id"]

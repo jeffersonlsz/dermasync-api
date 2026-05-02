@@ -1,57 +1,56 @@
-﻿# app/llm/enrich_metadata_runner.py
+# app/llm/enrich_metadata_runner.py
 import logging
 from typing import Dict
 
 from app.pipeline.llm_client.ollama_client import OllamaClient
 from app.llm.prompts.enrich_metadata_prompt import build_enrich_metadata_prompt
+from app.services.llm.parser import LLMOutputParser
 
 
 logger = logging.getLogger(__name__)
 
+import re
+
+def remove_ansi(text: str) -> str:
+    ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+    return ansi_escape.sub('', text)
+
+def fix_missing_commas(text: str) -> str:
+    # adiciona v�rgula entre strings consecutivas
+    return re.sub(r'"\s*\n\s*"', '", "', text)
 
 def run_enrich_metadata_llm(relato_text: str) -> Dict:
     """
-    Executa o enriquecimento semÃ¢ntico do relato.
-    Retorna um dicionÃ¡rio estruturado.
-    Pode levantar exceÃ§Ãµes.
+    Executa o enriquecimento sem�ntico do relato.
+    Retorna um dicion�rio estruturado.
+    Pode levantar exce��es.
     """
 
     if not relato_text or not relato_text.strip():
-        raise ValueError("Relato vazio ou invÃ¡lido.")
+        raise ValueError("Relato vazio ou inv�lido.")
 
     prompt = build_enrich_metadata_prompt(relato_text)
 
     llm = OllamaClient()
+    parser = LLMOutputParser(llm)
 
-    logger.debug("[enrich_metadata_llm] calling model")
+    logger.debug("[enrich_metadata_llm] calling model with prompt: %s", prompt)
 
     response = llm.generate(
         prompt=prompt,
         #temperature=0.2,
     )
 
-    logger.debug("[enrich_metadata_llm] parsing response")
+    logger.debug("[enrich_metadata_llm] parsing response from LLM: %s", response)
 
-    data = _parse_llm_response(response)
-
-    if not isinstance(data, dict):
-        raise ValueError("Resposta do LLM nÃ£o retornou JSON vÃ¡lido.")
-
-    return data
+    #data = _parse_llm_response(response)
+    metadata = parser.parse_metadata(response)
+    metadata = metadata.model_dump(exclude_none=True)
+    #data.update(metadata)
 
 
-def _parse_llm_response(response: str) -> Dict:
-    """
-    Parser isolado de propÃ³sito.
-    Aqui Ã© onde vocÃª pode endurecer validaÃ§Ãµes depois.
-    """
-    import json
-    from app.services.llm.normalization import strip_code_fences
+    if not isinstance(metadata, dict):
+        raise ValueError("Resposta do LLM n�o retornou JSON v�lido.")
 
-    try:
-        cleaned_response = strip_code_fences(response)
-        return json.loads(cleaned_response)
-    except Exception as exc:
-        raise ValueError(
-            f"Falha ao parsear resposta do LLM: {exc}"
-        ) from exc
+    return metadata
+

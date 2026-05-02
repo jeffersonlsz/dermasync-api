@@ -1,4 +1,4 @@
-﻿"""
+"""
 Module retry_service.py.
 """
 
@@ -34,7 +34,7 @@ def build_effect_from_result(effect_result: EffectResult):
     elif effect_type == "UPLOAD_IMAGES":
         raise ValueError(RetryErrorMessages.UPLOAD_IMAGES_NOT_SUPPORTED.value)
     else:
-        raise ValueError(f"Retry nÃ£o suportado para effect_type={effect_type}")
+        raise ValueError(f"Retry n�o suportado para effect_type={effect_type}")
 
 def execute_retry(executor, effect_result: EffectResult, attempt: int):
     effect_type = effect_result.effect_type

@@ -1,4 +1,4 @@
-﻿# app/services/effects/registry.py
+# app/services/effects/registry.py
 
 from typing import Callable, Dict
 
@@ -9,7 +9,7 @@ _EFFECT_EXECUTORS: Dict[str, Executor] = {}
 
 def register_effect_executor(effect_type: str, executor: Executor) -> None:
     if not effect_type or not isinstance(effect_type, str):
-        raise ValueError("effect_type invÃ¡lido")
+        raise ValueError("effect_type inv�lido")
 
     if not callable(executor):
         raise ValueError("executor deve ser callable")

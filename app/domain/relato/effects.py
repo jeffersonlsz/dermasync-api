@@ -1,4 +1,4 @@
-﻿# app/domain/relato/effects.py
+# app/domain/relato/effects.py
 # This file has been refactored to eliminate circular imports.
 # All effect classes and functions have been moved to submodules.
 # This file maintains backward compatibility for existing imports.

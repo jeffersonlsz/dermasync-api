@@ -1,7 +1,7 @@
-﻿"""
-Registro explÃ­cito dos executores de efeitos do sistema.
+"""
+Registro expl�cito dos executores de efeitos do sistema.
 
-Este mÃ³dulo deve ser importado UMA vez no startup.
+Este m�dulo deve ser importado UMA vez no startup.
 """
 
 from app.services.effects.registry import register_effect_executor
@@ -22,4 +22,4 @@ def register_all_effect_executors() -> None:
     register_effect_executor("EMIT_DOMAIN_EVENT", execute_emit_domain_event)
     register_effect_executor("PERSIST_RELATO", execute_persist_relato)
 
-# vou precisar de implementaÃ§Ãµes para  app.services.effects.executors.enqueue_processing,  app.services.effects.executors.emit_domain_event, app.services.effects.executors.persist_relato pois eles nao existem
+# vou precisar de implementa��es para  app.services.effects.executors.enqueue_processing,  app.services.effects.executors.emit_domain_event, app.services.effects.executors.persist_relato pois eles nao existem

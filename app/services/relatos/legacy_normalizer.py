@@ -1,4 +1,4 @@
-﻿"""
+"""
 Module legacy_normalizer.py.
 """
 

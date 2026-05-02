@@ -1,4 +1,4 @@
-﻿# app/main.py
+# app/main.py
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from app.config import ALLOWED_ORIGINS, ENVIRONMENT
 from app.firestore.client import init_firebase
 from app.services.effects.register_effects import register_all_effect_executors
 
-# Import de rotas (agora seguro, pois o env jÃ¡ estÃ¡ carregado)
+# Import de rotas (agora seguro, pois o env j� est� carregado)
 from app.routes import (
     auth, galeria, galeria_leitura, health, 
     imagens, relatos, feed, 
@@ -28,7 +28,7 @@ from app.routes import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # InicializaÃ§Ã£o explÃ­cita e controlada
+    # Inicializa��o expl�cita e controlada
     logging.info(f"DermaSync API iniciando em: {ENVIRONMENT}")
     init_firebase()
     register_all_effect_executors()
@@ -51,7 +51,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Middleware de Observabilidade (Seguro: NÃƒO lÃª o body do request)
+# Middleware de Observabilidade (Seguro: NÃO l� o body do request)
 @app.middleware("http")
 async def observability_middleware(request: Request, call_next):
     start_time = time.perf_counter()

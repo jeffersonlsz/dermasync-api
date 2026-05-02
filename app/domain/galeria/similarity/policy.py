@@ -1,4 +1,4 @@
-﻿# app/domain/galeria/similarity/policy.py
+# app/domain/galeria/similarity/policy.py
 from dataclasses import dataclass
 from typing import Dict
 from .axes import SimilarityAxis
@@ -19,7 +19,7 @@ class SimilarityPolicy:
 
 
 # ============================================================
-# ðŸ“ Similarity Policy v1
+# 📐 Similarity Policy v1
 # ============================================================
 
 SIMILARITY_POLICY_V1 = SimilarityPolicy(
@@ -31,5 +31,5 @@ SIMILARITY_POLICY_V1 = SimilarityPolicy(
     },
 )
 
-# ValidaÃ§Ã£o em tempo de import (fail-fast)
+# Valida��o em tempo de import (fail-fast)
 SIMILARITY_POLICY_V1.validate()

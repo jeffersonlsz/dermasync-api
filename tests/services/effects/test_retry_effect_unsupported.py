@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from unittest.mock import patch
 
 from app.services.effects.retry_executor import retry_effect
@@ -6,7 +6,7 @@ from app.services.effects.registry import clear_registry
 from app.services.effects.result import EffectResult
 from datetime import datetime
 
-@pytest.mark.xfail(reason="acesso ao Firestore para revisÃ£o futura")
+@pytest.mark.xfail(reason="acesso ao Firestore para revis�o futura")
 def test_retry_effect_unsupported_type_raises():
     clear_registry()
 
@@ -24,4 +24,4 @@ def test_retry_effect_unsupported_type_raises():
         with pytest.raises(ValueError) as exc:
             retry_effect("r1")
 
-    assert "Efeito nÃ£o suportado" in str(exc.value)
+    assert "Efeito n�o suportado" in str(exc.value)

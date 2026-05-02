@@ -1,4 +1,4 @@
-﻿# app/domain/enrichment/schemas/base.py
+# app/domain/enrichment/schemas/base.py
 from pydantic import BaseModel, ConfigDict
 
 class StrictModel(BaseModel):

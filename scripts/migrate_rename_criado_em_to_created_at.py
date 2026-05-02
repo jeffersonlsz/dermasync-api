@@ -1,4 +1,4 @@
-﻿from firebase_admin import credentials, firestore, initialize_app
+from firebase_admin import credentials, firestore, initialize_app
 import os
 
 # ================= CONFIG =================
@@ -7,8 +7,8 @@ SERVICE_ACCOUNT_PATH = os.getenv(
     "dermasync-key.json"
 )
 
-COLLECTION_NAME = "relatos"  # ajuste se necessÃ¡rio
-DRY_RUN = False              # âš ï¸ rode primeiro com True
+COLLECTION_NAME = "relatos"  # ajuste se necess�rio
+DRY_RUN = False              # ⚠️ rode primeiro com True
 BATCH_SIZE = 400
 # =========================================
 
@@ -18,8 +18,8 @@ db = firestore.client()
 
 
 def migrate():
-    print("\nðŸ” MigraÃ§Ã£o: criado_em â†’ created_at")
-    print(f"ColeÃ§Ã£o: {COLLECTION_NAME}")
+    print("\n🔁 Migra��o: criado_em → created_at")
+    print(f"Cole��o: {COLLECTION_NAME}")
     print(f"Dry run: {DRY_RUN}\n")
 
     docs = db.collection(COLLECTION_NAME).stream()
@@ -62,7 +62,7 @@ def migrate():
             batch.commit()
             batch = db.batch()
             batch_count = 0
-            print(f"âœ” Commit parcial | renomeados={renamed}")
+            print(f"✔ Commit parcial | renomeados={renamed}")
 
     if not DRY_RUN and batch_count > 0:
         batch.commit()

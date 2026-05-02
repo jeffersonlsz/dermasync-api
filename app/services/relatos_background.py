@@ -1,7 +1,7 @@
-﻿# app/services/relatos_background.py
+# app/services/relatos_background.py
 """
 Background tasks para processamento de relatos.
-Esta camada NÃƒO deve conter lÃ³gica de negÃ³cio.
+Esta camada NÃO deve conter l�gica de neg�cio.
 """
 import logging
 import uuid
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def _update_status_domain(relato_id: str, action: str, error_message: Optional[str] = None):
     """
-    FunÃ§Ã£o interna para mudar o status de um relato via camada de domÃ­nio.
+    Fun��o interna para mudar o status de um relato via camada de dom�nio.
     """
     from app.firestore.client import get_firestore_client
     db = get_firestore_client()
@@ -26,12 +26,12 @@ def _update_status_domain(relato_id: str, action: str, error_message: Optional[s
     doc = doc_ref.get()
 
     if not doc.exists:
-        logger.error(f"[BG_DOMAIN] Relato {relato_id} nÃ£o encontrado para atualizaÃ§Ã£o de status.")
+        logger.error(f"[BG_DOMAIN] Relato {relato_id} n�o encontrado para atualiza��o de status.")
         return
 
     current_status_str = doc.to_dict().get("status")
     if not current_status_str:
-        logger.error(f"[BG_DOMAIN] Relato {relato_id} nÃ£o possui status.")
+        logger.error(f"[BG_DOMAIN] Relato {relato_id} n�o possui status.")
         return
     
     current_status = RelatoStatus(current_status_str)
@@ -43,14 +43,14 @@ def _update_status_domain(relato_id: str, action: str, error_message: Optional[s
 
     command = command_map.get(action.lower())
     if not command:
-        logger.error(f"[BG_DOMAIN] AÃ§Ã£o de background desconhecida: {action}")
+        logger.error(f"[BG_DOMAIN] A��o de background desconhecida: {action}")
         return
 
     actor = Actor(id="system", role=ActorRole.SYSTEM)
     decision = decide(command=command, actor=actor, current_state=current_status)
 
     if not decision.allowed:
-        logger.error(f"[BG_DOMAIN] TransiÃ§Ã£o de estado nÃ£o permitida para o relato {relato_id}: {decision.reason}")
+        logger.error(f"[BG_DOMAIN] Transi��o de estado n�o permitida para o relato {relato_id}: {decision.reason}")
         return
 
     executor = RelatoEffectExecutor(
@@ -73,7 +73,7 @@ def _save_files_and_enqueue(
     imagens_depois: list,
 ):
     """
-    Processa o upload de imagens em background e atualiza o status do relato via domÃ­nio.
+    Processa o upload de imagens em background e atualiza o status do relato via dom�nio.
     """
     from app.services.imagens_service import salvar_imagem_bytes_to_storage
     from app.services.relatos_service import enqueue_relato_processing
@@ -95,11 +95,11 @@ def _save_files_and_enqueue(
         processar_imagens(imagens_durante, "DURANTE")
         processar_imagens(imagens_depois, "DEPOIS")
 
-        # Notifica o domÃ­nio que o upload foi concluÃ­do
+        # Notifica o dom�nio que o upload foi conclu�do
         _update_status_domain(relato_id=relato_id, action="uploaded")
 
-        # Enfileira o prÃ³ximo passo do processamento
-        # Idealmente, isso tambÃ©m seria um comando de domÃ­nio que retorna um EnqueueEffect
+        # Enfileira o pr�ximo passo do processamento
+        # Idealmente, isso tamb�m seria um comando de dom�nio que retorna um EnqueueEffect
         enqueue_relato_processing(relato_id=relato_id)
 
     except Exception as e:

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Module commands.py.
 """
 
@@ -40,7 +40,7 @@ async def attach_image_to_relato(relato_id: str, image_id: str, current_user: Us
     doc = doc_ref.get()
 
     if not doc.exists:
-        raise HTTPException(status_code=404, detail="Relato nÃ£o encontrado.")
+        raise HTTPException(status_code=404, detail="Relato n�o encontrado.")
     
     raw_data = doc.to_dict()
     mapped_data = map_relato_data(raw_data, doc.id)
@@ -49,19 +49,19 @@ async def attach_image_to_relato(relato_id: str, image_id: str, current_user: Us
     is_admin_or_colab = current_user.role in ["admin", "colaborador"]
 
     if not (is_owner or is_admin_or_colab):
-        raise HTTPException(status_code=403, detail="Acesso negado. VocÃª nÃ£o tem permissÃ£o para modificar este relato.")
+        raise HTTPException(status_code=403, detail="Acesso negado. Voc� n�o tem permiss�o para modificar este relato.")
 
     try:
         image_metadata = await get_imagem_by_id(image_id=image_id, requesting_user=current_user)
     except HTTPException as e:
         if e.status_code == 404:
-            raise HTTPException(status_code=404, detail="Imagem nÃ£o encontrada ou nÃ£o pertence a vocÃª.")
+            raise HTTPException(status_code=404, detail="Imagem n�o encontrada ou n�o pertence a voc�.")
         if e.status_code == 403:
-            raise HTTPException(status_code=403, detail="Acesso negado Ã  imagem.")
+            raise HTTPException(status_code=403, detail="Acesso negado à imagem.")
         raise e
 
     if image_metadata.get("status") in ["associated", "approved_public", "rejected", "archived"]:
-        raise HTTPException(status_code=400, detail="Imagem jÃ¡ associada ou em estado final.")
+        raise HTTPException(status_code=400, detail="Imagem j� associada ou em estado final.")
 
     image_refs = mapped_data["image_refs"]
     if not image_refs:
@@ -87,7 +87,7 @@ async def attach_image_to_relato(relato_id: str, image_id: str, current_user: Us
 
 async def process_and_save_relato(relato: RelatoCompletoInput, current_user: User) -> dict:
     if not relato.conteudo_original.strip():
-        raise HTTPException(status_code=400, detail="Relato nÃ£o pode estar vazio.")
+        raise HTTPException(status_code=400, detail="Relato n�o pode estar vazio.")
 
     relato_id = uuid.uuid4().hex
     command = CreateRelato(
@@ -131,4 +131,4 @@ def run_submission_effects(effects: list, executor: RelatoEffectExecutor) -> Non
     try:
         executor.execute(effects)
     except Exception as e:
-        logger.error(f"Erro ao executar efeitos da submissÃ£o em background: {e}", exc_info=True)
+        logger.error(f"Erro ao executar efeitos da submiss�o em background: {e}", exc_info=True)

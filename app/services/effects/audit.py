@@ -1,4 +1,4 @@
-﻿"""
+"""
 Module audit.py.
 """
 

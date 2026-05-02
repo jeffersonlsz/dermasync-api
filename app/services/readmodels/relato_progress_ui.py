@@ -1,4 +1,4 @@
-﻿# app/services/readmodels/relato_progress_ui.py
+# app/services/readmodels/relato_progress_ui.py
 
 from datetime import datetime
 from typing import Dict, List
@@ -10,9 +10,9 @@ STATUS_LABELS = {
     "RECEIVED": "Recebemos seu relato",
     "PROCESSING": "Processando relato",
     "PARTIAL_ERROR": "Erro durante o processamento",
-    "COMPLETED": "Relato concluÃ­do",
+    "COMPLETED": "Relato conclu�do",
     "FAILED": "Falha ao processar relato",
-    "PENDING": "Aguardando inÃ­cio",
+    "PENDING": "Aguardando in�cio",
     "IN_PROGRESS": "Em progresso",
 }
 
@@ -20,7 +20,7 @@ STATUS_LABELS = {
 STEP_LABELS = {
     "PERSIST_RELATO": "Salvar relato",
     "UPLOAD_IMAGES": "Enviar imagens",
-    "ENQUEUE_PROCESSING": "Processar conteÃºdo",
+    "ENQUEUE_PROCESSING": "Processar conte�do",
 }
 
 
@@ -31,7 +31,7 @@ def build_relato_progress_ui(
 ) -> Dict:
     """
     Adapter UX:
-    Converte o read model tÃ©cnico em um contrato estÃ¡vel para UI.
+    Converte o read model t�cnico em um contrato est�vel para UI.
     """
 
     total = progress.get("total_effects", 0)
@@ -43,7 +43,7 @@ def build_relato_progress_ui(
     is_complete = total > 0 and completed == total
 
     # -----------------------------
-    # Status canÃ´nico UX
+    # Status can�nico UX
     # -----------------------------
     if total == 0 and completed == 0:
         status = "PENDING"
@@ -87,7 +87,7 @@ def build_relato_progress_ui(
     # Summary humana
     # -----------------------------
     if status == "COMPLETED":
-        summary = "Relato concluÃ­do com sucesso"
+        summary = "Relato conclu�do com sucesso"
     elif status == "PARTIAL_ERROR":
         summary = "Algumas etapas falharam"
     elif status == "FAILED":

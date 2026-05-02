@@ -1,4 +1,4 @@
-﻿# app/firestore/client.py
+# app/firestore/client.py
 import logging
 import os
 import json

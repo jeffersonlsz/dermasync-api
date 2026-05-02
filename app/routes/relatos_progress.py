@@ -1,4 +1,4 @@
-﻿# app/routes/relatos_progress.py
+# app/routes/relatos_progress.py
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -27,12 +27,12 @@ def get_relato_progress(
     user: User = Depends(get_current_user),
 ):
     """
-    Retorna o progresso semÃ¢ntico de um relato.
+    Retorna o progresso sem�ntico de um relato.
 
     Fonte da verdade:
     - EffectResult persistidos (LEGADO)
 
-    EstratÃ©gia:
+    Estrat�gia:
     - Carrega EffectResult
     - Traduz para UX Effects (via adapter centralizado)
     - Projeta progresso
@@ -47,7 +47,7 @@ def get_relato_progress(
 
         effect_repo = EffectResultRepository()
 
-        # 1ï¸âƒ£ Buscar EffectResult persistidos
+        # 1️⃣ Buscar EffectResult persistidos
         effect_records = effect_repo.fetch_by_relato_id(
             relato_id=relato_id
         )
@@ -58,7 +58,7 @@ def get_relato_progress(
             relato_id,
         )
 
-        # 2ï¸âƒ£ Converter para UXEffectRecord (modelo canÃ´nico via adapter)
+        # 2️⃣ Converter para UXEffectRecord (modelo can�nico via adapter)
         effects = [
             ux
             for e in effect_records
@@ -69,13 +69,13 @@ def get_relato_progress(
             "Converted effect records to UXEffectRecords for relato_id=%s",
             relato_id,
         )
-        # âš ï¸ Garantia de ordenaÃ§Ã£o temporal
+        # ⚠️ Garantia de ordena��o temporal
         effects.sort(key=lambda e: e.created_at)
         logger.debug(
             "Sorted UXEffectRecords for relato_id=%s",
             relato_id,
         )
-        # 3ï¸âƒ£ Projetar progresso
+        # 3️⃣ Projetar progresso
         progress = project_progress(
             relato_id=relato_id,
             effects=effects,
@@ -95,7 +95,7 @@ def get_relato_progress(
             detail="Erro ao calcular progresso do relato.",
         ) from exc
 
-    # 4ï¸âƒ£ SerializaÃ§Ã£o explÃ­cita (contrato pÃºblico)
+    # 4️⃣ Serializa��o expl�cita (contrato p�blico)
     return {
         "relato_id": progress.relato_id,
         "progress_pct": progress.progress_pct, # Multiplied by 100

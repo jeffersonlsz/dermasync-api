@@ -1,100 +1,100 @@
-"""
-Testes para decisıes de criaÁ„o de relato no domÌnio.
-
-Este arquivo testa as decisıes de criaÁ„o de relato, verificando:
-- CriaÁ„o permitida quando estado inicial È None
-- CriaÁ„o negada quando relato j· existe (estado n„o È None)
-- Estados resultantes corretos
-- Efeitos retornados pela decis„o
-"""
-
-from app.domain.relato.orchestrator import decide
-from app.domain.relato.contracts import Actor, CreateRelato, ActorRole
-from app.domain.relato.states import RelatoStatus
-
-
-def test_create_relato_allowed_from_initial_state():
-    """Testa que a criaÁ„o de relato È permitida a partir do estado inicial (None)."""
-    actor = Actor(id="user-123", role=ActorRole.USER)
-    command = CreateRelato(
-        relato_id="relato-456",
-        owner_id="user-123",
-        conteudo="Relato de teste",
-        image_refs={"antes": [], "durante": [], "depois": []}
-    )
-    
-    decision = decide(command=command, actor=actor, current_state=None)
-    assert decision.allowed is True
-    assert decision.reason is None
-    assert decision.previous_state is None
-    assert decision.next_state == RelatoStatus.CREATED
-    assert len(decision.effects) > 0  # Deve ter efeitos de persistÍncia e upload
-
-
-def test_create_relato_denied_when_already_exists():
-    """Testa que a criaÁ„o de relato È negada quando o relato j· existe (estado n„o È None)."""
-    actor = Actor(id="user-123", role=ActorRole.USER)
-    command = CreateRelato(
-        relato_id="relato-456",
-        owner_id="user-123",
-        conteudo="Relato de teste",
-        image_refs={"antes": [], "durante": [], "depois": []}
-    )
-
-    # Testa com estado CREATED
-    decision = decide(command=command, actor=actor, current_state=RelatoStatus.CREATED)
-
-    assert decision.allowed is False
-    assert decision.previous_state == RelatoStatus.CREATED
-    assert decision.next_state is None
-    assert decision.effects == []  # N„o deve ter efeitos quando negado
-    assert decision.reason is not None  # Reason should not be None when denied
-
-
-def test_create_relato_denied_from_any_existing_state():
-    """Testa que a criaÁ„o de relato È negada a partir de qualquer estado existente."""
-    actor = Actor(id="user-123", role=ActorRole.USER)
-    command = CreateRelato(
-        relato_id="relato-456",
-        owner_id="user-123",
-        conteudo="Relato de teste",
-        image_refs={"antes": [], "durante": [], "depois": []}
-    )
-
-    # Testa com diferentes estados existentes
-    for state in [
-        RelatoStatus.CREATED,
-        RelatoStatus.PROCESSING,
-        RelatoStatus.PROCESSED,
-        RelatoStatus.APPROVED_PUBLIC,
-        RelatoStatus.REJECTED,
-        RelatoStatus.ARCHIVED,
-        RelatoStatus.ERROR,
-    ]:
-        decision = decide(command=command, actor=actor, current_state=state)
-
-        assert decision.allowed is False
-        assert decision.previous_state == state
-        assert decision.next_state is None
-        assert decision.effects == []  # N„o deve ter efeitos quando negado
-        assert decision.reason is not None  # Reason should not be None when denied
-
-
-def test_create_relato_effects_structure():
-    """Testa que a decis„o de criaÁ„o retorna efeitos com a estrutura esperada."""
-    actor = Actor(id="user-123", role=ActorRole.USER)
-    command = CreateRelato(
-        relato_id="relato-456",
-        owner_id="user-123",
-        conteudo="Relato de teste",
-        image_refs={"antes": ["img.jpg"], 
-                     "durante": [], "depois": []}
-    )
-
-    decision = decide(command=command, actor=actor, current_state=None)
-
-    assert decision.allowed is True
-    assert decision.next_state == RelatoStatus.CREATED
-    # Verifica que os efeitos contÍm informaÁıes relevantes para persistÍncia
-    assert len(decision.effects) > 0
-    # Os efeitos devem conter informaÁıes para persistir o relato e fazer uploads
+"""
+Testes para decis√µes de cria√ß√£o de relato no dom√≠nio.
+
+Este arquivo testa as decis√µes de cria√ß√£o de relato, verificando:
+- Cria√ß√£o permitida quando estado inicial √© None
+- Cria√ß√£o negada quando relato j√° existe (estado n√£o √© None)
+- Estados resultantes corretos
+- Efeitos retornados pela decis√£o
+"""
+
+from app.domain.relato.orchestrator import decide
+from app.domain.relato.contracts import Actor, CreateRelato, ActorRole
+from app.domain.relato.states import RelatoStatus
+
+
+def test_create_relato_allowed_from_initial_state():
+    """Testa que a cria√ß√£o de relato √© permitida a partir do estado inicial (None)."""
+    actor = Actor(id="user-123", role=ActorRole.USER)
+    command = CreateRelato(
+        relato_id="relato-456",
+        owner_id="user-123",
+        conteudo="Relato de teste",
+        image_refs={"antes": [], "durante": [], "depois": []}
+    )
+    
+    decision = decide(command=command, actor=actor, current_state=None)
+    assert decision.allowed is True
+    assert decision.reason is None
+    assert decision.previous_state is None
+    assert decision.next_state == RelatoStatus.CREATED
+    assert len(decision.effects) > 0  # Deve ter efeitos de persist√™ncia e upload
+
+
+def test_create_relato_denied_when_already_exists():
+    """Testa que a cria√ß√£o de relato √© negada quando o relato j√° existe (estado n√£o √© None)."""
+    actor = Actor(id="user-123", role=ActorRole.USER)
+    command = CreateRelato(
+        relato_id="relato-456",
+        owner_id="user-123",
+        conteudo="Relato de teste",
+        image_refs={"antes": [], "durante": [], "depois": []}
+    )
+
+    # Testa com estado CREATED
+    decision = decide(command=command, actor=actor, current_state=RelatoStatus.CREATED)
+
+    assert decision.allowed is False
+    assert decision.previous_state == RelatoStatus.CREATED
+    assert decision.next_state is None
+    assert decision.effects == []  # N√£o deve ter efeitos quando negado
+    assert decision.reason is not None  # Reason should not be None when denied
+
+
+def test_create_relato_denied_from_any_existing_state():
+    """Testa que a cria√ß√£o de relato √© negada a partir de qualquer estado existente."""
+    actor = Actor(id="user-123", role=ActorRole.USER)
+    command = CreateRelato(
+        relato_id="relato-456",
+        owner_id="user-123",
+        conteudo="Relato de teste",
+        image_refs={"antes": [], "durante": [], "depois": []}
+    )
+
+    # Testa com diferentes estados existentes
+    for state in [
+        RelatoStatus.CREATED,
+        RelatoStatus.PROCESSING,
+        RelatoStatus.PROCESSED,
+        RelatoStatus.APPROVED_PUBLIC,
+        RelatoStatus.REJECTED,
+        RelatoStatus.ARCHIVED,
+        RelatoStatus.ERROR,
+    ]:
+        decision = decide(command=command, actor=actor, current_state=state)
+
+        assert decision.allowed is False
+        assert decision.previous_state == state
+        assert decision.next_state is None
+        assert decision.effects == []  # N√£o deve ter efeitos quando negado
+        assert decision.reason is not None  # Reason should not be None when denied
+
+
+def test_create_relato_effects_structure():
+    """Testa que a decis√£o de cria√ß√£o retorna efeitos com a estrutura esperada."""
+    actor = Actor(id="user-123", role=ActorRole.USER)
+    command = CreateRelato(
+        relato_id="relato-456",
+        owner_id="user-123",
+        conteudo="Relato de teste",
+        image_refs={"antes": ["img.jpg"], 
+                     "durante": [], "depois": []}
+    )
+
+    decision = decide(command=command, actor=actor, current_state=None)
+
+    assert decision.allowed is True
+    assert decision.next_state == RelatoStatus.CREATED
+    # Verifica que os efeitos cont√™m informa√ß√µes relevantes para persist√™ncia
+    assert len(decision.effects) > 0
+    # Os efeitos devem conter informa√ß√µes para persistir o relato e fazer uploads

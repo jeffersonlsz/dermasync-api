@@ -1,65 +1,65 @@
-# app/llm/prompts/enrich_metadata_prompt.py
-
-def build_enrich_metadata_prompt(relato_text: str) -> str:
-    if not relato_text or not relato_text.strip():
-        raise ValueError("Relato vazio ou inv·lido para enriquecimento.")
-
-    return f"""
-VocÍ È um sistema de extraÁ„o sem‚ntica determinÌstica.
-
-Sua tarefa È converter o relato em um JSON ESTRITAMENTE v·lido,
-seguindo exatamente o schema abaixo.
-
-REGRAS ABSOLUTAS (quebra = resposta inv·lida):
-- Retorne APENAS JSON v·lido (sem texto antes ou depois)
-- N√O use markdown
-- N√O inclua coment·rios
-- N√O invente campos
-- N√O omita campos obrigatÛrios
-- N√O altere os nomes das chaves
-- N√O use valores fora do domÌnio especificado
-
-FORMATA«√O:
-- Todas as strings devem estar em lowercase
-- Remover espaÁos desnecess·rios
-- Listas n„o podem conter duplicatas
-- Listas devem conter apenas strings simples (sem frases longas)
-- Se n„o houver dados: usar null (para escalares) ou [] (para listas)
-
-SCHEMA OBRIGAT”RIO (seguir ORDEM EXATA):
-
-{{
-  "idade": int | null,
-  "genero": "masculino" | "feminino" | "outro" | null,
-  "sintomas": string[],
-  "tratamentos_mencionados": string[]
-}}
-
-REGRAS SEM¬NTICAS:
-
-- idade:
-  - Extrair apenas se explicitamente mencionada
-  - Converter para inteiro
-  - Ignorar estimativas vagas ("na casa dos 30")
-
-- genero:
-  - Mapear:
-    - "homem", "masculino" ? "masculino"
-    - "mulher", "feminino" ? "feminino"
-  - Caso ambÌguo ? null
-
-- sintomas:
-  - Extrair apenas sintomas fÌsicos ou dermatolÛgicos
-  - Normalizar termos (ex: "coceira intensa" ? "coceira")
-  - Evitar frases completas
-
-- tratamentos_mencionados:
-  - Extrair nomes de medicamentos, terapias ou pr·ticas
-  - Ex: "hidratante", "corticoide", "banho morno"
-  - N„o incluir opiniıes ou resultados
-
-RELATO:
-\"\"\"
-{relato_text}
-\"\"\"
+# app/llm/prompts/enrich_metadata_prompt.py
+
+def build_enrich_metadata_prompt(relato_text: str) -> str:
+    if not relato_text or not relato_text.strip():
+        raise ValueError("Relato vazio ou inv√°lido para enriquecimento.")
+
+    return f"""
+Voc√™ √© um sistema de extra√ß√£o sem√¢ntica determin√≠stica.
+
+Sua tarefa √© converter o relato em um JSON ESTRITAMENTE v√°lido,
+seguindo exatamente o schema abaixo.
+
+REGRAS ABSOLUTAS (quebra = resposta inv√°lida):
+- Retorne APENAS JSON v√°lido (sem texto antes ou depois)
+- N√ÉO use markdown
+- N√ÉO inclua coment√°rios
+- N√ÉO invente campos
+- N√ÉO omita campos obrigat√≥rios
+- N√ÉO altere os nomes das chaves
+- N√ÉO use valores fora do dom√≠nio especificado
+
+FORMATA√á√ÉO:
+- Todas as strings devem estar em lowercase
+- Remover espa√ßos desnecess√°rios
+- Listas n√£o podem conter duplicatas
+- Listas devem conter apenas strings simples (sem frases longas)
+- Se n√£o houver dados: usar null (para escalares) ou [] (para listas)
+
+SCHEMA OBRIGAT√ìRIO (seguir ORDEM EXATA):
+
+{{
+  "idade": int | null,
+  "genero": "masculino" | "feminino" | "outro" | null,
+  "sintomas": string[],
+  "tratamentos_mencionados": string[]
+}}
+
+REGRAS SEM√ÇNTICAS:
+
+- idade:
+  - Extrair apenas se explicitamente mencionada
+  - Converter para inteiro
+  - Ignorar estimativas vagas ("na casa dos 30")
+
+- genero:
+  - Mapear:
+    - "homem", "masculino" ‚Üí "masculino"
+    - "mulher", "feminino" ‚Üí "feminino"
+  - Caso amb√≠guo ‚Üí null
+
+- sintomas:
+  - Extrair apenas sintomas f√≠sicos ou dermatol√≥gicos
+  - Normalizar termos (ex: "coceira intensa" ‚Üí "coceira")
+  - Evitar frases completas
+
+- tratamentos_mencionados:
+  - Extrair nomes de medicamentos, terapias ou pr√°ticas
+  - Ex: "hidratante", "corticoide", "banho morno"
+  - N√ÉO incluir opini√µes ou resultados
+
+RELATO:
+\"\"\"
+{relato_text}
+\"\"\"
 """.strip()

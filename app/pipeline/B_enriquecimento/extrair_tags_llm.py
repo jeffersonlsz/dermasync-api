@@ -1,1 +1,1 @@
-# Extração de tags e tópicos gerais de relatos usando LLM
+# Extrao de tags e tpicos gerais de relatos usando LLM

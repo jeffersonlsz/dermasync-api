@@ -1,34 +1,34 @@
-# tests/domain/ux_effects/test_ux_effect_public_contract.py
-import json
-
-from app.domain.ux_effects.processing_started import ProcessingStartedUXEffect
-from app.services.ux_serializer import serialize_ux_effects
-
-
-def test_ux_effect_public_contract_snapshot():
-    """
-    Este teste protege o CONTRATO P√öBLICO de UX Effects.
-    Qualquer alteraÁ„o aqui È BREAKING CHANGE.
-    """
-
-    effect = ProcessingStartedUXEffect.default(
-        relato_id="relato_123"
-    )
-
-    payload = serialize_ux_effects([effect])
-
-    # Garantia 1: serializ·vel em JSON puro
-    json.dumps(payload)
-
-    # Garantia 2: shape p˙blico est·vel
-    assert payload == [
-            {
-                "type": "ProcessingStartedUXEffect",
-                "severity": "info",
-                "channel": "banner",
-                "timing": "deferred",
-                "message": "Seu relato est· sendo processado. Isso pode levar alguns instantes.",
-                "metadata": {"relato_id": "relato_123"}
-            }
-        ]
-
+# tests/domain/ux_effects/test_ux_effect_public_contract.py
+import json
+
+from app.domain.ux_effects.processing_started import ProcessingStartedUXEffect
+from app.application.ux.ux_serializer import serialize_ux_effects
+
+
+def test_ux_effect_public_contract_snapshot():
+    """
+    Este teste protege o CONTRATO P√É¬öBLICO de UX Effects.
+    Qualquer altera√ß√£o aqui √© BREAKING CHANGE.
+    """
+
+    effect = ProcessingStartedUXEffect.default(
+        relato_id="relato_123"
+    )
+
+    payload = serialize_ux_effects([effect])
+
+    # Garantia 1: serializ√°vel em JSON puro
+    json.dumps(payload)
+
+    # Garantia 2: shape p√∫blico est√°vel
+    assert payload == [
+            {
+                "type": "ProcessingStartedUXEffect",
+                "severity": "info",
+                "channel": "banner",
+                "timing": "deferred",
+                "message": "Seu relato est√° sendo processado. Isso pode levar alguns instantes.",
+                "metadata": {"relato_id": "relato_123"}
+            }
+        ]
+

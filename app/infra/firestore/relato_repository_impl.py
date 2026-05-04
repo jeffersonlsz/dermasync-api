@@ -1,0 +1,51 @@
+import logging
+from datetime import datetime, timezone
+from typing import Optional, Dict, List
+
+from app.firestore.client import get_firestore_client
+from app.domain.relato.states import RelatoStatus
+from app.ports.relato_repository_port import RelatoRepositoryPort
+
+logger = logging.getLogger(__name__)
+
+class FirestoreRelatoRepository(RelatoRepositoryPort):
+    def __init__(self):
+        self.db = get_firestore_client()
+        self.collection = self.db.collection("relatos")
+
+    async def get_by_id(self, relato_id: str) -> Optional[Dict]:
+        doc_ref = self.collection.document(relato_id)
+        # Firestore SDK sync, for high volume consider asyncio.to_thread
+        doc = doc_ref.get()
+        if not doc.exists:
+            return None
+        data = doc.to_dict()
+        data["id"] = doc.id
+        return data
+
+    async def update_status(self, relato_id: str, status: RelatoStatus) -> None:
+        logger.info("INFRA: Atualizando status do relato %s para %s", relato_id, status)
+        doc_ref = self.collection.document(relato_id)
+        doc_ref.update({
+            "status": str(status),
+            "updated_at": datetime.now(timezone.utc)
+        })
+
+    async def save_image_refs(self, relato_id: str, image_refs: Dict[str, List[str]]) -> None:
+        logger.info("INFRA: Salvando image_refs para relato %s", relato_id)
+        doc_ref = self.collection.document(relato_id)
+        doc_ref.update({
+            "image_refs": image_refs,
+            "updated_at": datetime.now(timezone.utc)
+        })
+
+    async def save(self, relato_id: str, data: Dict) -> None:
+        logger.info("INFRA: Salvando relato %s", relato_id)
+        doc_ref = self.collection.document(relato_id)
+        # Merge true para evitar sobrescrever campos não enviados se necessário
+        # Mas para o Save canônico costumamos setar o objeto todo
+        data_to_save = {**data}
+        if "updated_at" not in data_to_save:
+            data_to_save["updated_at"] = datetime.now(timezone.utc)
+        
+        doc_ref.set(data_to_save, merge=True)

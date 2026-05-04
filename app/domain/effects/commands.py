@@ -1,20 +1,20 @@
-# app/domain/effects/commands.py
-from dataclasses import dataclass
-from typing import Any, Optional
-
-
-@dataclass(frozen=True)
-class EffectCommand:
-    """
-    Representa uma ORDEM executável emitida pelo domínio
-    ou derivada de um EffectResult para retry.
-
-    NÃƒO é histórico.
-    NÃƒO é resultado.
-    Ã‰ intenção de execução.
-    """
-
-    type: str
-    relato_id: str
-    effect_ref: Optional[str] = None
-    metadata: Optional[dict[str, Any]] = None
+# app/domain/effects/commands.py
+from dataclasses import dataclass
+from typing import Any, Optional
+
+
+@dataclass(frozen=True)
+class EffectCommand:
+    """
+    Representa uma ORDEM executvel emitida pelo domnio
+    ou derivada de um EffectResult para retry.
+
+    NÃƒO  histrico.
+    NÃƒO  resultado.
+    Ã‰ inteno de execuo.
+    """
+
+    type: str
+    relato_id: str
+    effect_ref: Optional[str] = None
+    metadata: Optional[dict[str, Any]] = None

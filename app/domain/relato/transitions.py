@@ -1,92 +1,95 @@
-# app/domain/relato/transitions.py
-
-from app.domain.relato.states import RelatoStatus
-from app.domain.relato.intents import RelatoIntent
-
-# Sentinela para representar "qualquer estado"
-ANY = "*"
-
-
-"""
-Tabela canÙnica de transiÁıes de estado de Relato.
-
-Chave: (estado_atual, intenÁ„o)
-Valor: prÛximo_estado
-
-Esta tabela È a FONTE √öNICA DE VERDADE
-sobre quais transiÁıes s„o permitidas no domÌnio.
-
-Estados representam fatos consumados,
-n„o intenÁıes ou etapas tÈcnicas internas.
-"""
-RELATO_STATE_TRANSITIONS: dict[
-    tuple[RelatoStatus | None | str, RelatoIntent],
-    RelatoStatus
-] = {
-
-    # =====================================================
-    # CriaÁ„o (ato ontolÛgico)
-    # =====================================================
-
-    # Um relato passa a existir
-    (None, RelatoIntent.CREATE): RelatoStatus.CREATED,
-
-    # =====================================================
-    # Submiss„o para processamento
-    # =====================================================
-
-    # O relato criado È submetido para pipeline
-    (RelatoStatus.CREATED, RelatoIntent.SUBMIT): RelatoStatus.PROCESSING,
-
-    # =====================================================
-    # Processamento
-    # =====================================================
-
-    # Pipeline finalizado com sucesso
-    (RelatoStatus.PROCESSING, RelatoIntent.MARK_PROCESSED): RelatoStatus.PROCESSED,
-
-    # =====================================================
-    # Curadoria humana
-    # =====================================================
-
-    (RelatoStatus.PROCESSED, RelatoIntent.APPROVE_PUBLIC): RelatoStatus.APPROVED_PUBLIC,
-    (RelatoStatus.PROCESSED, RelatoIntent.REJECT): RelatoStatus.REJECTED,
-
-    # =====================================================
-    # Arquivamento administrativo (global)
-    # =====================================================
-
-    (ANY, RelatoIntent.ARCHIVE): RelatoStatus.ARCHIVED,
-
-    # =====================================================
-    # Erro tÈcnico (global)
-    # =====================================================
-
-    (ANY, RelatoIntent.MARK_ERROR): RelatoStatus.ERROR,
-}
-
-
-def resolve_transition(
-    current_state: RelatoStatus | None,
-    intent: RelatoIntent,
-) -> RelatoStatus | None:
-    """
-    Resolve a transiÁ„o de estado para uma dada intenÁ„o.
-
-    Retorna o prÛximo estado se a transiÁ„o for v·lida,
-    ou None se for inv·lida.
-
-    Esta funÁ„o È PURA e DETERMIN√çSTICA.
-    """
-
-    # TransiÁ„o especÌfica (estado explÌcito)
-    key = (current_state, intent)
-    if key in RELATO_STATE_TRANSITIONS:
-        return RELATO_STATE_TRANSITIONS[key]
-
-    # TransiÁ„o genÈrica (ANY)
-    any_key = (ANY, intent)
-    if any_key in RELATO_STATE_TRANSITIONS:
-        return RELATO_STATE_TRANSITIONS[any_key]
-
-    return None
+# app/domain/relato/transitions.py
+
+from app.domain.relato.states import RelatoStatus
+from app.domain.relato.intents import RelatoIntent
+
+# Sentinela para representar "qualquer estado"
+ANY = "*"
+
+
+"""
+Tabela cannica de transies de estado de Relato.
+
+Chave: (estado_atual, inteno)
+Valor: prximo_estado
+
+Esta tabela  a FONTE √öNICA DE VERDADE
+sobre quais transies so permitidas no domnio.
+
+Estados representam fatos consumados,
+no intenes ou etapas tcnicas internas.
+"""
+RELATO_STATE_TRANSITIONS: dict[
+    tuple[RelatoStatus | None | str, RelatoIntent],
+    RelatoStatus
+] = {
+
+    # =====================================================
+    # Criao (ato ontolgico)
+    # =====================================================
+
+    # Um relato passa a existir
+    (None, RelatoIntent.CREATE): RelatoStatus.CREATED,
+
+    # Registro de upload concludo (mantm estado)
+    (RelatoStatus.CREATED, RelatoIntent.MARK_UPLOADED): RelatoStatus.CREATED,
+
+    # =====================================================
+    # Submisso para processamento
+    # =====================================================
+
+    # O relato criado  submetido para pipeline
+    (RelatoStatus.CREATED, RelatoIntent.SUBMIT): RelatoStatus.PROCESSING,
+
+    # =====================================================
+    # Processamento
+    # =====================================================
+
+    # Pipeline finalizado com sucesso
+    (RelatoStatus.PROCESSING, RelatoIntent.MARK_PROCESSED): RelatoStatus.PROCESSED,
+
+    # =====================================================
+    # Curadoria humana
+    # =====================================================
+
+    (RelatoStatus.PROCESSED, RelatoIntent.APPROVE_PUBLIC): RelatoStatus.APPROVED_PUBLIC,
+    (RelatoStatus.PROCESSED, RelatoIntent.REJECT): RelatoStatus.REJECTED,
+
+    # =====================================================
+    # Arquivamento administrativo (global)
+    # =====================================================
+
+    (ANY, RelatoIntent.ARCHIVE): RelatoStatus.ARCHIVED,
+
+    # =====================================================
+    # Erro tcnico (global)
+    # =====================================================
+
+    (ANY, RelatoIntent.MARK_ERROR): RelatoStatus.ERROR,
+}
+
+
+def resolve_transition(
+    current_state: RelatoStatus | None,
+    intent: RelatoIntent,
+) -> RelatoStatus | None:
+    """
+    Resolve a transio de estado para uma dada inteno.
+
+    Retorna o prximo estado se a transio for vlida,
+    ou None se for invlida.
+
+    Esta funo  PURA e DETERMIN√çSTICA.
+    """
+
+    # Transio especfica (estado explcito)
+    key = (current_state, intent)
+    if key in RELATO_STATE_TRANSITIONS:
+        return RELATO_STATE_TRANSITIONS[key]
+
+    # Transio genrica (ANY)
+    any_key = (ANY, intent)
+    if any_key in RELATO_STATE_TRANSITIONS:
+        return RELATO_STATE_TRANSITIONS[any_key]
+
+    return None

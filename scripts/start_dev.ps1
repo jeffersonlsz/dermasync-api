@@ -63,6 +63,15 @@ Write-Host "`n=== INICIANDO UVICORN ===" -ForegroundColor Yellow
 # Executa o Uvicorn na janela atual
 try {
     uvicorn app.main:app --reload --log-level debug
+
+
 } catch {
     Write-Error "Falha ao iniciar o Uvicorn: $_"
+}
+
+try {
+    python scripts/create_new_user.py --email usuario.teste@dermasync.com --password Usuario123! --name "Usuario Teste" --role usuario_logado
+}
+catch {
+    Write-Warning "Falha ao criar usuário de teste. Verifique se os emuladores do Firebase estão rodando corretamente."
 }

@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import HTTPException, status
 
 from app.application.relatos.submit_relato_use_case import SubmitRelatoUseCase
+from app.application.effects.result import EffectResult
 from app.auth.schemas import User
 from app.domain.relato.contracts import SubmitRelato, Decision
 from app.domain.relato.states import RelatoStatus
@@ -55,7 +56,13 @@ async def test_submit_relato_sucesso(
     mock_decision.effects = ["effect1"]
     mock_decide.return_value = mock_decision
 
-    mock_dispatcher.dispatch = AsyncMock()
+    mock_dispatcher.dispatch = AsyncMock(return_value=[
+        EffectResult.success(
+            relato_id=relato_id,
+            effect_type="ENQUEUE_PROCESSING",
+            metadata={"effect_ref": relato_id},
+        )
+    ])
 
     # Execução
     result = await use_case.execute(
@@ -71,7 +78,19 @@ async def test_submit_relato_sucesso(
 
     assert result["relato_id"] == relato_id
     assert result["status"] == "processing"
-    assert "ux_effects" in result
+    assert result["ux_effects"] == [{
+        "type": "processing_completed",
+        "message": "Relato enviado para processamento.",
+        "severity": "success",
+        "channel": "banner",
+        "timing": "immediate",
+        "metadata": {
+            "relato_id": relato_id,
+            "effect_type": "ENQUEUE_PROCESSING",
+            "subtype": "enqueue_processing",
+            "effect_ref": relato_id,
+        },
+    }]
 
 @pytest.mark.asyncio
 async def test_submit_relato_nao_encontrado(use_case, mock_relato_repo):

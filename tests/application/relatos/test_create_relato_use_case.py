@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import HTTPException
 
 from app.application.relatos.create_relato_use_case import CreateRelatoUseCase
+from app.application.effects.result import EffectResult
 from app.domain.relato.contracts import CreateRelato, Decision
 from app.domain.relato.states import RelatoStatus
 from app.ports.relato_repository_port import RelatoRepositoryPort
@@ -37,7 +38,13 @@ async def test_create_relato_sucesso(
     mock_decision.effects = ["effect1"]
     mock_decide.return_value = mock_decision
 
-    mock_dispatcher.dispatch = AsyncMock()
+    mock_dispatcher.dispatch = AsyncMock(return_value=[
+        EffectResult.success(
+            relato_id="relato-123",
+            effect_type="PERSIST_RELATO",
+            metadata={"effect_ref": "relato-123"},
+        )
+    ])
 
     # Execução
     result = await use_case.execute(
@@ -53,6 +60,19 @@ async def test_create_relato_sucesso(
     mock_dispatcher.dispatch.assert_called_once_with(["effect1"])
     assert result["relato_id"] == "relato-123"
     assert result["status"] == "created"
+    assert result["ux_effects"] == [{
+        "type": "processing_completed",
+        "message": "Relato recebido com sucesso.",
+        "severity": "success",
+        "channel": "banner",
+        "timing": "immediate",
+        "metadata": {
+            "relato_id": "relato-123",
+            "effect_type": "PERSIST_RELATO",
+            "subtype": "persist_relato",
+            "effect_ref": "relato-123",
+        },
+    }]
 
 @pytest.mark.asyncio
 @patch("app.application.relatos.create_relato_use_case.decide")

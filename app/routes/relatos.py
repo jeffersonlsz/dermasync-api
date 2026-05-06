@@ -6,10 +6,10 @@ import logging
 import uuid
 from typing import Optional, List
 from fastapi import APIRouter, Depends, Form, File, Query, UploadFile, HTTPException, status, BackgroundTasks
-from app.adapters.firebase_storage_adapter import FirebaseStorageAdapter
 from app.auth.dependencies import get_current_user, get_optional_user
 from app.auth.schemas import User
 from app.ports.storage_port import StoragePort
+from app.adapters.firebase_storage_adapter import FirebaseStorageAdapter
 from app.application.relatos.create_relato_use_case import CreateRelatoUseCase
 from app.application.relatos.submit_relato_use_case import SubmitRelatoUseCase  
 from app.application.uploads.upload_images import salvar_uploads_e_retornar_refs
@@ -43,7 +43,7 @@ async def criar_e_enviar_relato(
     from app.infra.event_adapter import DummyEventAdapter
     from app.application.effects.dispatcher import EffectDispatcher
     from app.application.relatos.create_relato_use_case import CreateRelatoUseCase
-    from app.application.ux.ux_serializer import serialize_ux_effects
+    
 
     logger.debug("/relatos Recebido payload: %s", payload)
     draft = parse_payload_json(payload)
@@ -202,7 +202,7 @@ async def list_pending_moderation(
     current_user: User = Depends(get_current_user),
 ):
     from app.application.relatos.list_pending_moderation_use_case import ListPendingModerationUseCase
-    from app.services.moderation_query_service import ModerationQueryService
+    from app.application.relatos.queries.moderation_query_service import ModerationQueryService
 
     if current_user.role not in ["admin", "colaborador"]:
         raise HTTPException(

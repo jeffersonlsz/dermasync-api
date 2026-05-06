@@ -7,7 +7,7 @@ from app.domain.relato.effects import (
     PersistRelatoEffect,
     EnqueueProcessingEffect,
     EmitDomainEventEffect,
-    UploadImagesEffect,
+    PersistImageRefsEffect,
     UpdateRelatoStatusEffect,
     RollbackImagesEffect,
 )
@@ -30,10 +30,10 @@ def handle_persist_relato(effect: PersistRelatoEffect, deps: dict) -> None:
             effect_ref=effect.relato_id,
             success=True,
             metadata={
-                "status": str(effect.status),
+                "status": effect.status.value,
                 "effect_data": {
                     "owner_id": str(effect.owner_id),
-                    "status": str(effect.status),
+                    "status": effect.status.value,
                     "conteudo": effect.conteudo,
                 },
             }
@@ -95,7 +95,7 @@ def handle_emit_domain_event(effect: EmitDomainEventEffect, deps: dict) -> None:
         )
         raise
 
-def handle_upload_images(effect: UploadImagesEffect, deps: dict) -> None:
+def handle_upload_images(effect: PersistImageRefsEffect, deps: dict) -> None:
     try:
         logger.info("Executando UploadImagesEffect | relato=%s", effect.relato_id)
         uploaded_image_ids = deps["upload_images"](
@@ -105,7 +105,7 @@ def handle_upload_images(effect: UploadImagesEffect, deps: dict) -> None:
         total_imgs = sum(len(v) if v else 0 for v in effect.image_refs.values())
         record_effect_result(
             relato_id=effect.relato_id,
-            effect_type="UPLOAD_IMAGES",
+            effect_type="PERSIST_IMAGE_REFS",
             effect_ref=effect.relato_id,
             success=True,
             metadata={
@@ -124,7 +124,7 @@ def handle_upload_images(effect: UploadImagesEffect, deps: dict) -> None:
         
         record_effect_result(
             relato_id=effect.relato_id,
-            effect_type="UPLOAD_IMAGES",
+            effect_type="PERSIST_IMAGE_REFS",
             effect_ref=effect.relato_id,
             success=False,
             error=str(exc)
@@ -155,7 +155,7 @@ def handle_update_relato_status(effect: UpdateRelatoStatusEffect, deps: dict) ->
 
 def handle_rollback_compensatory(executed_effects: list, deps: dict) -> None:
     for executed in reversed(executed_effects):
-        if isinstance(executed, UploadImagesEffect):
+        if isinstance(executed, PersistImageRefsEffect):
             try:
                 image_ids = []
                 rollback = RollbackImagesEffect(image_ids=image_ids)

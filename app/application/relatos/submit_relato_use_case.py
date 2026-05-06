@@ -5,6 +5,7 @@ from app.domain.relato.orchestrator import decide
 from app.domain.relato.states import RelatoStatus
 from app.ports.relato_repository_port import RelatoRepositoryPort
 from app.application.effects.dispatcher import EffectDispatcher
+from app.application.ux.projection import map_effect_results_to_ux
 from app.application.ux.ux_serializer import serialize_ux_effects
 
 
@@ -43,6 +44,19 @@ class SubmitRelatoUseCase:
             actor=actor,
             current_state=current_status
         )
+        decision_effects = getattr(decision, "effects", []) or []
+        decision_next_state = getattr(decision, "next_state", None)
+
+        logger.info(
+            "effects.pipeline.domain_decision",
+            extra={
+                "relato_id": relato_id,
+                "decision_allowed": decision.allowed,
+                "decision_next_state": decision_next_state.value if decision_next_state else None,
+                "effect_types": [type(effect).__name__ for effect in decision_effects],
+            },
+        )
+
         if not decision.allowed:
             raise HTTPException(
                 status_code=403,
@@ -50,8 +64,10 @@ class SubmitRelatoUseCase:
             )
 
         # 3. Despachar efeitos
-        await self.dispatcher.dispatch(decision.effects)
-        ux_effects_payload = serialize_ux_effects(decision.effects)
+        effect_results = await self.dispatcher.dispatch(decision.effects)
+        ux_effects_payload = serialize_ux_effects(
+            map_effect_results_to_ux(effect_results)
+        )
 
         return {
             "relato_id": relato_id,

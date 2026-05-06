@@ -16,7 +16,7 @@ from app.domain.relato.contracts import (
 )
 from app.domain.relato.effects import (
     PersistRelatoEffect,
-    UploadImagesEffect,
+    PersistImageRefsEffect,
     EnqueueProcessingEffect,
     UpdateRelatoStatusEffect,
     EmitDomainEventEffect,
@@ -112,7 +112,7 @@ def decide(
                 conteudo=command.conteudo,
                 image_refs=command.image_refs,
             ),
-            UploadImagesEffect(
+            PersistImageRefsEffect(
                 relato_id=command.relato_id,
                 image_refs=command.image_refs,
             ),

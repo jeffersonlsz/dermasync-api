@@ -33,11 +33,11 @@ async def salvar_uploads_e_retornar_refs(
             stage=stage,
             filename=upload.filename,
         )
-        url = await storage.upload_bytes(
+        result = await storage.upload_bytes(
             path=path,
             content=content,
             content_type=upload.content_type,
         )
-        refs.append(url)
+        refs.append(result.storage_path)
 
     return refs

@@ -47,7 +47,7 @@ foreach ($port in $portsToClear) {
 
 Write-Host "`n=== INICIANDO FIREBASE EMULATORS ===" -ForegroundColor Yellow
 # Inicia o emulador em uma nova janela para não bloquear o Uvicorn e manter os logs separados
-$firebaseCmd = "firebase emulators:start --only firestore,storage,auth --project dermasync-3d14a --import=./emulator-data --export-on-exit"
+$firebaseCmd = "firebase emulators:start --only firestore,storage,auth --project demo-dermasync --import=./emulator-data --export-on-exit"
 try {
     Start-Process powershell -ArgumentList "-NoExit -Command `"cd '$projectRoot'; $firebaseCmd`"" -WindowStyle Normal
     Write-Host "Firebase Emulators iniciados em uma nova janela." -ForegroundColor Green
@@ -62,16 +62,11 @@ Start-Sleep -Seconds 5
 Write-Host "`n=== INICIANDO UVICORN ===" -ForegroundColor Yellow
 # Executa o Uvicorn na janela atual
 try {
-    uvicorn app.main:app --reload --log-level debug
+    uvicorn app.main:app  --log-level debug
 
 
 } catch {
     Write-Error "Falha ao iniciar o Uvicorn: $_"
 }
 
-try {
-    python scripts/create_new_user.py --email usuario.teste@dermasync.com --password Usuario123! --name "Usuario Teste" --role usuario_logado
-}
-catch {
-    Write-Warning "Falha ao criar usuário de teste. Verifique se os emuladores do Firebase estão rodando corretamente."
-}
+

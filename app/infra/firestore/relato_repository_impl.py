@@ -27,7 +27,7 @@ class FirestoreRelatoRepository(RelatoRepositoryPort):
         logger.info("INFRA: Atualizando status do relato %s para %s", relato_id, status)
         doc_ref = self.collection.document(relato_id)
         doc_ref.update({
-            "status": str(status),
+            "status": status.value,
             "updated_at": datetime.now(timezone.utc)
         })
 
@@ -44,7 +44,10 @@ class FirestoreRelatoRepository(RelatoRepositoryPort):
         doc_ref = self.collection.document(relato_id)
         # Merge true para evitar sobrescrever campos não enviados se necessário
         # Mas para o Save canônico costumamos setar o objeto todo
-        data_to_save = {**data}
+        data_to_save = {**data}
+
+        if isinstance(data_to_save.get("status"), RelatoStatus):
+            data_to_save["status"] = data_to_save["status"].value
         if "updated_at" not in data_to_save:
             data_to_save["updated_at"] = datetime.now(timezone.utc)
         

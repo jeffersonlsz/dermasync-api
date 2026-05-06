@@ -34,10 +34,10 @@ DOMAIN_EFFECT_TO_UX_MAPPING = {
         "subtype": "persist_relato",
         "message": "Relato recebido e salvo.",
     },
-    "UploadImagesEffect": {
-        "subtype": "upload_images",
-        "message": "Imagens enviadas para processamento.",
-    },
+    "PersistImageRefsEffect": {
+        "subtype": "persist_image_refs",
+        "message": "Referencias de imagens associadas ao relato.",
+    },
     "EnqueueProcessingEffect": {
         "subtype": "enqueue_processing",
         "message": "Relato na fila para anlise.",
@@ -79,7 +79,8 @@ def domain_effect_to_ux_effect(effect) -> UXEffect | None:
 
 EFFECT_RESULT_TYPE_TO_SUBTYPE = {
     "UPDATE_STATUS": "persist_relato",
-    "UPLOAD_IMAGES": "upload_images",
+    "UPLOAD_IMAGES": "persist_image_refs",
+    "PERSIST_IMAGE_REFS": "persist_image_refs",
     "ENQUEUE_PROCESSING": "enqueue_processing",
     "ENRICH_METADATA": "enrich_metadata",
 }

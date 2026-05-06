@@ -95,7 +95,7 @@ class EffectDispatcher:
         effect_results: List[EffectResult] = []
 
         for effect in effects:
-            logger.info(f"EXECUTANDO EFFECT: {type(effect).__name__}")
+            
             effect_type = _effect_type(effect)
             relato_id = _effect_relato_id(effect)
             effect_ref = _effect_ref(effect)

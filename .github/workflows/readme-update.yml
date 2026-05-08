@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Baixar modelo do Hugging Face
         run: |
-          curl -L -o gemma-3-1b-it-q4_0.gguf "https://huggingface.co/google/gemma-3-1b-it-qat-q4_0-gguf/resolve/main/gemma-3-1b-it-q4_0.gguf"
+          curl -L -o gemma-4-E4B-it-OBLITERATED-Q4_K_M.gguf "https://huggingface.co/OBLITERATUS/gemma-4-E4B-it-OBLITERATED/resolve/main/gemma-4-E4B-it-OBLITERATED-Q4_K_M.gguf?download=true"
 
       - name: Upload do artefato
         uses: actions/upload-artifact@v4

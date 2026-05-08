@@ -14,5 +14,5 @@ jobs:
       - name: Upload do artefato
         uses: actions/upload-artifact@v4
         with:
-          name: gemma-3-1b-it-q4_0
-          path: gemma-3-1b-it-q4_0.gguf
+          name: gemma-4-E4B-it-OBLITERATED-Q4_K_M
+          path: gemma-4-E4B-it-OBLITERATED-Q4_K_M.gguf

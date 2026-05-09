@@ -7,8 +7,8 @@ from app.domain.relato.contracts import Actor, ApproveRelatoPublic, ArchiveRelat
 from app.domain.relato.orchestrator import decide
 from app.domain.relato.states import RelatoStatus
 from app.firestore.client import get_firestore_client
-from app.services.relato_adapters import update_relato_status_adapter
-from app.services.relato_effect_executor import RelatoEffectExecutor
+from app.infra.adapters.relato_adapter import update_relato_status_adapter
+from app.application.effects.relato_executor import RelatoEffectExecutor
 f
 from app.auth.schemas import User
 

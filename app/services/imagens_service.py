@@ -23,10 +23,13 @@ from PIL import Image
 from google.cloud.firestore import FieldFilter
 from app.auth.schemas import User
 from app.firestore.client import get_firestore_client
-from app.adapters.firebase_storage_adapter import FirebaseStorageAdapter
-from app.utils.storage_utils import normalize_storage_path
+from app.infra.storage.adapter import StorageAdapter
+from app.infra.firestore.image_repository import ImageRepository
+from app.application.uploads.upload_image_use_case import UploadImageUseCase
 
-storage_adapter = FirebaseStorageAdapter()
+infra_storage_adapter = StorageAdapter()
+image_repo = ImageRepository()
+upload_use_case = UploadImageUseCase(infra_storage_adapter, image_repo)
 logger = logging.getLogger(__name__)
 
 # BUCKET_NAME removido pois o adapter gerencia isso
@@ -35,11 +38,8 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------
 # CONSTANTES DE VALIDAÇÃO
 # ---------------------------------------------------------
-ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"]
-MAX_FILE_SIZE_MB = 10
-MAX_DIMENSIONS = (4096, 4096)
-# status pablicos aceitos (expanda se precisar)
-_PUBLIC_STATUSES = {"public", "approved_public", "approved", "published"}
+from app.domain.imagem.constraints import ALLOWED_MIME_TYPES, MAX_FILE_SIZE_MB, MAX_DIMENSIONS, PUBLIC_STATUSES
+_PUBLIC_STATUSES = PUBLIC_STATUSES
 
 
 # =========================================================
@@ -79,11 +79,7 @@ def _to_iso_if_datetime(val) -> Optional[str]:
 
 def _generate_signed_url_sync(storage_path: str, expires_seconds: int = 3600) -> Optional[str]:
     """Gera signed URL usando o Adapter (que lida com emulador e normalization)."""
-    if not storage_path:
-        return None
-    
-    # Fazemos de forma síncrona pois esta função é chamada em threads
-    return storage_adapter._get_signed_url_sync(storage_path, expires_seconds)
+    return infra_storage_adapter.get_signed_url(storage_path, expires_seconds)
 
 
 def _collect_sync(collection):
@@ -221,71 +217,11 @@ def _normalize_doc_for_response(im: dict) -> dict:
 # =========================================================
 
 async def _process_and_save_image_content(content: bytes, owner_user_id: str, original_filename: str) -> dict:
-    # --------------------
-    # 1. Validaaao
-    # --------------------
-    file_size_bytes = len(content)
-    if file_size_bytes > MAX_FILE_SIZE_MB * 1024 * 1024:
-        raise HTTPException(413, f"Arquivo muito grande. Max: {MAX_FILE_SIZE_MB}MB.")
-
-    mime_type = magic.from_buffer(content, mime=True)
-    if mime_type not in ALLOWED_MIME_TYPES:
-        raise HTTPException(415, f"Tipo nao suportado: {mime_type}")
-
-    try:
-        with Image.open(BytesIO(content)) as img:
-            width, height = img.size
-            if width > MAX_DIMENSIONS[0] or height > MAX_DIMENSIONS[1]:
-                raise HTTPException(413, f"Dimensaes maximas excedidas: {width}x{height}px")
-    except Exception:
-        raise HTTPException(422, "Arquivo de imagem invalido")
-
-    # --------------------
-    # 2. Upload
-    # --------------------
-    image_uuid = uuid.uuid4().hex
-    ext = mime_type.split("/")[-1]
-    storage_path = f"raw/{owner_user_id}/{image_uuid}.{ext}"
-
-    try:
-        result = await storage_adapter.upload_bytes(
-            path=storage_path, 
-            content=content, 
-            content_type=mime_type,
-            make_public=True
-        )
-        storage_path = result.storage_path
-    except Exception as e:
-        logger.exception("Falha ao enviar imagem para Storage.")
-        raise HTTPException(500, str(e))
-
-    # --------------------
-    # 3. Metadados Firestore
-    # --------------------
-    db = get_firestore_client()
-    image_id = uuid.uuid4().hex  # ID do documento
-
-    # Usar strings ISO para evitar DatetimeWithNanoseconds em retorno direto
-    now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    metadata = {
-        "id": image_id,
-        "owner_user_id": owner_user_id,
-        "status": "public",  # padrao: public para aparecer na galeria (ajuste conforme sua polatica)
-        "original_filename": original_filename,
-        "content_type": mime_type,
-        "size_bytes": file_size_bytes,
-        "width": width,
-        "height": height,
-        "storage_path": storage_path,
-        "sha256": hashlib.sha256(content).hexdigest(),
-        "created_at": now_iso,
-        "updated_at": now_iso,
-    }
-
-    await asyncio.to_thread(db.collection("imagens").document(image_id).set, metadata)
-
-    logger.info("Imagem salva: %s (storage_path=%s)", image_id, storage_path)
-    return metadata
+    return await upload_use_case.execute(
+        content=content,
+        owner_user_id=owner_user_id,
+        original_filename=original_filename
+    )
 
 
 async def salvar_imagem(file: UploadFile, owner_user_id: str) -> dict:
@@ -315,14 +251,14 @@ async def salvar_imagem_from_base64(base64_str: str, owner_user_id: str, filenam
         original_filename=filename,
     )
 
-
+"""
 def salvar_imagem_bytes_to_storage(storage_path: str, content: bytes, content_type: str) -> Optional[str]:
     raise NotImplementedError("Esse modulo sera removido e não pode ser usado. Usar a nova")
-    """
+    
     Salva bytes de uma imagem em um caminho especafico no Firebase Storage.
     Retorna uma signed URL para o objeto.
     Esta a uma funaao sancrona, projetada para ser usada em background tasks.
-    """
+    
     try:
         result = storage_adapter._upload_bytes_sync(
             path=storage_path, 
@@ -338,7 +274,7 @@ def salvar_imagem_bytes_to_storage(storage_path: str, content: bytes, content_ty
         logger.exception(f"Falha ao enviar imagem para Storage em {storage_path}.")
         # Lanaar exceaao para que a background task possa capturar e logar o erro.
         raise
-
+"""
 
 
 

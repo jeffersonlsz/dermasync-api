@@ -1,6 +1,6 @@
 import logging
 from app.application.ux.ux_serializer import serialize_ux_effects
-from app.services.retry_relato import retry_failed_effects
+from app.infra.retry.relato_retry import retry_failed_effects
 
 logger = logging.getLogger(__name__)
 

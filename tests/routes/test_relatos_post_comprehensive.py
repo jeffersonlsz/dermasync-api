@@ -124,7 +124,7 @@ def stub_relato_executor():
 
     """Isola efeitos e Firestore dos testes de contrato HTTP."""
 
-    with patch('app.services.relato_effect_executor.RelatoEffectExecutor') as MockExecutor:
+    with patch('app.application.effects.relato_executor.RelatoEffectExecutor') as MockExecutor:
 
         mock_instance = MagicMock()
 
@@ -916,7 +916,7 @@ class TestPostRelatosExecutorBehavior:
 
         try:
 
-            with patch('app.services.relato_effect_executor.RelatoEffectExecutor') as MockExecutor:
+            with patch('app.application.effects.relato_executor.RelatoEffectExecutor') as MockExecutor:
 
                 mock_instance = MagicMock()
 
@@ -992,7 +992,7 @@ class TestPostRelatosExecutorBehavior:
 
                 patch('app.application.relatos.create_relato_use_case.decide', return_value=denied_decision),
 
-                patch('app.services.relato_effect_executor.RelatoEffectExecutor') as MockExecutor,
+                patch('app.application.effects.relato_executor.RelatoEffectExecutor') as MockExecutor,
 
             ):
 
@@ -1100,7 +1100,7 @@ class TestPostRelatosExecutorBehavior:
 
                 patch('app.application.relatos.create_relato_use_case.decide', return_value=allowed_decision),
 
-                patch('app.services.relato_effect_executor.RelatoEffectExecutor') as MockExecutor,
+                patch('app.application.effects.relato_executor.RelatoEffectExecutor') as MockExecutor,
 
             ):
 
@@ -1182,7 +1182,7 @@ class TestPostRelatosIntegration:
 
         try:
 
-            with patch('app.services.relato_effect_executor.RelatoEffectExecutor') as MockExecutor:
+            with patch('app.application.effects.relato_executor.RelatoEffectExecutor') as MockExecutor:
 
                 mock_instance = MagicMock()
 
@@ -1248,7 +1248,7 @@ class TestPostRelatosIntegration:
 
         try:
 
-            with patch('app.services.relato_effect_executor.RelatoEffectExecutor') as MockExecutor:
+            with patch('app.application.effects.relato_executor.RelatoEffectExecutor') as MockExecutor:
 
                 mock_instance = MagicMock()
 

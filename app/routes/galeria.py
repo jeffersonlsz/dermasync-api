@@ -21,7 +21,7 @@ from app.auth.dependencies import get_current_user, require_admin
 from app.auth.schemas import User
 
 
-from app.services.galeria_service import listar_galeria_publica_v3
+from app.application.queries.galeria_query import listar_galeria_publica_v3
 
 
 

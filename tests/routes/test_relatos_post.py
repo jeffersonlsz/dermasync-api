@@ -108,7 +108,7 @@ def test_post_relatos_success():
 
         patch('app.application.relatos.create_relato_use_case.decide', return_value=mock_decision),
 
-        patch('app.services.relato_effect_executor.RelatoEffectExecutor') as mock_executor_class,
+        patch('app.application.effects.relato_executor.RelatoEffectExecutor') as mock_executor_class,
 
     ):
 
@@ -456,7 +456,7 @@ def test_post_relatos_executor_not_called_when_denied():
 
         patch('app.application.relatos.create_relato_use_case.decide', return_value=mock_decision),
 
-        patch('app.services.relato_effect_executor.RelatoEffectExecutor') as mock_executor_class,
+        patch('app.application.effects.relato_executor.RelatoEffectExecutor') as mock_executor_class,
 
         
 

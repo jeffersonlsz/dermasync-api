@@ -3,7 +3,7 @@
 import logging
 from datetime import datetime
 from app.application.effects.result import EffectResult
-from app.services.firestore_relato_adapter import persist_relato_firestore
+from app.infra.firestore.relato_adapter_legacy import persist_relato_firestore
 
 logger = logging.getLogger(__name__)
 

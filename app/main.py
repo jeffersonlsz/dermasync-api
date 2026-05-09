@@ -34,7 +34,7 @@ from app.routes import (
     auth, galeria, galeria_leitura, health, 
     imagens, relatos, feed, 
     relatos_progress,
-    dev_effects, dev_enrich
+    dev_enrich
 )
 from app.infra.firebase_app import init_firebase
 
@@ -91,7 +91,6 @@ app.include_router(galeria_leitura.router)
 app.include_router(health.router)
 
 if ENVIRONMENT in ["development", "testing"]:
-    app.include_router(dev_effects.router)
     app.include_router(dev_enrich.router)
 
 @app.get("/")

@@ -10,8 +10,6 @@ from app.auth.dependencies import get_current_user, get_optional_user
 from app.auth.schemas import User
 from app.ports.storage_port import StoragePort
 from app.adapters.firebase_storage_adapter import FirebaseStorageAdapter
-from app.application.relatos.create_relato_use_case import CreateRelatoUseCase
-from app.application.relatos.submit_relato_use_case import SubmitRelatoUseCase  
 from app.application.uploads.upload_images import salvar_uploads_e_retornar_refs
 from app.application.parsers.parse_payload import parse_payload_json
 

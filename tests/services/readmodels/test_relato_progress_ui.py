@@ -1,4 +1,4 @@
-from app.services.readmodels.relato_progress_ui import build_relato_progress_ui
+from app.application.queries.readmodels.relato_progress_ui import build_relato_progress_ui
 
 from app.application.effects.result import EffectStatus
 

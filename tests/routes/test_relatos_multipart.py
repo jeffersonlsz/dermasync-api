@@ -110,7 +110,7 @@ def test_post_relatos_with_real_multipart_upload():
 
         # -----------------------------------
 
-        with patch('app.services.relato_effect_executor.RelatoEffectExecutor') as mock_exec:
+        with patch('app.application.effects.relato_executor.RelatoEffectExecutor') as mock_exec:
 
             exec_instance = MagicMock()
 
@@ -163,9 +163,7 @@ def test_post_relatos_with_real_multipart_upload():
 
 
 def test_upload_failure_triggers_rollback():
-
-    from app.services.relato_effect_executor import RelatoEffectExecutor
-
+    from app.application.effects.relato_executor import RelatoEffectExecutor
     from app.domain.relato.effects import UploadImagesEffect
 
 
@@ -225,11 +223,8 @@ def test_upload_failure_triggers_rollback():
 
 
     with (
-
-        patch("app.services.relato_effect_executor.effect_already_succeeded", return_value=False),
-
-        patch("app.services.relato_effect_executor.persist_effect_result_firestore"),
-
+        patch("app.application.effects.relato_executor.effect_already_succeeded", return_value=False),
+        patch("app.application.effects.relato_executor.persist_effect_result_firestore"),
     ):
 
         try:

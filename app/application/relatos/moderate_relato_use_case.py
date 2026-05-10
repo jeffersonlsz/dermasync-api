@@ -6,10 +6,10 @@ from fastapi import HTTPException
 from app.domain.relato.contracts import Actor, ApproveRelatoPublic, ArchiveRelato, RejectRelato
 from app.domain.relato.orchestrator import decide
 from app.domain.relato.states import RelatoStatus
+
 from app.firestore.client import get_firestore_client
 from app.infra.adapters.relato_adapter import update_relato_status_adapter
 from app.application.effects.relato_executor import RelatoEffectExecutor
-f
 from app.auth.schemas import User
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ class ModerateRelatoUseCase:
         # Temporariamente usando a lógica do service existente
         pass
     
-    async def moderate_relato(relato_id: str, action: str, current_user: User) -> dict:
+    async def moderate_relato(self, relato_id: str, action: str, current_user: User) -> dict:
 
         """
 
@@ -129,7 +129,7 @@ class ModerateRelatoUseCase:
         logger.info(f"[USECASE] Moderando relato {relato_id} com ação {action} por {current_user.email}")
         
         # Chama a lógica existente no service
-        result = await moderate_relato(
+        result = await self.moderate_relato(
             relato_id=relato_id,
             action=action,
             current_user=current_user

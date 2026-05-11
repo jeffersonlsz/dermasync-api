@@ -87,13 +87,19 @@ class RelatoEffectExecutor:
                 # =====================================================
                 if isinstance(effect, PersistRelatoEffect):
                     try:
-                        self._persist_relato(
-                            relato_id=effect.relato_id,
-                            owner_id=effect.owner_id,
-                            status=effect.status.value,
-                            conteudo=effect.conteudo,
-                            image_refs=effect.image_refs, # apenas refs
-                        )
+                        # Prepara os dados incluindo o pipeline se existir
+                        persist_data = {
+                            "relato_id": effect.relato_id,
+                            "owner_id": effect.owner_id,
+                            "status": effect.status.value,
+                            "conteudo": effect.conteudo,
+                            "image_refs": effect.image_refs,
+                        }
+                        
+                        if effect.pipeline:
+                            persist_data["pipeline"] = effect.pipeline
+
+                        self._persist_relato(**persist_data)
 
                         result = build_effect_result(
                             relato_id=effect.relato_id,

@@ -176,14 +176,22 @@ class EffectDispatcher:
                 "[DEBUG DISPATCHER] Iniciando relato_repo.save para relato_id=%s",
                 effect.relato_id,
             )
+            
+            # Prepara os dados para persistência
+            data = {
+                "owner_id": effect.owner_id,
+                "conteudo_original": effect.conteudo,
+                "status": effect.status,
+                "image_refs": effect.image_refs,
+            }
+            
+            # Se houver estado de pipeline operacional, inclui no documento
+            if effect.pipeline:
+                data["_pipeline"] = effect.pipeline
+
             await self.relato_repo.save(
                 relato_id=effect.relato_id,
-                data={
-                    "owner_id": effect.owner_id,
-                    "conteudo_original": effect.conteudo,
-                    "status": effect.status,
-                    "image_refs": effect.image_refs,
-                },
+                data=data,
             )
             logger.info(
                 "[DEBUG DISPATCHER] Finalizado relato_repo.save para relato_id=%s",

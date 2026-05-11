@@ -30,6 +30,7 @@ def persist_relato_adapter(
     conteudo: str,
     status: str,
     image_refs: Dict[str, List[str]],
+    pipeline: Dict | None = None,  # ✅ Novo: estado operacional (Fase 1)
 ) -> None:
     """
     Adapter de persistncia de relato.
@@ -37,24 +38,28 @@ def persist_relato_adapter(
     """
 
     logger.info(
-        "ADAPTER: Persistindo relato %s | owner=%s status=%s",
+        "ADAPTER: Persistindo relato %s | owner=%s status=%s | pipeline=%s",
         relato_id,
         owner_id,
         status,
+        pipeline is not None,
     )
 
     db = get_firestore_client()
     doc_ref = db.collection("relatos").document(relato_id)
 
-    doc_ref.set(
-        {
-            "owner_id": str(owner_id),
-            "conteudo_original": conteudo,
-            "status": str(status),
-            "image_refs": image_refs or {},
-            "created_at": datetime.now(timezone.utc),
-        }
-    )
+    data = {
+        "owner_id": str(owner_id),
+        "conteudo_original": conteudo,
+        "status": str(status),
+        "image_refs": image_refs or {},
+        "created_at": datetime.now(timezone.utc),
+    }
+
+    if pipeline:
+        data["_pipeline"] = pipeline
+
+    doc_ref.set(data)
 
 
 # =====================================================

@@ -5,6 +5,8 @@ from app.infra.firestore.image_repository import ImageRepository
 from app.infra.storage.adapter import StorageAdapter
 from app.domain.imagem.constraints import PUBLIC_STATUSES
 
+from app.application.queries.readmodels.image_readmodel import normalize_image_doc
+
 logger = logging.getLogger(__name__)
 
 class ImageQueries:
@@ -20,13 +22,15 @@ class ImageQueries:
         """Lista metadados de imagens públicas."""
         imagens = await self.image_repo.list_public(list(PUBLIC_STATUSES))
         
+        normalized = [normalize_image_doc(img) for img in imagens]
+
         if include_signed_url:
-            for img in imagens:
+            for img in normalized:
                 path = img.get("storage_path")
                 if path:
                     img["signed_url"] = self.storage_adapter.get_signed_url(path)
         
-        return imagens
+        return normalized
 
     async def get_image_for_user(self, image_id: str, user_id: str, user_role: str) -> Optional[Dict[str, Any]]:
         """Busca imagem validando permissões de acesso."""
@@ -35,13 +39,13 @@ class ImageQueries:
             return None
 
         # Regra de acesso: Dono, Admin ou Colaborador
-        is_owner = img.get("owner_user_id") == user_id
+        is_owner = str(img.get("owner_user_id")) == str(user_id)
         is_staff = user_role in ["admin", "colaborador"]
         
         if not (is_owner or is_staff):
             raise PermissionError("Acesso negado à imagem.")
 
-        return img
+        return normalize_image_doc(img)
 
     async def get_signed_url(self, image_id: str, user_id: str, user_role: str) -> Optional[str]:
         """Gera URL assinada para uma imagem específica."""

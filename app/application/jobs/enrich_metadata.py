@@ -24,7 +24,7 @@ from app.pipeline.llm_client.ollama_client import OllamaClient
 
 
 
-from app.services.llm.normalization import strip_code_fences
+from app.application.parsers.llm.normalization import strip_code_fences
 
 from app.domain.enrichment.validation_mode import ValidationMode
 

@@ -38,11 +38,13 @@ from app.domain.galeria.similarity.scorers.narrative_tone import (
 )
 
 
-from app.services.imagens_service import _generate_signed_url_sync
+from app.infra.storage.adapter import StorageAdapter
 
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+_storage = StorageAdapter()
 
 
 
@@ -250,14 +252,11 @@ async def ler_relato(
     else:
         visible_images = image_refs
 
-    # gerar signed URLs apenas para visveis
-    from app.services.imagens_service import _generate_signed_url_sync
-
     images = []
     for img in visible_images:
         images.append({
             "type": img.get("type"),
-            "url": _generate_signed_url_sync(img.get("path")),
+            "url": _storage.get_signed_url(img.get("path")),
         })
 
     # ============================================================

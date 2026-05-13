@@ -1,16 +1,16 @@
 """
-Module commands.py.
+Module commands.py. (Legacy version updated to use new ImageQueries)
 """
 
 import logging
 import uuid
+import json
 from datetime import datetime, timezone
 from fastapi import HTTPException
 
 from app.auth.schemas import User
 from app.schema.relato import RelatoFullOutput, RelatoCompletoInput
 from app.firestore.client import get_firestore_client
-from app.services.imagens_service import get_imagem_by_id
 from app.domain.relato.orchestrator import decide
 from app.domain.relato.contracts import Actor, CreateRelato
 from app.application.effects.relato_executor import RelatoEffectExecutor
@@ -22,9 +22,17 @@ from app.infra.adapters.relato_adapter import (
     update_relato_status_adapter,
 )
 
-from app.services.relatos.mappers import map_relato_data
+from app.infra.firestore.image_repository import ImageRepository
+from app.infra.storage.adapter import StorageAdapter
+from app.application.queries.image_queries import ImageQueries
+from app.application.relatos.mappers import map_relato_data
 
 logger = logging.getLogger(__name__)
+
+# Instâncias para compatibilidade legacy
+_image_repo = ImageRepository()
+_storage_adapter = StorageAdapter()
+_image_queries = ImageQueries(_image_repo, _storage_adapter)
 
 async def enqueue_relato_processing(relato_id: str) -> None:
     logger.info(f"Relato {relato_id} enfileirado para processamento em segundo plano.")
@@ -52,13 +60,19 @@ async def attach_image_to_relato(relato_id: str, image_id: str, current_user: Us
         raise HTTPException(status_code=403, detail="Acesso negado. Voc no tem permisso para modificar este relato.")
 
     try:
-        image_metadata = await get_imagem_by_id(image_id=image_id, requesting_user=current_user)
-    except HTTPException as e:
-        if e.status_code == 404:
-            raise HTTPException(status_code=404, detail="Imagem no encontrada ou no pertence a voc.")
-        if e.status_code == 403:
-            raise HTTPException(status_code=403, detail="Acesso negado à imagem.")
-        raise e
+        image_metadata = await _image_queries.get_image_for_user(
+            image_id=image_id, 
+            user_id=current_user.id,
+            user_role=current_user.role
+        )
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Acesso negado à imagem.")
+    except Exception as e:
+        logger.exception(f"Erro ao buscar imagem {image_id}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar imagem.")
+
+    if not image_metadata:
+        raise HTTPException(status_code=404, detail="Imagem não encontrada ou não pertence a você.")
 
     if image_metadata.get("status") in ["associated", "approved_public", "rejected", "archived"]:
         raise HTTPException(status_code=400, detail="Imagem j associada ou em estado final.")

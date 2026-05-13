@@ -8,23 +8,17 @@ from google.cloud.firestore import FieldFilter
 from app.domain.galeria.eligibility_service import RelatoEligibilityService
 from app.domain.galeria.similarity.calculator import SimilarityCalculator
 from app.firestore.client import get_firestore_client
-from app.services.imagens_service import _generate_signed_url_sync
+from app.infra.storage.adapter import StorageAdapter
 from app.domain.relato.normalizer import normalize_relato_document
 from app.application.ux.adapters.galeria_explanation import GaleriaExplanationBuilder
 
-
-from google.cloud.firestore import FieldFilter
-from app.application.ux.adapters.galeria_explanation import GaleriaExplanationBuilder
-from app.domain.galeria.eligibility_service import RelatoEligibilityService
-
-
 # ============================================================
-# 🔹 Seleo de thumbnails (ANTES / DEPOIS)
+# 🔹 Seleção de thumbnails (ANTES / DEPOIS)
 # ============================================================
 
-def _pick_thumbnails(imagens: List[dict]) -> Dict[str, str | None]:
+def _pick_thumbnails(imagens: List[dict], storage: StorageAdapter) -> Dict[str, str | None]:
     """
-    Retorna thumbnails separadas por papel clnico.
+    Retorna thumbnails separadas por papel clínico.
     Prioridade:
       - ANTES
       - DEPOIS
@@ -42,10 +36,10 @@ def _pick_thumbnails(imagens: List[dict]) -> Dict[str, str | None]:
             continue
 
         if papel == "ANTES" and thumbs["antes"] is None:
-            thumbs["antes"] = _generate_signed_url_sync(thumb_path)
+            thumbs["antes"] = storage.get_signed_url(thumb_path)
 
         elif papel == "DEPOIS" and thumbs["depois"] is None:
-            thumbs["depois"] = _generate_signed_url_sync(thumb_path)
+            thumbs["depois"] = storage.get_signed_url(thumb_path)
 
     return thumbs
 
@@ -132,10 +126,12 @@ async def listar_galeria_publica_v3(
     # --------------------------------------------------------
     dados: List[Dict[str, Any]] = []
 
+    storage = StorageAdapter()
+
     for relato_id, relato in relatos:
         imagens = imagens_por_relato.get(relato_id, [])
 
-        thumbs = _pick_thumbnails(imagens)
+        thumbs = _pick_thumbnails(imagens, storage)
 
         thumbnail_url = (
             thumbs["antes"]

@@ -12,7 +12,7 @@ from app.ports.relato_repository_port import RelatoRepositoryPort
 
 from app.schema.relato import RelatoFullOutput, RelatoPublicoOutput
 
-from app.services.relatos.mappers import map_relato_data
+from app.application.relatos.mappers import map_relato_data
 
 
 

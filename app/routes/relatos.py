@@ -223,12 +223,12 @@ async def get_imagens_relato(
     storage: StoragePort = Depends(get_storage_port),
     current_user: Optional[User] = Depends(get_optional_user)
 ):
-    from app.infra.firestore.image_repository_impl import FirestoreImageRepository
+    from app.infra.firestore.relato_repository_impl import FirestoreRelatoRepository
     from app.application.relatos.get_relato_images_use_case import GetRelatoImagesUseCase
 
-    image_repo = FirestoreImageRepository()
+    relato_repo = FirestoreRelatoRepository()
     use_case = GetRelatoImagesUseCase(
-        image_repo=image_repo,
+        relato_repo=relato_repo,
         storage=storage
     )
 

@@ -24,10 +24,8 @@ from app.core.errors import RetryErrorMessages
 from app.application.effects.idempotency import effect_already_succeeded
 class RelatoEffectExecutor:
     """
-    Executa efeitos emitidos pelo domnio.
-    NÃO decide.
-    NÃO governa fluxo.
-    Instrumenta resultados tcnicos (EffectResult).
+    LEGACY: Este executor está sendo substituído pelo EffectDispatcher.
+    Atualmente mantido para compatibilidade com o fluxo de Moderação e Retries.
     """
 
     def __init__(

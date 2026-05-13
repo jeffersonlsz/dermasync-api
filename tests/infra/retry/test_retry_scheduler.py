@@ -1,8 +1,8 @@
 from datetime import datetime
 from app.infra.retry.retry_scheduler import RetryScheduler
-from app.services.effects.retry_decision import RetryDecision
-from app.services.relato_effect_executor import RelatoEffectExecutor
-from app.services.effects.result import EffectResult
+from app.application.effects.retry_decision import RetryDecision
+from app.application.effects.relato_executor import RelatoEffectExecutor
+from app.application.effects.result import EffectResult
 
 
 class FakeEngine:
@@ -30,7 +30,7 @@ def test_retry_scheduler_runs_and_returns_decisions(mocker):
     )
 
     load_mock = mocker.patch(
-        "app.services.effects.loader.load_failed_effect_results",
+        "app.application.effects.loader.load_failed_effect_results",
         return_value=[fake_result],
     )
     

@@ -13,18 +13,23 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
-import firebase_admin
-from firebase_admin import credentials, firestore
-from google.cloud import firestore
+# Adiciona o diretório raiz do projeto ao sys.path
+# para que os módulos da 'app' possam ser encontrados.
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from app.firestore.client import get_firestore_client
 
 logger = logging.getLogger(__name__)
 
 
+
 OUTPUT_DIR = "./app/pipeline/dados/jsonl_brutos"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-# Definindo a versão do pipeline
+# Definindo a verso do pipeline
 
-VERSAO_PIPELINE = "v0.0.1"  # Versão do pipeline, pode ser alterada conforme necessário
+VERSAO_PIPELINE = "v0.0.1"  # Verso do pipeline, pode ser alterada conforme necessrio
 
 # ===== FUNÇÕES DE LIMPEZA =====
 
@@ -38,8 +43,8 @@ def remover_emojis(texto: str) -> str:
 def limpar_texto(texto: str) -> str:
     texto = remover_emojis(texto)
     texto = re.sub(r"[^\w\s.,!?-]", "", texto)  # Remove caracteres especiais
-    texto = re.sub(r"\s+", " ", texto)  # Remove múltiplos espaços
-    texto = re.sub(r"\.(?=\S)", ". ", texto)  # Garante espaço após ponto
+    texto = re.sub(r"\s+", " ", texto)  # Remove mltiplos espaos
+    texto = re.sub(r"\.(?=\S)", ". ", texto)  # Garante espao aps ponto
     return texto.strip()
 
 
@@ -47,9 +52,7 @@ def limpar_texto(texto: str) -> str:
 
 
 def extrair_firestore_documentos(colecao: str):
-    cred = credentials.Certificate("./dermasync-key.json")
-    firebase_admin.initialize_app(cred)
-    db = firestore.Client()
+    db = get_firestore_client()
 
     documentos = db.collection(colecao).stream()
     saida = []
@@ -62,7 +65,7 @@ def extrair_firestore_documentos(colecao: str):
             {
                 "origem": "firestore",
                 "id_relato": doc.id,
-                "nome_arquivo": f"{doc.id}.txt",  # Nome fictício para compatibilidade
+                "nome_arquivo": f"{doc.id}.txt",  # Nome fictcio para compatibilidade
                 "data_modificacao": (
                     doc.update_time.isoformat() if doc.update_time else None
                 ),
@@ -80,11 +83,11 @@ def salvar_jsonl(lista, caminho_saida):
 
 
 async def gerar_jsonl_bruto(input_dir: dict, output_path: str):
-    logger.info("Iniciando a geração do JSONL bruto...")
-    logger.info(f"Parâmetros de entrada: {input_dir}, {output_path}")
+    logger.info("Iniciando a gerao do JSONL bruto...")
+    logger.info(f"Parmetros de entrada: {input_dir}, {output_path}")
     registros = []
 
-    # === Parâmetros ===
+    # === Parmetros ===
     origem_dict = input_dir.get("origem", {})
     fonte_plataforma = (
         origem_dict.get("plataforma") if isinstance(origem_dict, dict) else origem_dict
@@ -97,7 +100,7 @@ async def gerar_jsonl_bruto(input_dir: dict, output_path: str):
     if not src_dir:
         raise ValueError("src_dir is required in input_dir dict")
 
-    print(f"📂 Lendo arquivos do diretório: {src_dir} ({fonte_plataforma})")
+    print(f"📂 Lendo arquivos do diretrio: {src_dir} ({fonte_plataforma})")
 
     for file in Path(src_dir).glob("*.txt"):
         with open(file, "r", encoding="utf-8") as f:
@@ -115,7 +118,7 @@ async def gerar_jsonl_bruto(input_dir: dict, output_path: str):
             "conteudo_original": conteudo,
             "origem": {
                 "plataforma": fonte_plataforma,
-                "link": None,  # Você pode adaptar isso se extrair dos arquivos ou nomes
+                "link": None,  # Voc pode adaptar isso se extrair dos arquivos ou nomes
                 "tipo": tipo_postagem,
                 "ano_postagem": None,
                 "grupo": grupo_nome,
@@ -139,34 +142,34 @@ if __name__ == "__main__":
             "origem": "facebook",
             "src_dir": "D:\\workspace_projects_001\\fotos_dados\\resultados",
             "ctx_id": "1234567890",
-            "grupo": "Dermatite Atópica Brasil",
+            "grupo": "Dermatite Atpica Brasil",
             "tipo": "comentario",
         },
         {
             "origem": "youtube",
             "src_dir": "D:\\workspace_projects_001\\fotos_dados\\resultados\\videos_transcripts",
             "ctx_id": "1234567890",
-            "grupo": "Dermatite Atópica Brasil",
+            "grupo": "Dermatite Atpica Brasil",
             "tipo": "comentario",
         },
         {
             "origem": "facebook",
             "src_dir": "D:\\workspace_projects_001\\fotos_dados\\resultados\\depoimentos",
             "ctx_id": "1234567890",
-            "grupo": "Dermatite Atópica Brasil",
+            "grupo": "Dermatite Atpica Brasil",
             "tipo": "comentario",
         },
         {
             "origem": "facebook",
             "src_dir": "D:\\workspace_projects_001\\fotos_dados\\resultados\\coleta",
             "ctx_id": "1234567890",
-            "grupo": "Dermatite Atópica Brasil",
+            "grupo": "Dermatite Atpica Brasil",
             "tipo": "comentario",
         },
     ]
 
     data_hoje = datetime.now().strftime("%Y%m%d")
-    # Definindo o nome do arquivo de saída
+    # Definindo o nome do arquivo de sada
     origem = "facebook"  # ou 'youtube', dependendo do contexto
     ARQUIVO_SAIDA = f"relatos-{data_hoje}-{origem}-{VERSAO_PIPELINE}.jsonl"
 
@@ -175,7 +178,7 @@ if __name__ == "__main__":
             {
                 "origem": origem,
                 "src_dir": "D:\\workspace_projects_001\\fotos_dados\\resultados\\depoimentos",
-                "grupo": "Dermatite Atópica Brasil",
+                "grupo": "Dermatite Atpica Brasil",
                 "ctx_id": "1234567890",
                 "tipo": "comentario",
             },
@@ -183,9 +186,9 @@ if __name__ == "__main__":
         )
 
     asyncio.run(main())
-    # print("📂 Lendo arquivos dos diretórios:", diretorios)
+    # print("📂 Lendo arquivos dos diretrios:", diretorios)
     # registros = processar_diretorios(diretorios, 'local-youtube')
-    # print(f"📄 Encontrados {len(registros)} registros nos diretórios.")
+    # print(f"📄 Encontrados {len(registros)} registros nos diretrios.")
     # for i, registro in enumerate(registros):
     #    print(f"{i+1:03d} - {registro['id_relato']} - {registro['link']}...")
 

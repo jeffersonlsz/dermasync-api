@@ -2,11 +2,11 @@
 
 def test_executor_skips_effect_if_already_succeeded(monkeypatch):
     """
-    Prova que o executor NÃO executa novamente
+    Prova que o executor NÃO executa novamente
     um efeito que já possui EffectResult success=True.
     """
 
-    from app.services.relato_effect_executor import RelatoEffectExecutor
+    from app.application.effects.relato_executor import RelatoEffectExecutor
     from app.domain.relato.effects import UploadImagesEffect
 
     # -----------------------------
@@ -23,11 +23,11 @@ def test_executor_skips_effect_if_already_succeeded(monkeypatch):
     # Simula idempotência ativa
     # -----------------------------
     def fake_effect_already_succeeded(*, relato_id, effect_type, effect_ref):
-        # Simula que o efeito JÁ FOI executado com sucesso
+        # Simula que o efeito JÃ FOI executado com sucesso
         return True
 
     monkeypatch.setattr(
-        "app.services.relato_effect_executor.effect_already_succeeded",
+        "app.application.effects.relato_executor.effect_already_succeeded",
         fake_effect_already_succeeded,
     )
 
@@ -57,9 +57,9 @@ def test_executor_skips_effect_if_already_succeeded(monkeypatch):
     executor.execute(effects)
 
     # -----------------------------
-    # Assertiva CRÍTICA
+    # Assertiva CRÃTICA
     # -----------------------------
     assert upload_call_count == 0, (
-        "Upload NÃO deveria ser chamado se o efeito "
+        "Upload NÃO deveria ser chamado se o efeito "
         "já foi executado com sucesso anteriormente"
     )

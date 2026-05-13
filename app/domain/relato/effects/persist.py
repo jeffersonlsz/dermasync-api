@@ -16,3 +16,5 @@ class PersistRelatoEffect(Effect):
     conteudo: str
     #imagens: dict removido - apenas refs agora
     image_refs: dict[str, list[str]]  # ✅ apenas refs
+    pipeline: dict | None = None  # ✅ Novo: estado operacional (Fase 1)
+

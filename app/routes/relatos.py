@@ -1,53 +1,30 @@
 # app/routes/relatos.py
 """
-Routes para relatos (depoimentos de tratamento de dermatite atópica).
+Routes para relatos (depoimentos de tratamento de dermatite atpica).
 """
 import logging
 import uuid
-import json
 from typing import Optional, List
-
 from fastapi import APIRouter, Depends, Form, File, Query, UploadFile, HTTPException, status, BackgroundTasks
-
-from app.adapters.firebase_storage_adapter import FirebaseStorageAdapter
 from app.auth.dependencies import get_current_user, get_optional_user
 from app.auth.schemas import User
-from app.domain.relato.contracts import Actor, CreateRelato, SubmitRelato
-from app.domain.relato.orchestrator import decide
 from app.ports.storage_port import StoragePort
-from app.repositories.effect_result_repository import EffectResultRepository
-from app.schema.relato import RelatoCompletoInput, RelatoStatusOutput
-from app.schema.relato_draft import RelatoDraftInput
-from app.services.moderation_query_service import ModerationQueryService
-from app.services.relato_adapters import (
-    persist_relato_adapter,
-    enqueue_processing_adapter,
-    emit_event_adapter,
-    upload_images_adapter,
-    update_relato_status_adapter
-)
-from app.services.relato_effect_executor import RelatoEffectExecutor
-from app.services.relatos_service import get_relato_by_id, process_and_save_relato, moderate_relato, run_submission_effects, parse_payload_json
+from app.adapters.firebase_storage_adapter import FirebaseStorageAdapter
+from app.application.uploads.upload_images import salvar_uploads_e_retornar_refs
+from app.application.parsers.parse_payload import parse_payload_json
 
-from app.services.retry_relato import retry_failed_effects
-from app.services.uploads_service import salvar_uploads_e_retornar_refs
-from app.services.ux_serializer import serialize_ux_effects
-from app.repositories.effect_result_repository import EffectResultRepository
-from app.services.ux_adapter_core import effect_result_to_ux_effect
-from app.core.projections.progress_projector import project_progress
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
 
 def get_storage_port() -> StoragePort:
     return FirebaseStorageAdapter()
 
-
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
-    summary="Enviar relato (rota canônica baseada em domínio)",
+    summary="Enviar relato (rota cannica baseada em domnio)",
     tags=["Relatos"],
 )
 async def criar_e_enviar_relato(
@@ -59,29 +36,22 @@ async def criar_e_enviar_relato(
     storage: StoragePort = Depends(get_storage_port),
     current_user=Depends(get_current_user),
 ):
-    # =========================
-    # Pré-validação
-    # =========================
+    from app.infra.firestore.relato_repository_impl import FirestoreRelatoRepository
+    from app.infra.processing_adapter import CloudTasksProcessingAdapter
+    from app.infra.event_adapter import DummyEventAdapter
+    from app.application.effects.dispatcher import EffectDispatcher
+    from app.application.relatos.create_relato_use_case import CreateRelatoUseCase
+    
+
     logger.debug("/relatos Recebido payload: %s", payload)
     draft = parse_payload_json(payload)
 
     if not draft.consentimento:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Consentimento é obrigatório",
+            detail="Consentimento  obrigatrio",
         )
-
     relato_id = uuid.uuid4().hex
-
-    actor = Actor(
-        id=str(current_user.id),
-        role=current_user.role,
-    )
-
-    # =========================
-    # Upload → image_refs
-    # =========================
-
     image_refs = {
         "antes": await salvar_uploads_e_retornar_refs(
             imagens_antes or [],
@@ -103,49 +73,31 @@ async def criar_e_enviar_relato(
         ),
     }
 
-    # =========================
-    # Command (DOMÍNIO PURO)
-    # =========================
+    relato_repo = FirestoreRelatoRepository()
+    dispatcher = EffectDispatcher(
+        relato_repo=relato_repo,
+        processing_port=CloudTasksProcessingAdapter(),
+        event_port=DummyEventAdapter()
+    )
+    
+    use_case = CreateRelatoUseCase(
+        relato_repo=relato_repo,
+        dispatcher=dispatcher
+    )
 
-    command = CreateRelato(
+    result = await use_case.execute(
         relato_id=relato_id,
         owner_id=str(current_user.id),
         conteudo=draft.descricao,
         image_refs=image_refs,
+        actor_role=current_user.role
     )
 
-    decision = decide(
-        command=command,
-        actor=actor,
-        current_state=None,
-    )
-
-    if not decision.allowed:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=decision.reason or "Criação do relato não permitida",
-        )
-
-    # =========================
-    # Executor
-    # =========================
-
-    executor = RelatoEffectExecutor(
-        persist_relato=persist_relato_adapter,
-        enqueue_processing=enqueue_processing_adapter,
-        emit_event=emit_event_adapter,
-        upload_images=upload_images_adapter,
-        update_relato_status=update_relato_status_adapter,
-    )
-
-    executor.execute(decision.effects)
+    ux_effects = result.pop("ux_effects", [])
 
     return {
-        "data": {
-            "relato_id": relato_id,
-            "status": decision.next_state.value if decision.next_state else "UNKNOWN",
-        },
-        "ux_effects": serialize_ux_effects(decision.effects),
+        "data": result,
+        "ux_effects": ux_effects,
     }
 
 
@@ -160,54 +112,39 @@ async def submit_relato(
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
 ):
-    actor = Actor(
-        id=str(current_user.id),
-        role=str(current_user.role),
+    from app.infra.firestore.relato_repository_impl import FirestoreRelatoRepository
+    from app.infra.processing_adapter import CloudTasksProcessingAdapter
+    from app.infra.event_adapter import DummyEventAdapter
+    from app.application.effects.dispatcher import EffectDispatcher
+    from app.application.relatos.submit_relato_use_case import SubmitRelatoUseCase
+
+    relato_repo = FirestoreRelatoRepository()
+    processing_port = CloudTasksProcessingAdapter()
+    event_port = DummyEventAdapter()
+
+    dispatcher = EffectDispatcher(
+        relato_repo=relato_repo,
+        processing_port=processing_port,
+        event_port=event_port
+    )
+    
+    use_case = SubmitRelatoUseCase(
+        relato_repo=relato_repo,
+        dispatcher=dispatcher
     )
 
-    # 🔹 Buscar estado atual (fonte da verdade)
-    relato = await get_relato_by_id(
+    result = await use_case.execute(
         relato_id=relato_id,
-        requesting_user=current_user,
+        actor_id=str(current_user.id),
+        actor_role=str(current_user.role)
     )
 
-    # 🔹 Command explícito
-    command = SubmitRelato(
-        relato_id=relato_id,
-    )
-
-    decision = decide(
-        command=command,
-        actor=actor,
-        current_state=relato.status,
-    )
-
-    if not decision.allowed:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=decision.reason or "Submissão não permitida",
-        )
-
-    executor = RelatoEffectExecutor(
-        persist_relato=persist_relato_adapter,
-        enqueue_processing=enqueue_processing_adapter,
-        emit_event=emit_event_adapter,
-        upload_images=upload_images_adapter,
-        update_relato_status=update_relato_status_adapter,
-    )
-
-    background_tasks.add_task(run_submission_effects, decision.effects, executor)
+    ux_effects = result.pop("ux_effects", [])
 
     return {
-        "data": {
-            "relato_id": relato_id,
-            "status": decision.next_state.value,
-        },
-        "ux_effects": serialize_ux_effects(decision.effects),
+        "data": result,
+        "ux_effects": ux_effects,
     }
-
-
-
 
 
 @router.get("/{relato_id}")
@@ -216,10 +153,13 @@ async def get_relato(
     current_user: User = Depends(get_current_user),
     tags=["Relatos"],
 ):
-    """
-    Endpoint para obter um relato pelo ID.
-    """
-    relato = await get_relato_by_id(relato_id=relato_id, requesting_user=current_user)
+    from app.infra.firestore.relato_repository_impl import FirestoreRelatoRepository
+    from app.application.relatos.get_relato_use_case import GetRelatoUseCase
+
+    relato_repo = FirestoreRelatoRepository()
+    use_case = GetRelatoUseCase(relato_repo=relato_repo)
+    
+    relato = await use_case.execute(relato_id=relato_id, requesting_user=current_user)
     return relato
 
 
@@ -234,24 +174,16 @@ async def moderate_relato_route(
     action: str,
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Executa uma ação de moderação em um relato, delegando a lógica para o domínio.
+    from app.application.relatos.moderate_relato_use_case import ModerateRelatoUseCase
 
-    - **action**: A ação a ser executada (`approve`, `reject`, `archive`).
-    
-    Apenas usuários com as roles 'admin' ou 'colaborador' podem executar esta ação.
-    A lógica de negócio real (ex: um relato só pode ser aprovado se estiver no estado 'processed')
-    é garantida pela camada de domínio.
-    """
-    # A verificação de role na rota é uma primeira barreira (defense-in-depth),
-    # mas a verdadeira autorização acontece no domínio.
     if current_user.role not in ["admin", "colaborador"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Acesso negado. Apenas administradores e colaboradores podem moderar relatos."
         )
 
-    result = await moderate_relato(
+    use_case = ModerateRelatoUseCase()
+    result = await use_case.execute(
         relato_id=relato_id,
         action=action,
         current_user=current_user
@@ -260,53 +192,56 @@ async def moderate_relato_route(
 
 @router.get(
     "/moderation/pending",
-    summary="Lista relatos pendentes de moderação",
+    summary="Lista relatos pendentes de moderao",
     tags=["Relatos"]
 )
 async def list_pending_moderation(
     limit: int = Query(20),
     current_user: User = Depends(get_current_user),
 ):
+    from app.application.relatos.list_pending_moderation_use_case import ListPendingModerationUseCase
+    from app.application.relatos.queries.moderation_query_service import ModerationQueryService
+
     if current_user.role not in ["admin", "colaborador"]:
         raise HTTPException(
             status_code=403,
             detail="Acesso negado"
         )
 
-    service = ModerationQueryService()
-    relatos = service.list_pending(limit=limit)
-
-    return {
-        "data": relatos,
-        "count": len(relatos)
-    }
+    query_service = ModerationQueryService()
+    use_case = ListPendingModerationUseCase(query_service=query_service)
+    return await use_case.execute(limit=limit)
 
 
 @router.get(
     "/{relato_id}/imagens",
-    summary="Imagens associadas ao relato (contrato canônico)",
+    summary="Imagens associadas ao relato (contrato cannico)",
     tags=["Relatos"]
 )
 async def get_imagens_relato(
     relato_id: str,
+    storage: StoragePort = Depends(get_storage_port),
     current_user: Optional[User] = Depends(get_optional_user)
 ):
-    """
-    Endpoint canônico para consumo de imagens pelo front-end.
-    """
+    from app.infra.firestore.image_repository_impl import FirestoreImageRepository
+    from app.application.relatos.get_relato_images_use_case import GetRelatoImagesUseCase
 
-    from app.services.imagens_service import get_imagens_por_relato
+    image_repo = FirestoreImageRepository()
+    use_case = GetRelatoImagesUseCase(
+        image_repo=image_repo,
+        storage=storage
+    )
 
     include_private = False
-
-    imagens = await get_imagens_por_relato(
+    
+    imagens = await use_case.execute(
         relato_id=relato_id,
         include_private=include_private
     )
 
     return imagens
 
-  
+
 @router.post(
     "/{relato_id}/retry",
     status_code=status.HTTP_202_ACCEPTED,
@@ -316,9 +251,7 @@ async def retry_relato_endpoint(
     relato_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    result = retry_failed_effects(relato_id=relato_id)
+    from app.application.relatos.retry_relato_use_case import RetryRelatoUseCase
 
-    return {
-        "data": None,
-        "ux_effects": serialize_ux_effects(result.ux_effects),
-    }
+    use_case = RetryRelatoUseCase()
+    return await use_case.execute(relato_id=relato_id)

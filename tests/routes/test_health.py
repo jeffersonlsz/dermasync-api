@@ -66,10 +66,8 @@ class TestCheckService:
 @pytest.mark.asyncio
 async def test_healthz_returns_200_when_all_healthy(client: AsyncClient, mocker):
     """Test full healthcheck returns 200 when all services healthy."""
-    mock_bucket = MagicMock()
-    mock_bucket.exists.return_value = True
-    mocker.patch("app.routes.health.get_storage_bucket", return_value=mock_bucket)
-    
+    mocker.patch("app.routes.health.storage_adapter.bucket_exists", return_value=True)
+
     response = await client.get("/healthz")
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
@@ -80,11 +78,10 @@ async def test_healthz_returns_200_when_all_healthy(client: AsyncClient, mocker)
 @pytest.mark.asyncio
 async def test_healthz_returns_503_when_degraded(client: AsyncClient, mocker):
     """Test full healthcheck returns 503 when degraded."""
-    mock_bucket = MagicMock()
-    mock_bucket.exists.side_effect = Exception("Down")
-    mocker.patch("app.routes.health.get_storage_bucket", return_value=mock_bucket)
-    
+    mocker.patch("app.routes.health.storage_adapter.bucket_exists", side_effect=Exception("Down"))
+
     response = await client.get("/healthz")
     assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
     data = response.json()
     assert data["status"] == "degraded"
+

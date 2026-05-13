@@ -1,0 +1,204 @@
+Refatore app/auth/service.py para MVP profissional.
+
+Objetivos:
+
+1. Remover db global no import
+2. Tornar acesso Firestore explícito
+3. Eliminar validações duplicadas de is_active
+4. Manter auto-provisionamento atual
+5. Preservar compatibilidade total
+6. Comentar limitações sync I/O de forma honesta
+
+Entregue arquivo final limpo.
+
+
+Refatore app/auth/schemas.py para versão MVP profissional.
+
+Objetivos:
+
+1. Remover role "anon" se obsoleta
+2. Centralizar tipos de role em Enum ou alias único
+3. Corrigir inconsistência entre User.role e UserPublicProfile.role
+4. Trocar listas opcionais por default_factory=list quando fizer sentido
+5. Atualizar descriptions antigas
+6. Manter compatibilidade de API
+
+Entregue arquivo final limpo.
+
+------
+prompt003
+
+```text id="m4x8qp"
+Você é um Staff Backend Engineer especializado em FastAPI, arquitetura enxuta, segurança de APIs e racionalização de superfícies para MVP.
+
+Quero uma AUDITORIA ESTRATÉGICA COMPLETA das rotas do backend DermaSync.
+
+CONTEXTO:
+
+O módulo de autenticação já foi consolidado e deve entrar em freeze por 30 dias.
+
+Fluxo oficial:
+
+1. Usuário autentica no Firebase Auth externo
+2. Recebe Firebase ID Token
+3. Backend usa:
+- POST /auth/session
+- GET /auth/me
+
+Objetivo agora NÃO é mexer no auth core.
+
+Objetivo agora é AUDITAR a superfície de rotas restante, remover redundâncias, reduzir complexidade e deixar o backend pronto para MVP enxuto.
+
+ARQUIVOS ATUAIS EM app/routes:
+
+- auth.py
+- dev_effects.py
+- dev_enrich.py
+- feed.py
+- galeria.py
+- galeria_leitura.py
+- health.py
+- imagens.py
+- me.py
+- relatos.py
+- relatos_progress.py
+- relato_progress_stream.py
+
+ENDPOINTS DETECTADOS:
+
+auth.py
+- POST /session
+- GET /me
+
+dev_effects.py
+- POST ...
+
+dev_enrich.py
+- POST ...
+
+feed.py
+- GET /feed
+
+galeria.py
+- múltiplos GETs
+
+galeria_leitura.py
+- GET ...
+
+health.py
+- GET /livez
+- GET /readyz
+- GET /healthz
+
+imagens.py
+- GET /_debug_client
+- POST /upload
+- múltiplos GETs públicos/privados
+
+me.py
+- GET /profile
+
+relatos.py
+- múltiplos POSTs e GETs
+
+relatos_progress.py
+- GET ...
+
+relato_progress_stream.py
+- GET /{relato_id}/stream
+
+MISSÃO COMPLETA:
+
+# ETAPA 1 — CLASSIFICAR TODAS AS ROTAS
+
+Para cada rota, classifique:
+
+1. Core do produto (necessária para MVP)
+2. Operacional / Infra
+3. Dev interna
+4. Legado / redundante
+5. Suspeita de excesso de complexidade
+
+---
+
+# ETAPA 2 — DETECTAR REDUNDÂNCIAS
+
+Procure especialmente:
+
+- /auth/me vs /me/profile
+- /livez vs /readyz vs /healthz
+- progress duplicado (polling vs stream)
+- rotas debug ainda expostas
+- endpoints que poderiam ser fundidos
+
+---
+
+# ETAPA 3 — MATRIZ MVP ENXUTO
+
+Monte lista:
+
+## Manter para lançamento
+
+## Manter interno (não expor publicamente)
+
+## Remover agora
+
+## Congelar para revisão futura
+
+---
+
+# ETAPA 4 — RISCOS REAIS
+
+Aponte:
+
+1. endpoints que aumentam manutenção sem valor
+2. superfícies de ataque desnecessárias
+3. rotas confusas para frontend
+4. complexidade prematura
+
+---
+
+# ETAPA 5 — SUGESTÕES CONCRETAS
+
+Entregue mudanças objetivas, por exemplo:
+
+- fundir me.py em auth.py
+- remover health duplicado
+- esconder dev routers em production
+- simplificar progress
+- reorganizar imagens.py se inchado
+
+---
+
+# ETAPA 6 — ORDEM SEGURA DE EXECUÇÃO
+
+Liste em ordem:
+
+1. mudanças sem risco imediato
+2. mudanças com risco moderado
+3. mudanças que exigem testes frontend
+
+---
+
+# ETAPA 7 — VEREDITO HONESTO
+
+Responda claramente:
+
+Hoje o backend está:
+
+A) pronto para MVP enxuto  
+B) bom mas inflado  
+C) funcional porém confuso  
+D) precisa cirurgia maior
+
+REGRAS:
+
+- Não elogie sem motivo
+- Priorize pragmatismo
+- Pense como dono do produto
+- Menos rotas = melhor, se não houver perda real
+- Segurança e clareza acima de estética
+- Mostre evidências técnicas
+```
+----
+prompt004

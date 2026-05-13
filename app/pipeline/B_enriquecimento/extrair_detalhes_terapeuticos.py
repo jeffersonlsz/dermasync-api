@@ -1,1 +1,1 @@
-# Intervenções mencionadas medicamentosas e naturais
+# Intervenes mencionadas medicamentosas e naturais

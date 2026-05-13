@@ -1,9 +1,9 @@
 """
 Batch idempotente de geração de thumbnails para imagens no Firestore.
 
-- NÃO cria documentos
-- NÃO remove dados
-- NÃO altera relatos
+- NÃO cria documentos
+- NÃO remove dados
+- NÃO altera relatos
 - Apenas gera thumbnail se storage.thumb_path estiver vazio
 
 Flags:
@@ -13,27 +13,26 @@ Flags:
 
 import argparse
 import os
+import sys
 from datetime import datetime, timezone
 from io import BytesIO
 
-from firebase_admin import credentials, firestore, storage, initialize_app
+# Adiciona o diretório raiz ao path para permitir imports da 'app'
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from app.firestore.client import get_firestore_client
+from app.adapters.firebase_storage_adapter import FirebaseStorageAdapter
 from PIL import Image, ImageOps
 
 # ========= CONFIG =========
-
-FIREBASE_KEY_PATH = "dermasync-key.json"
-BUCKET_NAME = "dermasync-3d14a.firebasestorage.app"
 
 THUMB_SIZE = 256
 THUMB_PREFIX = "thumb_256_"
 
 # ========= INIT =========
 
-cred = credentials.Certificate(FIREBASE_KEY_PATH)
-initialize_app(cred, {"storageBucket": BUCKET_NAME})
-
-db = firestore.client()
-bucket = storage.bucket()
+db = get_firestore_client()
+storage_adapter = FirebaseStorageAdapter()
 
 # ========= HELPERS =========
 
@@ -67,12 +66,11 @@ def generate_thumbnail(image_bytes: bytes) -> bytes:
         return buffer.getvalue()
 
 def download_from_storage(path: str) -> bytes:
-    blob = bucket.blob(path)
-    return blob.download_as_bytes()
+    return storage_adapter._download_bytes_sync(path)
 
 def upload_to_storage(path: str, data: bytes):
-    blob = bucket.blob(path)
-    blob.upload_from_string(data, content_type="image/jpeg")
+    storage_adapter._upload_bytes_sync(path=path, content=data, content_type="image/jpeg")
+
 
 # ========= MAIN =========
 
@@ -90,7 +88,7 @@ def run_batch(limit: int | None, dry_run: bool):
 
     print(f"Encontradas {len(docs)} imagens sem thumbnail.")
     if dry_run:
-        print("⚠️ DRY-RUN ATIVO: nenhuma alteração será feita.")
+        print("â ï¸ DRY-RUN ATIVO: nenhuma alteração será feita.")
 
     processed = 0
     skipped = 0
@@ -113,7 +111,7 @@ def run_batch(limit: int | None, dry_run: bool):
         print(f"[PROCESS] {doc.id}")
 
         if dry_run:
-            print(f"  → geraria thumbnail em {thumb_path}")
+            print(f"  â geraria thumbnail em {thumb_path}")
             processed += 1
             continue
 

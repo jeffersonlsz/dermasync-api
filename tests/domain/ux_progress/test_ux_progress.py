@@ -2,9 +2,9 @@
 from datetime import datetime
 
 from app.domain.ux_progress.progress_aggregator import StepState, aggregate_progress, find_step
-from app.services.effects.result import EffectResult, EffectStatus
+from app.application.effects.result import EffectResult, EffectStatus
 from app.domain.ux_progress.step_definition import default_step_definitions
-from app.services.ux_adapters.galeria_explanation import GaleriaExplanationBuilder
+from app.application.ux.adapters.galeria_explanation import GaleriaExplanationBuilder
 
 
 def test_progressive_exposure_summary():

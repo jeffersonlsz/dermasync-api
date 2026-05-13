@@ -1,148 +1,148 @@
-import pytest
-import uuid
-from datetime import datetime
-from unittest.mock import MagicMock, patch
-
-from app.services.effects.persist_firestore import persist_effect_result_firestore
-from app.services.effects.result import EffectResult
-
-def test_persist_effect_result_firestore_accepts_uuid_fields():
-    """
-    Garantia arquitetural:
-    - UUIDs NÃO podem vazar como objetos para o Firestore
-    - Persistência NÃO pode lançar exceção
-    """
-
-    relato_id_str = str(uuid.uuid4())
-    effect_ref_str = str(uuid.uuid4())
-    image_id_str = str(uuid.uuid4())
-    fake_result = EffectResult.success(
-        relato_id=relato_id_str,
-        effect_type="PERSIST_RELATO",
-        metadata={
-            "image_id": image_id_str,
-            "attempt": 1,
-            "effect_ref": effect_ref_str,
-        },
-    )
-
-    fake_collection = MagicMock()
-    fake_doc = MagicMock()
-    fake_collection.document.return_value = fake_doc
-
-    fake_db = MagicMock()
-    fake_db.collection.return_value = fake_collection
-
-    with patch(
-        "app.services.effects.persist_firestore.get_firestore_client",
-        return_value=fake_db,
-    ):
-        # 🚨 ESTE CALL DEVE FALHAR HOJE
-        # 🚨 E PASSAR APÓS A CORREÇÃO
-        persist_effect_result_firestore(fake_result)
-
-    # Se chegou até aqui, NÃO lançou exceção
-    assert True
-
-
-def test_persist_effect_result_firestore_rejects_raw_uuid_values():
-    """
-    Contrato:
-    - Nenhum uuid.UUID pode chegar cru ao Firestore
-    - Persistência deve normalizar antes de set()
-    """
-
-    relato_id_str = str(uuid.uuid4())
-    effect_ref_str = str(uuid.uuid4())
-    image_id_str = str(uuid.uuid4())
-    fake_result = EffectResult.success(
-        relato_id=relato_id_str,
-        effect_type="PERSIST_RELATO",
-        metadata={
-            "image_id": image_id_str,
-            "effect_ref": effect_ref_str,
-        },
-    )
-
-    def firestore_set_strict(data):
-        def walk(value):
-            if isinstance(value, uuid.UUID):
-                raise TypeError("Firestore cannot accept uuid.UUID")
-            if isinstance(value, dict):
-                for v in value.values():
-                    walk(v)
-            if isinstance(value, list):
-                for v in value:
-                    walk(v)
-
-        walk(data)
-
-    fake_doc = MagicMock()
-    fake_doc.set.side_effect = firestore_set_strict
-
-    fake_collection = MagicMock()
-    fake_collection.document.return_value = fake_doc
-
-    fake_db = MagicMock()
-    fake_db.collection.return_value = fake_collection
-
-    with patch(
-        "app.services.effects.persist_firestore.get_firestore_client",
-        return_value=fake_db,
-    ):
-        persist_effect_result_firestore(fake_result)
-
-
-def test_persist_effect_result_firestore_normalizes_uuid_before_persisting():
-    """
-    Contrato forte:
-    - UUIDs DEVEM ser convertidos antes de chegar ao Firestore
-    """
-
-    fake_result = EffectResult.success(
-        relato_id="0f8e6e03-12aa-402a-8346-e1684de998b3",
-        effect_type="PERSIST_RELATO",
-        metadata={
-            "image_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
-            "effect_ref": "11111111-2222-3333-4444-555555555555",
-        },
-    )
-
-    captured_data = {}
-
-    def firestore_set_strict(data):
-        # se chegar UUID cru, explode
-        def walk(value):
-            if isinstance(value, uuid.UUID):
-                raise TypeError("UUID leaked to Firestore")
-            if isinstance(value, dict):
-                for v in value.values():
-                    walk(v)
-            if isinstance(value, list):
-                for v in value:
-                    walk(v)
-
-        walk(data)
-        captured_data.update(data)
-
-    fake_doc = MagicMock()
-    fake_doc.set.side_effect = firestore_set_strict
-
-    fake_collection = MagicMock()
-    fake_collection.document.return_value = fake_doc
-
-    fake_db = MagicMock()
-    fake_db.collection.return_value = fake_collection
-
-    with patch(
-        "app.services.effects.persist_firestore.get_firestore_client",
-        return_value=fake_db,
-    ):
-        persist_effect_result_firestore(fake_result)
-
-    # 🔥 Agora validamos semanticamente
-    assert isinstance(captured_data["relato_id"], str)
-    assert isinstance(captured_data["metadata"]["image_id"], str)
-
-    if "effect_ref" in captured_data["metadata"]:
-        assert isinstance(captured_data["metadata"]["effect_ref"], str)
+import pytest
+import uuid
+from datetime import datetime
+from unittest.mock import MagicMock, patch
+
+from app.application.effects.persist_firestore import persist_effect_result_firestore
+from app.application.effects.result import EffectResult
+
+def test_persist_effect_result_firestore_accepts_uuid_fields():
+    """
+    Garantia arquitetural:
+    - UUIDs NÃO podem vazar como objetos para o Firestore
+    - Persistência NÃO pode lançar exceção
+    """
+
+    relato_id_str = str(uuid.uuid4())
+    effect_ref_str = str(uuid.uuid4())
+    image_id_str = str(uuid.uuid4())
+    fake_result = EffectResult.success(
+        relato_id=relato_id_str,
+        effect_type="PERSIST_RELATO",
+        metadata={
+            "image_id": image_id_str,
+            "attempt": 1,
+            "effect_ref": effect_ref_str,
+        },
+    )
+
+    fake_collection = MagicMock()
+    fake_doc = MagicMock()
+    fake_collection.document.return_value = fake_doc
+
+    fake_db = MagicMock()
+    fake_db.collection.return_value = fake_collection
+
+    with patch(
+        "app.application.effects.persist_firestore.get_firestore_client",
+        return_value=fake_db,
+    ):
+        # ð¨ ESTE CALL DEVE FALHAR HOJE
+        # ð¨ E PASSAR APÃS A CORREÃÃO
+        persist_effect_result_firestore(fake_result)
+
+    # Se chegou até aqui, NÃO lançou exceção
+    assert True
+
+
+def test_persist_effect_result_firestore_rejects_raw_uuid_values():
+    """
+    Contrato:
+    - Nenhum uuid.UUID pode chegar cru ao Firestore
+    - Persistência deve normalizar antes de set()
+    """
+
+    relato_id_str = str(uuid.uuid4())
+    effect_ref_str = str(uuid.uuid4())
+    image_id_str = str(uuid.uuid4())
+    fake_result = EffectResult.success(
+        relato_id=relato_id_str,
+        effect_type="PERSIST_RELATO",
+        metadata={
+            "image_id": image_id_str,
+            "effect_ref": effect_ref_str,
+        },
+    )
+
+    def firestore_set_strict(data):
+        def walk(value):
+            if isinstance(value, uuid.UUID):
+                raise TypeError("Firestore cannot accept uuid.UUID")
+            if isinstance(value, dict):
+                for v in value.values():
+                    walk(v)
+            if isinstance(value, list):
+                for v in value:
+                    walk(v)
+
+        walk(data)
+
+    fake_doc = MagicMock()
+    fake_doc.set.side_effect = firestore_set_strict
+
+    fake_collection = MagicMock()
+    fake_collection.document.return_value = fake_doc
+
+    fake_db = MagicMock()
+    fake_db.collection.return_value = fake_collection
+
+    with patch(
+        "app.application.effects.persist_firestore.get_firestore_client",
+        return_value=fake_db,
+    ):
+        persist_effect_result_firestore(fake_result)
+
+
+def test_persist_effect_result_firestore_normalizes_uuid_before_persisting():
+    """
+    Contrato forte:
+    - UUIDs DEVEM ser convertidos antes de chegar ao Firestore
+    """
+
+    fake_result = EffectResult.success(
+        relato_id="0f8e6e03-12aa-402a-8346-e1684de998b3",
+        effect_type="PERSIST_RELATO",
+        metadata={
+            "image_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            "effect_ref": "11111111-2222-3333-4444-555555555555",
+        },
+    )
+
+    captured_data = {}
+
+    def firestore_set_strict(data):
+        # se chegar UUID cru, explode
+        def walk(value):
+            if isinstance(value, uuid.UUID):
+                raise TypeError("UUID leaked to Firestore")
+            if isinstance(value, dict):
+                for v in value.values():
+                    walk(v)
+            if isinstance(value, list):
+                for v in value:
+                    walk(v)
+
+        walk(data)
+        captured_data.update(data)
+
+    fake_doc = MagicMock()
+    fake_doc.set.side_effect = firestore_set_strict
+
+    fake_collection = MagicMock()
+    fake_collection.document.return_value = fake_doc
+
+    fake_db = MagicMock()
+    fake_db.collection.return_value = fake_collection
+
+    with patch(
+        "app.application.effects.persist_firestore.get_firestore_client",
+        return_value=fake_db,
+    ):
+        persist_effect_result_firestore(fake_result)
+
+    # ð¥ Agora validamos semanticamente
+    assert isinstance(captured_data["relato_id"], str)
+    assert isinstance(captured_data["metadata"]["image_id"], str)
+
+    if "effect_ref" in captured_data["metadata"]:
+        assert isinstance(captured_data["metadata"]["effect_ref"], str)

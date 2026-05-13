@@ -1,5 +1,5 @@
 # app/routes/galeria_leitura.py
-# Endpoint de leitura mediada de relatos na galeria pública.
+# Endpoint de leitura mediada de relatos na galeria pblica.
 
 import logging
 from typing import Optional, Dict, Any
@@ -10,9 +10,9 @@ from app.auth.dependencies import get_optional_user
 from app.auth.schemas import User
 from app.firestore.client import get_firestore_client
 
-from app.services.galeria_service import resolve_relato_base_for_user
-from app.services.relato_normalizer import normalize_relato_document
-from app.services.ux_adapters.galeria_explanation import (
+from app.application.queries.galeria_query import resolve_relato_base_for_user
+from app.domain.relato.normalizer import normalize_relato_document
+from app.application.ux.adapters.galeria_explanation import (
     GaleriaExplanationBuilder,
 )
 
@@ -37,19 +37,19 @@ from app.domain.galeria.similarity.scorers.narrative_tone import (
     narrative_tone_similarity,
 )
 
-from app.services.image_exposure_projector import ImageExposureProjector
+
 from app.services.imagens_service import _generate_signed_url_sync
 
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-image_projector = ImageExposureProjector()
+
 
 @router.get(
     "/galeria-publica/relatos/{relato_id}/leitura",
     summary="Leitura mediada de um relato",
-    tags=["Galeria Pública"],
+    tags=["Galeria Pblica"],
 )
 async def ler_relato(
     relato_id: str,
@@ -77,7 +77,7 @@ async def ler_relato(
         if not relato_base:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Para ler relatos semelhantes, é necessário que você tenha enviado um relato.",
+                detail="Para ler relatos semelhantes,  necessrio que voc tenha enviado um relato.",
             )
 
         user_profile = UserCognitiveProfile(
@@ -90,21 +90,16 @@ async def ler_relato(
     # ============================================================
     # 2️⃣ Carregar relato alvo
     # ============================================================
-    relato_ref = (
-        db.collection_group("relatos")
-        .where("id", "==", relato_id)
-        .limit(1)
-    )
+    doc_ref = db.collection("relatos").document(relato_id)
+    doc_snap = doc_ref.get()
 
-    docs = list(relato_ref.stream())
-
-    if not docs:
+    if not doc_snap.exists:
         raise HTTPException(
             status_code=404,
-            detail="Relato não encontrado",
+            detail="Relato no encontrado",
         )
 
-    relato = docs[0].to_dict()
+    relato = doc_snap.to_dict()
     relato = normalize_relato_document(relato)
 
     # ============================================================
@@ -188,7 +183,7 @@ async def ler_relato(
         }
 
      # ============================================================
-    # 5️⃣ Resolver ExposureStage (controla o que será exibido)
+    # 5️⃣ Resolver ExposureStage (controla o que ser exibido)
     # ============================================================
 
     if similarity_score and eligibility.similarity_required:
@@ -203,7 +198,7 @@ async def ler_relato(
         can_request_more = False
 
     # ============================================================
-    # 🔓 Intent: expand (liberação explícita do usuário)
+    # 🔓 Intent: expand (liberao explcita do usurio)
     # ============================================================
 
     if intent == "expand" and exposure_stage == "partial" and can_request_more:
@@ -213,13 +208,13 @@ async def ler_relato(
         expand_effect = {
             "type": "content_expanded",
             "severity": "info",
-            "message": "Conteúdo completo liberado para visualização."
+            "message": "Contedo completo liberado para visualizao."
         }
     else:
         expand_effect = None
 
     # ============================================================
-    # 6️⃣ Projetar conteúdo conforme stage
+    # 6️⃣ Projetar contedo conforme stage
     # ============================================================
 
     excerpt = relato.get("public_excerpt", {}).get("text") or ""
@@ -242,20 +237,20 @@ async def ler_relato(
         full_text = full_text_raw
         visible_length = len(full_text_raw)
 
-    # 🔹 Imagens (já estruturadas como dict com type + path)
-    images_refs = relato.get("images_refs") or []
-    total_images = len(images_refs)
+    # 🔹 Imagens (j estruturadas como dict com type + path)
+    image_refs = relato.get("image_refs") or []
+    total_images = len(image_refs)
 
     if exposure_stage == "summary":
         visible_images = []
 
     elif exposure_stage == "partial":
-        visible_images = images_refs[:1]
+        visible_images = image_refs[:1]
 
     else:
-        visible_images = images_refs
+        visible_images = image_refs
 
-    # gerar signed URLs apenas para visíveis
+    # gerar signed URLs apenas para visveis
     from app.services.imagens_service import _generate_signed_url_sync
 
     images = []

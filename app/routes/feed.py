@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from app.auth.dependencies import get_optional_user as get_current_user_optional
 from app.auth.schemas import User
 from app.repositories.relato_repository import RelatoRepository
-from app.services.feed_service import FeedService
+from app.application.queries.feed_query import FeedService
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

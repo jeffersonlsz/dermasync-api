@@ -2,18 +2,18 @@
 import logging
 from typing import Iterable
 
-from app.services.effects.result import EffectResult, EffectStatus
-from app.services.effects.retry_engine import RetryEngine
-from app.services.effects.persist_firestore import persist_effect_result_firestore
-from app.services.relato_effect_executor import RelatoEffectExecutor
+from app.application.effects.result import EffectResult, EffectStatus
+from app.application.effects.retry_engine import RetryEngine
+from app.application.effects.persist_firestore import persist_effect_result_firestore
+from app.application.effects.relato_executor import RelatoEffectExecutor
 
 logger = logging.getLogger(__name__)
 
 
 class RetryScheduler:
     """
-    Orquestrador técnico de retries.
-    NÃO conhece domínio.
+    Orquestrador tcnico de retries.
+    NÃO conhece domnio.
     NÃO cria efeitos.
     """
 
@@ -42,7 +42,7 @@ class RetryScheduler:
 
             enriched = self._retry_engine.decide(result)
 
-            # Persistimos a decisão, SEMPRE
+            # Persistimos a deciso, SEMPRE
             persist_effect_result_firestore(enriched)
 
             if enriched.status == EffectStatus.RETRYING:

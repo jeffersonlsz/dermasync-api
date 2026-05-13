@@ -25,7 +25,7 @@ from fastapi.responses import JSONResponse
 
 from app.archlog_sync.logger import registrar_log
 from app.core.logger import setup_logger
-from app.firestore.client import get_storage_bucket
+from app.adapters.firebase_storage_adapter import FirebaseStorageAdapter
 
 # =============================================================================
 # Global state
@@ -34,6 +34,8 @@ from app.firestore.client import get_storage_bucket
 APP_START_TIME = time.time()
 logger = setup_logger("healthcheck")
 router = APIRouter()
+storage_adapter = FirebaseStorageAdapter()
+
 
 
 # =============================================================================
@@ -78,8 +80,7 @@ async def check_service(
 
 
 async def check_firebase_storage() -> bool:
-    bucket = get_storage_bucket()
-    return bucket.exists()
+    return await storage_adapter.bucket_exists()
 
 
 # =============================================================================

@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import Mock
 
-from app.services.relato_effect_executor import RelatoEffectExecutor
-from app.services.effects.result import EffectResult
+from app.application.effects.relato_executor import RelatoEffectExecutor
+from app.application.effects.result import EffectResult
 from app.core.errors import RetryErrorMessages
 from app.domain.relato.effects import (
     PersistRelatoEffect,

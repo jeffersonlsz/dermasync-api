@@ -10,9 +10,14 @@ import unicodedata
 from datetime import datetime
 from pathlib import Path
 
-import firebase_admin
-from firebase_admin import credentials, firestore
-from google.cloud import firestore
+# Adiciona o diretório raiz do projeto ao sys.path
+# para que os módulos da 'app' possam ser encontrados.
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from app.firestore.client import get_firestore_client
+
 
 # ===== FUNÇÕES DE LIMPEZA =====
 
@@ -26,8 +31,8 @@ def remover_emojis(texto: str) -> str:
 def limpar_texto(texto: str) -> str:
     texto = remover_emojis(texto)
     texto = re.sub(r"[^\w\s.,!?-]", "", texto)  # Remove caracteres especiais
-    texto = re.sub(r"\s+", " ", texto)  # Remove múltiplos espaços
-    texto = re.sub(r"\.(?=\S)", ". ", texto)  # Garante espaço após ponto
+    texto = re.sub(r"\s+", " ", texto)  # Remove mltiplos espaos
+    texto = re.sub(r"\.(?=\S)", ". ", texto)  # Garante espao aps ponto
     return texto.strip()
 
 
@@ -35,9 +40,7 @@ def limpar_texto(texto: str) -> str:
 
 
 def extrair_firestore_documentos(colecao: str):
-    cred = credentials.Certificate("./dermasync-key.json")
-    firebase_admin.initialize_app(cred)
-    db = firestore.Client()
+    db = get_firestore_client()
 
     documentos = db.collection(colecao).stream()
     saida = []
@@ -50,7 +53,7 @@ def extrair_firestore_documentos(colecao: str):
             {
                 "origem": "firestore",
                 "id_relato": doc.id,
-                "nome_arquivo": f"{doc.id}.txt",  # Nome fictício para compatibilidade
+                "nome_arquivo": f"{doc.id}.txt",  # Nome fictcio para compatibilidade
                 "data_modificacao": (
                     doc.update_time.isoformat() if doc.update_time else None
                 ),
@@ -84,7 +87,7 @@ def processar_diretorios(diretorios, source="local-youtube"):
             saida.append(
                 {
                     "origem": "local-youtube",
-                    "id_relato": arquivo.stem,  # Nome do arquivo sem extensão
+                    "id_relato": arquivo.stem,  # Nome do arquivo sem extenso
                     "nome_arquivo": arquivo.name,
                     "data_modificacao": data_mod,
                     "conteudo": texto_limpo,
@@ -128,9 +131,9 @@ if __name__ == "__main__":
         },
     ]
 
-    print("📂 Lendo arquivos dos diretórios:", diretorios)
+    print("📂 Lendo arquivos dos diretrios:", diretorios)
     # registros = processar_diretorios(diretorios, 'local-youtube')
-    # print(f"📄 Encontrados {len(registros)} registros nos diretórios.")
+    # print(f"📄 Encontrados {len(registros)} registros nos diretrios.")
     # for i, registro in enumerate(registros):
     #    print(f"{i+1:03d} - {registro['id_relato']} - {registro['link']}...")
 

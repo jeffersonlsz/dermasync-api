@@ -1,33 +1,25 @@
 import argparse
 import os
 import sys
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import firestore
+
+# Adiciona o diretório raiz do projeto ao sys.path
+# para que os módulos da 'app' possam ser encontrados.
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from app.firestore.client import get_firestore_client
 
 def initialize_firestore():
     """
-    Initializes the Firestore client.
-    
-    This function assumes you are using Application Default Credentials (ADC)
-    by setting the GOOGLE_APPLICATION_CREDENTIALS environment variable.
-    
-    If you are using a local service account file, uncomment the lines below.
+    Initializes the Firestore client using the centralized app configuration.
     """
     try:
-        # Check if the app is already initialized
-        if not firebase_admin._apps:
-            # Option 1: Use Application Default Credentials (Recommended for production/cloud)
-            firebase_admin.initialize_app()
-            
-            # Option 2: Use a service account JSON file (Common for local development)
-            # cred = credentials.Certificate('path/to/serviceAccountKey.json')
-            # firebase_admin.initialize_app(cred)
-            
-        return firestore.client()
+        return get_firestore_client()
     except Exception as e:
         print(f"Error initializing Firestore: {e}")
         sys.exit(1)
+
 
 def read_relato(doc_id):
     """

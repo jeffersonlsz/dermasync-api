@@ -1,6 +1,6 @@
 # app/routes/imagens.py
 """
-Módulo de rotas para gerenciamento de imagens.
+Mdulo de rotas para gerenciamento de imagens.
 Corrigido para remover prefixos duplicados, corrigir conflitos de rota
 e padronizar endpoints para signed URLs.
 """
@@ -22,23 +22,25 @@ from app.schema.imagem import (
     ImagemSignedUrlResponse,
 )
 
-from app.services.imagens_service import (
-    get_imagem_by_id,
-    get_public_imagem_by_id,
-    listar_imagens_publicas,
-    listar_todas_imagens_admin,
-    salvar_imagem,
-    get_imagem_signed_url,
-)
-
-from app.firestore.client import get_firestore_client
+from app.infra.storage.adapter import StorageAdapter
+from app.infra.firestore.image_repository import ImageRepository
+from app.application.uploads.upload_image_use_case import UploadImageUseCase
+from app.application.queries.image_queries import ImageQueries
 
 router = APIRouter(prefix="/imagens", tags=["Imagens"])
 logger = logging.getLogger(__name__)
 
+# Dependências instanciadas (Injeção de dependência via FastAPI seria ideal, 
+# mas mantemos aqui para compatibilidade com o padrão de rotas atual)
+_storage_adapter = StorageAdapter()
+_image_repo = ImageRepository()
+_upload_use_case = UploadImageUseCase(_storage_adapter, _image_repo)
+_image_queries = ImageQueries(_image_repo, _storage_adapter)
+
+
 
 # ----------------------
-# Helpers de serialização
+# Helpers de serializao
 # ----------------------
 def _to_iso(dt: Optional[datetime]) -> Optional[str]:
     if dt is None:
@@ -60,7 +62,7 @@ def _to_iso(dt: Optional[datetime]) -> Optional[str]:
 def _serialize_image_meta_for_response(meta: Dict[str, Any]) -> Dict[str, Any]:
     """
     Garante que campos datetime sejam strings ISO e que tipos simples estejam coerentes.
-    Não remove campos extras; é uma camada leve antes de enviar ao client.
+    No remove campos extras;  uma camada leve antes de enviar ao client.
     """
     m = dict(meta)  # shallow copy
     for date_field in ("created_at", "createdAt", "criado_em", "updated_at", "updatedAt", "updated_em"):
@@ -112,8 +114,13 @@ async def upload_imagem(
     logger.info(f"Upload de imagem solicitado por {current_user.id}: {file.filename}")
 
     try:
-        imagem_metadata = await salvar_imagem(file=file, owner_user_id=current_user.id)
-        # garantir campos serializáveis
+        content = await file.read()
+        imagem_metadata = await _upload_use_case.execute(
+            content=content, 
+            owner_user_id=current_user.id,
+            original_filename=file.filename
+        )
+        # garantir campos serializveis
         imagem_metadata = _serialize_image_meta_for_response(imagem_metadata)
         return {"image_id": imagem_metadata["id"]}
     except HTTPException:
@@ -135,8 +142,8 @@ async def upload_imagem(
 async def get_imagens_admin(current_user: User = Depends(get_current_user)):
     logger.info(f"Admin/colaborador listando todas as imagens. User={current_user.id}")
 
-    imagens = await listar_todas_imagens_admin(requesting_user=current_user)
-    # serializar datas para evitar erros de validação
+    imagens = await _image_repo.list_all_admin()
+    # serializar datas para evitar erros de validao
     imagens_serial = [_serialize_image_meta_for_response(i) for i in imagens]
     return {"quantidade": len(imagens_serial), "dados": imagens_serial}
 
@@ -147,115 +154,49 @@ async def get_imagens_admin(current_user: User = Depends(get_current_user)):
 @router.get("/listar-publicas", response_model=ImageListResponse)
 async def get_imagens_publicas(
     include_signed_url: bool = Query(False, description="Incluir signed_url(s)"),
-    thumb: bool = Query(False, description="Incluir/gerar thumbnail signed_url quando aplicável"),
+    thumb: bool = Query(False, description="Incluir/gerar thumbnail signed_url quando aplicvel"),
 ):
     """
-    Lista imagens públicas. Se include_signed_url=True o serviço tentará
-    anexar signed URLs. Se thumb=True, pede ao serviço thumbnails assinadas
-    quando disponíveis (melhor para exibição em grid).
+    Lista imagens pblicas. Se include_signed_url=True o servio tentar
+    anexar signed URLs. 
     """
-    logger.info(f"Listando imagens públicas. include_signed_url={include_signed_url} thumb={thumb}")
+    logger.info(f"Listando imagens pblicas. include_signed_url={include_signed_url} thumb={thumb}")
     try:
-        # Passa thumb para o service para que ele saiba se deve gerar/retornar thumbs
-        imagens = await listar_imagens_publicas(include_signed_url=include_signed_url, thumb=thumb)
-        imagens_serial = []
-
-        for raw_meta in imagens:
-            meta = _serialize_image_meta_for_response(raw_meta)
-
-            # Normalização inteligente quando signed URLs foram solicitadas
-            if include_signed_url:
-                # Possíveis locais onde o serviço pode ter colocado signed urls:
-                # - meta["signed_urls"] -> list[str]
-                # - meta["signed_url"] -> str
-                # - meta["signed"] -> dict or str
-                # - meta["thumb_url"] / meta["image_url"] já presentes
-                signed_source = (
-                    meta.get("signed_urls")
-                    or meta.get("signed_url")
-                    or meta.get("signed")
-                    or meta.get("signed_urls_map")
-                    or {}
-                )
-
-                # inicializa campos canônicos
-                meta.setdefault("thumb_url", None)
-                meta.setdefault("image_url", None)
-
-                # 1) se o serviço já devolveu thumb_url/image_url explícitos, usa-os
-                if meta.get("thumb_url"):
-                    # mantem thumb_url
-                    pass
-                if meta.get("image_url"):
-                    # mantem image_url
-                    pass
-
-                # 2) se signed_source for dict, mapeia chaves conhecidas
-                if isinstance(signed_source, dict):
-                    # ex.: {"thumb": "...", "full": "..."} ou {"thumb_url": "...", "signed_url": "..."}
-                    meta["thumb_url"] = meta["thumb_url"] or signed_source.get("thumb") or signed_source.get("thumb_url") or signed_source.get("signed_thumb")
-                    meta["image_url"] = meta["image_url"] or signed_source.get("full") or signed_source.get("image") or signed_source.get("signed_url") or signed_source.get("url")
-                    # se o serviço devolveu 'signed_urls' como lista dentro do dict
-                    if not meta["image_url"] and isinstance(signed_source.get("signed_urls"), (list, tuple)):
-                        meta["image_url"] = signed_source.get("signed_urls")[0] if signed_source.get("signed_urls") else None
-
-                # 3) se signed_source for list -> first element é a full image
-                elif isinstance(signed_source, (list, tuple)):
-                    if signed_source:
-                        meta["image_url"] = meta["image_url"] or signed_source[0]
-                # 4) se signed_source for string -> treat as full image url
-                elif isinstance(signed_source, str):
-                    meta["image_url"] = meta["image_url"] or signed_source
-
-                # 5) heurística final: se thumb=True mas não veio thumb_url, tente inferir campo 'thumbnail'/'thumb'
-                if thumb and not meta.get("thumb_url"):
-                    meta["thumb_url"] = meta.get("thumbnail") or meta.get("thumb") or None
-
-            # garantia de tipos coerentes já aplicada em _serialize_image_meta_for_response
-            imagens_serial.append(meta)
-
+        imagens = await _image_queries.list_public_images(include_signed_url=include_signed_url)
+        imagens_serial = [_serialize_image_meta_for_response(i) for i in imagens]
         return {"quantidade": len(imagens_serial), "dados": imagens_serial}
-    except HTTPException:
-        raise
-    except TypeError as te:
-        # caso listar_imagens_publicas não aceite parâmetro 'thumb' (retrocompat)
-        logger.warning("listar_imagens_publicas raised TypeError (maybe 'thumb' param unsupported). Retrying without thumb: %s", te)
-        try:
-            imagens = await listar_imagens_publicas(include_signed_url=include_signed_url)
-            imagens_serial = [_serialize_image_meta_for_response(i) for i in imagens]
-            return {"quantidade": len(imagens_serial), "dados": imagens_serial}
-        except Exception:
-            logger.exception("Erro ao listar imagens públicas (fallback também falhou).")
-            raise HTTPException(status_code=500, detail="Erro ao listar imagens públicas.")
     except Exception as e:
-        logger.exception("Erro ao listar imagens públicas.")
-        raise HTTPException(status_code=500, detail="Erro ao listar imagens públicas.")
+        logger.exception("Erro ao listar imagens pblicas.")
+        raise HTTPException(status_code=500, detail="Erro ao listar imagens pblicas.")
 
 
 
 # ============================================================
-# 🌎 IMAGEM PÚBLICA POR ID
+# 🌍 IMAGEM PÚBLICA POR ID
 # ============================================================
 @router.get("/public/{image_id}", response_model=ImagemMetadata)
 async def get_imagem_publica(
     image_id: str,
     include_signed_url: bool = Query(False, description="Incluir signed_url(s) nas respostas"),
 ):
-    logger.info(f"Consultando imagem pública {image_id}")
+    logger.info(f"Consultando imagem pblica {image_id}")
 
     try:
-        imagem_data = await get_public_imagem_by_id(
-            image_id=image_id,
-            include_signed_url=include_signed_url,
-        )
+        imagem_data = await _image_repo.get_by_id(image_id)
+        if not imagem_data:
+            raise HTTPException(status_code=404, detail="Imagem nao encontrada.")
+        
         imagem_data = _serialize_image_meta_for_response(imagem_data)
-        # se o serviço retornou signed structure em 'signed_url', normalizamos para a resposta esperada
+        
+        if include_signed_url and imagem_data.get("storage_path"):
+            imagem_data["signed_url"] = _storage_adapter.get_signed_url(imagem_data["storage_path"])
+            
         return imagem_data
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception(f"Erro ao obter imagem pública {image_id}: {e}")
-        raise HTTPException(status_code=500, detail="Erro ao obter imagem pública.")
+        logger.exception(f"Erro ao obter imagem pblica {image_id}: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao obter imagem pblica.")
 
 
 # ============================================================
@@ -273,34 +214,30 @@ async def get_imagem(
       - Dono da imagem pode ver.
       - Admin e colaborador podem ver.
     """
-    logger.info(f"Usuário {current_user.id} consultando imagem {image_id}")
-    logger.debug(f"include_signed_url={include_signed_url}")
-    logger.debug(f"current_user roles={current_user.role}")
-    logger.debug(f"current_user id={current_user.id}")
-    logger.debug(f"current_user email={current_user.email}")
+    logger.info(f"Usurio {current_user.id} consultando imagem {image_id}")
    
     try:
-        imagem_metadata = await get_imagem_by_id(
+        imagem_metadata = await _image_queries.get_image_for_user(
             image_id=image_id,
-            requesting_user=current_user,
+            user_id=current_user.id,
+            user_role=current_user.role
         )
+        if not imagem_metadata:
+             raise HTTPException(404, "Imagem nao encontrada.")
+
         imagem_metadata = _serialize_image_meta_for_response(imagem_metadata)
 
         if include_signed_url:
-            signed = await get_imagem_signed_url(
+            signed_url = await _image_queries.get_signed_url(
                 image_id=image_id,
-                requesting_user=current_user,
+                user_id=current_user.id,
+                user_role=current_user.role
             )
-            # signed pode ser str ou dict conforme service; normalize para chave 'signed_url'/'signed_urls'
-            if isinstance(signed, dict):
-                imagem_metadata["signed_urls"] = signed.get("signed_urls") or signed.get("signed_url") or None
-                imagem_metadata["signed_url"] = (
-                    imagem_metadata["signed_urls"][0] if imagem_metadata["signed_urls"] else None
-                )
-            else:
-                imagem_metadata["signed_url"] = signed
+            imagem_metadata["signed_url"] = signed_url
 
         return imagem_metadata
+    except PermissionError as pe:
+        raise HTTPException(status_code=403, detail=str(pe))
     except HTTPException:
         raise
     except Exception as e:

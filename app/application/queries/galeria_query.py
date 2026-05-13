@@ -14,7 +14,8 @@ from app.application.ux.adapters.galeria_explanation import GaleriaExplanationBu
 
 
 from google.cloud.firestore import FieldFilter
-
+from app.application.ux.adapters.galeria_explanation import GaleriaExplanationBuilder
+from app.domain.galeria.eligibility_service import RelatoEligibilityService
 
 
 # ============================================================
@@ -76,9 +77,7 @@ async def listar_galeria_publica_v3(
         RelatoVisibilityPolicy,
         RelatoStatus,
     )
-    from app.services.ux_adapters.galeria_explanation import (
-        GaleriaExplanationBuilder,
-    )
+     
 
     eligibility_service = RelatoEligibilityService()
     explanation_builder = GaleriaExplanationBuilder()

@@ -1,128 +1,129 @@
-# app/repositories/effect_result_repository.py
-from typing import List
-from datetime import datetime, timedelta
-
-from google.cloud import firestore
-
-from app.application.effects.result import EffectResult, EffectStatus
-"""
-⚠️ EffectResultRepository
-
-Este repositrio persiste fatos de execuo (LEGADO).
-Ele NÃO representa UX Effects cannicos.
-
-UX Effects so derivados via adapters
-e projees semnticas.
-"""
-
-
-from app.application.effects.persist_firestore import persist_effect_result_firestore
-
-
-class EffectResultRepository:
-    COLLECTION = "effect_results"
-    """
-    Repository de leitura de EffectResult (Firestore).
-
-    Responsabilidades:
-    - Buscar documentos por relato_id
-    - Converter Firestore -> EffectResult
-    - NÃO conter lgica de domnio
-    """
-
-    def __init__(self, firestore_client: firestore.Client | None = None):
-        self._db = firestore_client or firestore.Client()
-
-    def fetch_by_relato_id(self, relato_id: str) -> List[EffectResult]:
-        """
-        Busca todos os EffectResults associados a um relato.
-        """
-        query = (
-            self._db.collection("effect_results")
-            .where("relato_id", "==", relato_id)
-            .order_by("created_at")
-        )
-
-        results: List[EffectResult] = []
-
-        for doc in query.stream():
-            data = doc.to_dict()
-
-            _metadata = data.get("metadata", {}) or {}
-
-            if "executed_at" in data:
-                _metadata["old_executed_at"] = self._parse_datetime(data["executed_at"])
-
-            if "effect_ref" in data:
-                _metadata["effect_ref"] = data["effect_ref"]
-
-            if "failure_type" in data:
-                _metadata["failure_type"] = data["failure_type"]
-
-            if "retry_decision" in data:
-                _metadata["old_retry_decision"] = data["retry_decision"]
-
-            if "retryable" in data:
-                _metadata["old_retryable"] = data["retryable"]
-
-            # status moderno ou legado
-            status = EffectStatus(data["status"]) if "status" in data else (
-                EffectStatus.SUCCESS if bool(data.get("success", False)) else EffectStatus.ERROR
-            )
-
-            results.append(
-                EffectResult(
-                    relato_id=data["relato_id"],
-                    effect_type=data["effect_type"],
-                    status=status,
-                    metadata=_metadata,
-                    error_message=data.get("error_message", data.get("error")),
-                    created_at=data.get("created_at"),
-                )
-            )
-
-        return results
-
-    @staticmethod
-    def _parse_datetime(value) -> datetime:
-        """
-        Converte timestamp do Firestore para datetime Python.
-        """
-        if isinstance(value, datetime):
-            return value
-
-        # Caso venha como string ISO
-        if isinstance(value, str):
-            return datetime.fromisoformat(value)
-
-        # Caso venha como Timestamp do Firestore
-        return value.to_datetime()
-    
-    
-    def register_failure(
-        self,
-        effect_result: EffectResult,
-    ) -> None:
-        """
-        Registra um EffectResult com falha.
-
-        - NÃO lana exceo
-        - NÃO contm lgica de domnio
-        - Apenas persiste o fato ocorrido
-        """
-        persist_effect_result_firestore(effect_result)
-
-    
-    
-    def register_success(
-        self,
-        effect_result: EffectResult,
-    ) -> None:
-        """
-        Registra um EffectResult bem-sucedido.
-
-        Este  o caminho cannico para efeitos concludos com sucesso.
-        """
-        persist_effect_result_firestore(effect_result)
-        
-    
+# app/repositories/effect_result_repository.py
+from typing import List
+from datetime import datetime, timedelta
+
+from google.cloud import firestore
+
+from app.application.effects.result import EffectResult, EffectStatus
+"""
+⚠️ EffectResultRepository
+
+Este repositrio persiste fatos de execuo (LEGADO).
+Ele NÃO representa UX Effects cannicos.
+
+UX Effects so derivados via adapters
+e projees semnticas.
+"""
+
+
+from app.application.effects.persist_firestore import persist_effect_result_firestore
+
+
+class EffectResultRepository:
+    COLLECTION = "effect_results"
+    """
+    Repository de leitura de EffectResult (Firestore).
+
+    Responsabilidades:
+    - Buscar documentos por relato_id
+    - Converter Firestore -> EffectResult
+    - NÃO conter lgica de domnio
+    """
+
+    def __init__(self, firestore_client: firestore.Client | None = None):
+        self._db = firestore_client or firestore.Client()
+
+    def fetch_by_relato_id(self, relato_id: str) -> List[EffectResult]:
+        """
+        Busca todos os EffectResults associados a um relato.
+        """
+        query = (
+            self._db.collection("effect_results")
+            .where(filter=firestore.FieldFilter("relato_id", "==", relato_id))
+            .order_by("created_at")
+        )
+
+
+        results: List[EffectResult] = []
+
+        for doc in query.stream():
+            data = doc.to_dict()
+
+            _metadata = data.get("metadata", {}) or {}
+
+            if "executed_at" in data:
+                _metadata["old_executed_at"] = self._parse_datetime(data["executed_at"])
+
+            if "effect_ref" in data:
+                _metadata["effect_ref"] = data["effect_ref"]
+
+            if "failure_type" in data:
+                _metadata["failure_type"] = data["failure_type"]
+
+            if "retry_decision" in data:
+                _metadata["old_retry_decision"] = data["retry_decision"]
+
+            if "retryable" in data:
+                _metadata["old_retryable"] = data["retryable"]
+
+            # status moderno ou legado
+            status = EffectStatus(data["status"]) if "status" in data else (
+                EffectStatus.SUCCESS if bool(data.get("success", False)) else EffectStatus.ERROR
+            )
+
+            results.append(
+                EffectResult(
+                    relato_id=data["relato_id"],
+                    effect_type=data["effect_type"],
+                    status=status,
+                    metadata=_metadata,
+                    error_message=data.get("error_message", data.get("error")),
+                    created_at=data.get("created_at"),
+                )
+            )
+
+        return results
+
+    @staticmethod
+    def _parse_datetime(value) -> datetime:
+        """
+        Converte timestamp do Firestore para datetime Python.
+        """
+        if isinstance(value, datetime):
+            return value
+
+        # Caso venha como string ISO
+        if isinstance(value, str):
+            return datetime.fromisoformat(value)
+
+        # Caso venha como Timestamp do Firestore
+        return value.to_datetime()
+    
+    
+    def register_failure(
+        self,
+        effect_result: EffectResult,
+    ) -> None:
+        """
+        Registra um EffectResult com falha.
+
+        - NÃO lana exceo
+        - NÃO contm lgica de domnio
+        - Apenas persiste o fato ocorrido
+        """
+        persist_effect_result_firestore(effect_result)
+
+    
+    
+    def register_success(
+        self,
+        effect_result: EffectResult,
+    ) -> None:
+        """
+        Registra um EffectResult bem-sucedido.
+
+        Este  o caminho cannico para efeitos concludos com sucesso.
+        """
+        persist_effect_result_firestore(effect_result)
+        
+    

@@ -111,7 +111,11 @@ class PipelineManager:
 
     def find_orphans(self, task_name: str) -> list[str]:
         now = datetime.utcnow()
-        query = self.collection.where(f"_pipeline.tasks.{task_name}.state", "==", EffectExecutionState.PROCESSING).where(f"_pipeline.tasks.{task_name}.lease_expires_at", "<", now)
+        query = self.collection.where(
+            filter=firestore.FieldFilter(f"_pipeline.tasks.{task_name}.state", "==", EffectExecutionState.PROCESSING)
+        ).where(
+            filter=firestore.FieldFilter(f"_pipeline.tasks.{task_name}.lease_expires_at", "<", now)
+        )
         return [doc.id for doc in query.stream()]
 
     def reset_orphan(self, relato_id: str, task_name: str):

@@ -1,6 +1,7 @@
 import logging
+from app.application.services.processing_dispatcher import enqueue_relato_processing
 from app.ports.processing_port import ProcessingPort
-from app.infra.adapters.thread_processing_adapter import enqueue_relato_processing
+
 
 logger = logging.getLogger(__name__)
 

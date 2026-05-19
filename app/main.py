@@ -32,9 +32,8 @@ from app.application.effects.register_effects import register_all_effect_executo
 # Import de rotas (agora seguro, pois o env j est carregado)
 from app.routes import (
     auth, galeria, galeria_leitura, health, 
-    imagens, relatos, feed, 
+    relatos, feed, 
     relatos_progress,
-    dev_enrich,
     pipeline_internal
 )
 from app.infra.firebase_app import init_firebase
@@ -83,7 +82,6 @@ async def observability_middleware(request: Request, call_next):
 
 # Roteamento
 app.include_router(auth.router)
-app.include_router(imagens.router)
 app.include_router(relatos.router, prefix="/relatos")
 app.include_router(galeria.router)
 app.include_router(relatos_progress.router)
@@ -91,9 +89,6 @@ app.include_router(feed.router)
 app.include_router(galeria_leitura.router)
 app.include_router(health.router)
 app.include_router(pipeline_internal.router)
-
-if ENVIRONMENT in ["development", "testing"]:
-    app.include_router(dev_enrich.router)
 
 @app.get("/")
 async def root():

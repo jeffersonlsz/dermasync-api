@@ -25,19 +25,21 @@ class EnrichMetadataJob:
 
     MAX_ATTEMPTS = 3
     RETRY_DELAY_SECONDS = 2
-
+    from typing import Callable
     def __init__(
         self,
         relato_repo: RelatoRepository,
         effect_repo: EffectResultRepository,
         enriched_repo: EnrichedMetadataRepository,
         pipeline_manager: PipelineManager | None = None,
+        on_completed_callback: Callable[..., None] | None = None,
     ):
         self.relato_repo = relato_repo
         self.effect_repo = effect_repo
         self.enriched_repo = enriched_repo
         self.pipeline_manager = pipeline_manager or PipelineManager()
         self.worker_id = f"worker-{socket.gethostname()}"
+        self.on_completed_callback = on_completed_callback
 
     def run(self, relato_id: str) -> None:
         """
@@ -109,6 +111,14 @@ class EnrichMetadataJob:
                     metadata={"fields": list(enriched_data.keys())},
                 )
             )
+
+            # Notifica conclusão para disparar transições de domínio
+            if self.on_completed_callback:
+                try:
+                    self.on_completed_callback(relato_id)
+                except Exception as e:
+                    logger.error(f"[enrich_metadata_job] erro no callback de conclusão: {e}")
+
             logger.info("[enrich_metadata_job] completed | relato_id=%s", relato_id)
 
         except Exception as exc:

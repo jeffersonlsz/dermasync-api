@@ -183,6 +183,7 @@ class EffectDispatcher:
                 "conteudo_original": effect.conteudo,
                 "status": effect.status,
                 "image_refs": effect.image_refs,
+                
             }
             
             # Se houver estado de pipeline operacional, inclui no documento

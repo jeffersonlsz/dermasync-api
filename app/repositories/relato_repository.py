@@ -43,7 +43,7 @@ class RelatoRepository:
         query = (
             self.collection
             .where(filter=FieldFilter("status", "==", "approved"))
-            .order_by("created_at", direction="DESCENDING")
+            .order_by("updated_at", direction="DESCENDING")
             .limit(limit)
         )
 

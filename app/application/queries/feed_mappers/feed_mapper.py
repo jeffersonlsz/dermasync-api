@@ -30,7 +30,10 @@ def relato_full_to_preview(
     return RelatoPublicPreviewDTO(
         id=relato.id,
         excerpt=excerpt,
-        age_range=relato.classificacao_etaria,
+        age_range=relato.classificacao_etaria or "desconcida",
+        gender=relato.genero or "desconhecido",
+        status=relato.status,
+        regioes_afetadas=relato.regioes_afetadas or [],
         tags=relato.sintomas or [],
         image_previews=previews,
         created_at=relato.created_at,

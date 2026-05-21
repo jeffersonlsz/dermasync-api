@@ -18,6 +18,7 @@ class RelatoRepository:
     def __init__(self):
         self.db = get_firestore_client()
         self.collection = self.db.collection("relatos")
+        self.enrichment_collection = self.db.collection("relato_enrichments")
 
     def get_by_id(self, relato_id: str) -> Optional[Dict]:
         """
@@ -60,15 +61,13 @@ class RelatoRepository:
 
         return resultados
 
-    def get_by_owner(self, owner_user_id: str, limit: int = 5):
+    def get_by_owner(self, owner_id: str, limit: int = 5):
 
         query = (
             self.collection
-            .where(filter=FieldFilter("owner_user_id", "==", str(owner_user_id)))
-            .order_by("timestamp", direction="DESCENDING")
+            .where(filter=FieldFilter("owner_id", "==", str(owner_id)))
             .limit(limit)
         )
-
 
         docs = query.stream()
 
@@ -77,7 +76,45 @@ class RelatoRepository:
         for doc in docs:
 
             data = doc.to_dict() or {}
+
             data["id"] = doc.id
+
+            if "data" in data:
+                data.update(data["data"])
+
+            # ==========================================
+            # BUSCA ENRICHMENT RELACIONADO
+            # ==========================================
+
+            enrichment_query = (
+                self.enrichment_collection
+                .where(filter=FieldFilter("relato_id", "==", doc.id))
+                .limit(1)
+            )
+
+            enrichment_docs = list(enrichment_query.stream())
+
+            tags = []
+
+            if enrichment_docs:
+
+                enrichment_data = enrichment_docs[0].to_dict() or {}
+
+                enrichment_payload = enrichment_data.get("data", {})
+
+                sintomas = enrichment_payload.get("sintomas", [])
+                tratamentos = enrichment_payload.get(
+                    "tratamentos_mencionados",
+                    []
+                )
+
+                tags.extend(sintomas)
+                tags.extend(tratamentos)
+
+            # remove duplicados preservando ordem
+            tags = list(dict.fromkeys(tags))
+
+            data["tags"] = tags
 
             resultados.append(data)
 

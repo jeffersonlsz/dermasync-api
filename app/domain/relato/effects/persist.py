@@ -14,7 +14,7 @@ class PersistRelatoEffect(Effect):
     owner_id: str
     status: RelatoStatus
     conteudo: str
-    #imagens: dict removido - apenas refs agora
+    metadados: dict # ✅ Novo campo para metadados
     image_refs: dict[str, list[str]]  # ✅ apenas refs
     pipeline: dict | None = None  # ✅ Novo: estado operacional (Fase 1)
 

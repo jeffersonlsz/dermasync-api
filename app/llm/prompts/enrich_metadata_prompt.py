@@ -23,11 +23,13 @@ SCHEMA:
   "idade": null,
   "genero": null,
   "sintomas": [],
-  "tratamentos_mencionados": []
+  "tratamentos_mencionados": [],
+  "regioes_afetadas": [],
+  "temporal_markers": []
 }}
 
 REGRAS SEMÂNTICAS:
-- idade: inteiro apenas se explícito
+- idade: número inteiro representando a idade do paciente, se mencionada. Exemplo: "45 anos" -> 45
 - genero:
   - homem -> masculino
   - mulher -> feminino
@@ -39,6 +41,14 @@ REGRAS SEMÂNTICAS:
 - tratamentos_mencionados:
   - medicamentos, terapias ou práticas
   - exemplo: hidratante, corticoide, banho morno
+- regioes_afetadas:
+  - partes do corpo mencionadas
+  - usar termos curtos
+  - exemplo: "braços e pernas" -> ["braços", "pernas"]
+- temporal_markers:
+  - indicadores de tempo mencionados
+  - usar termos curtos
+  - exemplo: "desde ontem" -> ["ontem"]
 
 RELATO:
 {relato_text}

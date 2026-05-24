@@ -5,6 +5,7 @@ from datetime import datetime
 
 from google.cloud.firestore import FieldFilter
 from app.firestore.client import get_firestore_client
+from app.domain.relato.states import RelatoStatus
 
 
 class RelatoRepository:
@@ -43,7 +44,7 @@ class RelatoRepository:
 
         query = (
             self.collection
-            .where(filter=FieldFilter("status", "==", "approved"))
+            .where(filter=FieldFilter("status", "==", RelatoStatus.APPROVED_PUBLIC.value))
             .order_by("updated_at", direction="DESCENDING")
             .limit(limit)
         )

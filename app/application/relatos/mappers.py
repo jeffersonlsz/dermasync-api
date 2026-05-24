@@ -75,6 +75,8 @@ def map_relato_data(relato_data: dict, doc_id: str) -> dict:
     }
     return mapped
 
+from app.domain.relato.states import RelatoStatus
+
 def map_public_preview_dto(data: dict, doc_id: str) -> Optional[RelatoPublicPreviewDTO]:
     """
     Transforma um relato do Firestore em um DTO de Preview Público para a Galeria.
@@ -84,8 +86,9 @@ def map_public_preview_dto(data: dict, doc_id: str) -> Optional[RelatoPublicPrev
         return None
 
     public_visibility = data.get("public_visibility", {})
-    if public_visibility.get("status") != "PUBLIC":
+    if public_visibility.get("status") != RelatoStatus.APPROVED_PUBLIC.value:
         return None
+
     
     public_excerpt = data.get("public_excerpt") or {}
 

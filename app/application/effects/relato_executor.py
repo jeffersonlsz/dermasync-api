@@ -375,7 +375,7 @@ class RelatoEffectExecutor:
             attempt,
         )
 
-        # Reconstruo mnima do efeito
+        # Reconstrução mínima do efeito
         if effect_type == "PERSIST_RELATO":
             effect_data = effect_result.metadata.get("effect_data", {})
             effect = PersistRelatoEffect(relato_id=relato_id, **effect_data)

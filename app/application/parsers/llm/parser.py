@@ -34,6 +34,8 @@ class Metadata(BaseModel):
     genero: Optional[str]
     sintomas: List[str] = Field(default_factory=list)
     tratamentos_mencionados: List[str] = Field(default_factory=list)
+    regioes_afetadas: List[str] = Field(default_factory=list)
+    temporal_markers: List[str] = Field(default_factory=list)
   
 class LLMOutputParser:
 

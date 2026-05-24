@@ -36,6 +36,7 @@ class CreateRelatoUseCase:
         relato_id: str, 
         owner_id: str, 
         conteudo: str, 
+        metadados: dict,
         image_refs: Dict[str, List[str]],
         actor_role: str
     ) -> dict:
@@ -49,7 +50,8 @@ class CreateRelatoUseCase:
             relato_id=relato_id,
             owner_id=owner_id,
             conteudo=conteudo,
-            image_refs=image_refs
+            image_refs=image_refs,
+            metadados=metadados
         )
 
         # Decisão do Domínio (Regras de Negócio)
@@ -87,6 +89,7 @@ class CreateRelatoUseCase:
                     status=effect.status,
                     conteudo=effect.conteudo,
                     image_refs=effect.image_refs,
+                    metadados=effect.metadados,
                     pipeline=pipeline_dict
                 )
                 final_effects.append(new_effect)

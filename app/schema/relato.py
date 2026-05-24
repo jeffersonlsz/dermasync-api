@@ -112,24 +112,18 @@ class RelatoFullOutput(BaseModel):
 
 
 
+from app.domain.relato.states import RelatoStatus
+
+
 class ConsentimentoSchema(BaseModel):
-
     public_display: bool
-
     terms_version: str
-
     accepted_at: datetime
 
 
-
-
-
 class PublicVisibilitySchema(BaseModel):
-
-    status: Literal["PRIVATE", "ELIGIBLE", "PUBLIC", "UNDER_REVIEW", "REJECTED"]
-
+    status: RelatoStatus
     reason: Optional[str] = None
-
     updated_at: datetime
 
 

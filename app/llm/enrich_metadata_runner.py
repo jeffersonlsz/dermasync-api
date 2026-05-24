@@ -51,7 +51,7 @@ def run_enrich_metadata_llm(relato_text: str) -> Dict:
 
 
     if not isinstance(metadata, dict):
-        raise ValueError("Resposta do LLM no retornou JSON vlido.")
+        raise ValueError("Resposta do LLM não retornou JSON válido.")
 
     return metadata
 

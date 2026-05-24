@@ -67,9 +67,9 @@ async def listar_galeria_publica_v3(
     # 🧠 Servios Cognitivos (legacy-safe)
     # ============================================================
     from app.domain.galeria.eligibility_service import RelatoEligibilityService
+    from app.domain.relato.states import RelatoStatus
     from app.domain.galeria.visibility_policy import (
         RelatoVisibilityPolicy,
-        RelatoStatus,
     )
      
 
@@ -81,7 +81,7 @@ async def listar_galeria_publica_v3(
     # --------------------------------------------------------
     relatos_query = (
         db.collection_group("relatos")
-        .where(filter=FieldFilter("public_visibility.status", "==", "PUBLIC"))
+        .where(filter=FieldFilter("public_visibility.status", "==", RelatoStatus.APPROVED_PUBLIC.value))
         .order_by("created_at", direction="DESCENDING")
         .limit(limit)
         .offset((page - 1) * limit)
@@ -151,7 +151,7 @@ async def listar_galeria_publica_v3(
 
         # Poltica mnima (no muda comportamento)
         visibility_policy = RelatoVisibilityPolicy(
-            status=RelatoStatus.APPROVED,
+            status=RelatoStatus.APPROVED_PUBLIC,
             constraints=set(),
         )
 
@@ -232,9 +232,9 @@ async def listar_galeria_contextual(
     from app.domain.galeria.eligibility_service import RelatoEligibilityService
     from app.domain.galeria.visibility_policy import (
         RelatoVisibilityPolicy,
-        RelatoStatus,
         VisibilityConstraint,
     )
+    from app.domain.relato.states import RelatoStatus
     from app.domain.galeria.similarity.calculator import SimilarityCalculator
     from app.domain.galeria.similarity.policy import SIMILARITY_POLICY_V1
     from app.services.ux_adapters.galeria_explanation import (
@@ -264,7 +264,7 @@ async def listar_galeria_contextual(
 
     relatos_query = (
         db.collection_group("relatos")
-        .where(filter=FieldFilter("public_visibility.status", "==", "PUBLIC"))
+        .where(filter=FieldFilter("public_visibility.status", "==", RelatoStatus.APPROVED_PUBLIC.value))
         .order_by("created_at", direction="DESCENDING")
         .limit(limit * 3)  # overfetch controlado
         .offset((page - 1) * limit)
@@ -294,7 +294,7 @@ async def listar_galeria_contextual(
 
         # Poltica mnima do relato
         visibility_policy = RelatoVisibilityPolicy(
-            status=RelatoStatus.APPROVED,
+            status=RelatoStatus.APPROVED_PUBLIC,
             constraints={VisibilityConstraint.REQUIRE_SIMILARITY},
         )
 
@@ -362,7 +362,7 @@ async def listar_galeria_contextual(
                 eligibility=eligibility_service.decide(
                     user=user_profile,
                     relato_policy=RelatoVisibilityPolicy(
-                        status=RelatoStatus.APPROVED,
+                        status=RelatoStatus.APPROVED_PUBLIC,
                         constraints=set(),
                     ),
                 ),
@@ -420,7 +420,7 @@ async def resolve_relato_base_for_user(
     query = (
         db.collection_group("relatos")
         .where(filter=FieldFilter("user_id", "==", user_id_str))
-        .where(filter=FieldFilter("status", "==", "approved"))
+        .where(filter=FieldFilter("status", "==", RelatoStatus.APPROVED_PUBLIC.value))
         .order_by("created_at", direction="DESCENDING")
         .limit(1)
     )

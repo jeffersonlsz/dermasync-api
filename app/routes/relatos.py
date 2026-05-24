@@ -72,6 +72,14 @@ async def criar_e_enviar_relato(
             storage=storage,
         ),
     }
+    regioes_afetadas = draft.metadados.get("regioesAfetadas", [])
+    
+    genero = draft.sexo.lower()
+    payload_metadados = {
+        "idade": draft.idade,
+        "genero": genero,
+        "regioes_afetadas": regioes_afetadas,
+    }
 
     relato_repo = FirestoreRelatoRepository()
     dispatcher = EffectDispatcher(
@@ -89,6 +97,7 @@ async def criar_e_enviar_relato(
         relato_id=relato_id,
         owner_id=str(current_user.id),
         conteudo=draft.descricao,
+        metadados = payload_metadados,
         image_refs=image_refs,
         actor_role=current_user.role
     )
@@ -210,7 +219,8 @@ async def list_pending_moderation(
 
     query_service = ModerationQueryService()
     use_case = ListPendingModerationUseCase(query_service=query_service)
-    return await use_case.execute(limit=limit)
+    pending_relatos = await use_case.execute(limit=limit)
+    return pending_relatos
 
 
 @router.get(

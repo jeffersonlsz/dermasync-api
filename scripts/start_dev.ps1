@@ -56,8 +56,8 @@ try {
     exit
 }
 
-Write-Host "`n=== AGUARDANDO EMULADORES (5s) ===" -ForegroundColor Yellow
-Start-Sleep -Seconds 5
+Write-Host "`n=== AGUARDANDO EMULADORES (10s) ===" -ForegroundColor Yellow
+Start-Sleep -Seconds 10
 
 Write-Host "`n=== INICIANDO UVICORN ===" -ForegroundColor Yellow
 # Executa o Uvicorn na janela atual

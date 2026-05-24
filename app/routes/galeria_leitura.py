@@ -113,7 +113,7 @@ async def ler_relato(
         constraints.add(VisibilityConstraint.REQUIRE_SIMILARITY)
 
     visibility_policy = RelatoVisibilityPolicy(
-        status=RelatoStatus.APPROVED,
+        status=RelatoStatus.APPROVED_PUBLIC,
         constraints=constraints,
     )
 

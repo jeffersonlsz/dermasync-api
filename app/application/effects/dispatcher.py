@@ -181,6 +181,7 @@ class EffectDispatcher:
             data = {
                 "owner_id": effect.owner_id,
                 "conteudo_original": effect.conteudo,
+                "metadados": effect.metadados,
                 "status": effect.status,
                 "image_refs": effect.image_refs,
                 

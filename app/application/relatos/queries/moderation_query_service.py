@@ -2,6 +2,7 @@
 from typing import List
 from google.cloud.firestore import FieldFilter
 from app.firestore.client import get_firestore_client
+from app.domain.relato.states import RelatoStatus
 
 class ModerationQueryService:
     def __init__(self):
@@ -10,7 +11,7 @@ class ModerationQueryService:
     def list_pending(self, limit: int = 20) -> List[dict]:
         docs = (
             self.db.collection("relatos")
-            .where(filter=FieldFilter("moderation_status", "==", "pending"))
+            .where(filter=FieldFilter("status", "==", RelatoStatus.PROCESSED.value))
             .limit(limit)
             .stream()
         )

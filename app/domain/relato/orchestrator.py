@@ -1,167 +1,315 @@
-# app/domain/relato/orchestrator.py
-
-from app.domain.relato.contracts import (
-    Actor,
-    Command,
-    Decision,
-    ActorRole,
-    CreateRelato,
-    SubmitRelato,
-    ApproveRelatoPublic,
-    RejectRelato,
-    ArchiveRelato,
-    MarkRelatoAsProcessed,
-    MarkRelatoAsError,
-    MarkRelatoAsUploaded,
-)
-from app.domain.relato.effects import (
-    PersistRelatoEffect,
+# app/domain/relato/orchestrator.py
+
+
+
+from app.domain.relato.contracts import (
+
+    Actor,
+
+    Command,
+
+    Decision,
+
+    ActorRole,
+
+    CreateRelato,
+
+    SubmitRelato,
+
+    ApproveRelatoPublic,
+
+    RejectRelato,
+
+    ArchiveRelato,
+
+    MarkRelatoAsProcessed,
+
+    MarkRelatoAsError,
+
+    MarkRelatoAsUploaded,
+
+)
+
+from app.domain.relato.effects import (
+
+    PersistRelatoEffect,
+
     PersistImageRefsEffect,
-    EnqueueProcessingEffect,
-    UpdateRelatoStatusEffect,
-    EmitDomainEventEffect,
-)
-from app.domain.relato.states import RelatoStatus
-from app.domain.relato.intents import RelatoIntent
-from app.domain.relato.transitions import resolve_transition
-
-
-# =========================
-# Command → Intent mapping
-# =========================
-
-def command_to_intent(command: Command) -> RelatoIntent | None:
-    if isinstance(command, CreateRelato):
-        return RelatoIntent.CREATE
-    if isinstance(command, SubmitRelato):
-        return RelatoIntent.SUBMIT
-    if isinstance(command, MarkRelatoAsUploaded):
-        return RelatoIntent.MARK_UPLOADED
-    if isinstance(command, MarkRelatoAsProcessed):
-        return RelatoIntent.MARK_PROCESSED
-    if isinstance(command, MarkRelatoAsError):
-        return RelatoIntent.MARK_ERROR
-    if isinstance(command, ApproveRelatoPublic):
-        return RelatoIntent.APPROVE_PUBLIC
-    if isinstance(command, RejectRelato):
-        return RelatoIntent.REJECT
-    if isinstance(command, ArchiveRelato):
-        return RelatoIntent.ARCHIVE
-
-    return None
-
-
-# =========================
-# Orchestrator
-# =========================
-
-def decide(
-    command: Command,
-    actor: Actor,
-    current_state: RelatoStatus | None = None,
-) -> Decision:
-    """
-    Crebro do domnio.
-    Puro, determinstico e governado por dados semnticos.
-    """
-
-    intent = command_to_intent(command)
-
-    if intent is None:
-        return Decision(allowed=False, reason="Comando desconhecido.")
-
-    # -------------------------
-    # Guards (autoridade)
-    # -------------------------
-
-    if intent in {RelatoIntent.APPROVE_PUBLIC, RelatoIntent.REJECT, RelatoIntent.ARCHIVE}:
-        if actor.role not in {ActorRole.ADMIN, ActorRole.COLLABORATOR}:
-            return Decision(
-                allowed=False,
-                reason="Ao permitida apenas para administradores ou colaboradores.",
-                previous_state=current_state,
-            )
-
-    # -------------------------
-    # Resolver transio
-    # -------------------------
-
-    next_state = resolve_transition(current_state, intent)
-
-    if next_state is None:
-        return Decision(
-            allowed=False,
-            reason=f"Transio invlida: {intent} a partir de {current_state}.",
-            previous_state=current_state,
-        )
-
-    # -------------------------
-    # Emitir effects
-    # -------------------------
-
-    effects = []
-
-    if intent == RelatoIntent.CREATE:
-        assert isinstance(command, CreateRelato)
-
-        effects.extend([
-            PersistRelatoEffect(
-                relato_id=command.relato_id,
-                owner_id=command.owner_id,
-                status=next_state,
-                conteudo=command.conteudo,
-                image_refs=command.image_refs,
-            ),
+    EnqueueProcessingEffect,
+
+    UpdateRelatoStatusEffect,
+
+    EmitDomainEventEffect,
+
+)
+
+from app.domain.relato.states import RelatoStatus
+
+from app.domain.relato.intents import RelatoIntent
+
+from app.domain.relato.transitions import resolve_transition
+
+
+
+
+
+# =========================
+
+# Command → Intent mapping
+
+# =========================
+
+
+
+def command_to_intent(command: Command) -> RelatoIntent | None:
+
+    if isinstance(command, CreateRelato):
+
+        return RelatoIntent.CREATE
+
+    if isinstance(command, SubmitRelato):
+
+        return RelatoIntent.SUBMIT
+
+    if isinstance(command, MarkRelatoAsUploaded):
+
+        return RelatoIntent.MARK_UPLOADED
+
+    if isinstance(command, MarkRelatoAsProcessed):
+
+        return RelatoIntent.MARK_PROCESSED
+
+    if isinstance(command, MarkRelatoAsError):
+
+        return RelatoIntent.MARK_ERROR
+
+    if isinstance(command, ApproveRelatoPublic):
+
+        return RelatoIntent.APPROVE_PUBLIC
+
+    if isinstance(command, RejectRelato):
+
+        return RelatoIntent.REJECT
+
+    if isinstance(command, ArchiveRelato):
+
+        return RelatoIntent.ARCHIVE
+
+
+
+    return None
+
+
+
+
+
+# =========================
+
+# Orchestrator
+
+# =========================
+
+
+
+def decide(
+
+    command: Command,
+
+    actor: Actor,
+
+    current_state: RelatoStatus | None = None,
+
+) -> Decision:
+
+    """
+
+    Criador do domínio.
+
+    Puro, determinístico e governado por dados semânticos.
+
+    """
+
+
+
+    intent = command_to_intent(command)
+
+
+
+    if intent is None:
+
+        return Decision(allowed=False, reason="Comando desconhecido.")
+
+
+
+    # -------------------------
+
+    # Guards (autoridade)
+
+    # -------------------------
+
+
+
+    if intent in {RelatoIntent.APPROVE_PUBLIC, RelatoIntent.REJECT, RelatoIntent.ARCHIVE}:
+
+        if actor.role not in {ActorRole.ADMIN, ActorRole.COLLABORATOR}:
+
+            return Decision(
+
+                allowed=False,
+
+                reason="Ao permitida apenas para administradores ou colaboradores.",
+
+                previous_state=current_state,
+
+            )
+
+
+
+    # -------------------------
+
+    # Resolver transio
+
+    # -------------------------
+
+
+
+    next_state = resolve_transition(current_state, intent)
+
+
+
+    if next_state is None:
+
+        return Decision(
+
+            allowed=False,
+
+            reason=f"Transio invlida: {intent} a partir de {current_state}.",
+
+            previous_state=current_state,
+
+        )
+
+
+
+    # -------------------------
+
+    # Emitir effects
+
+    # -------------------------
+
+
+
+    effects = []
+
+    if intent == RelatoIntent.CREATE:
+        assert isinstance(command, CreateRelato)
+        effects.extend([
+            PersistRelatoEffect(
+                relato_id=command.relato_id,
+                owner_id=command.owner_id,
+                status=next_state,
+                conteudo=command.conteudo,
+                metadados=command.metadados,
+                image_refs=command.image_refs,
+            
+            ),
+
             PersistImageRefsEffect(
-                relato_id=command.relato_id,
-                image_refs=command.image_refs,
-            ),
-        ])
-
-    else:
-        # Status update para todas as outras transições
-        effects.append(
-            UpdateRelatoStatusEffect(
-                relato_id=command.relato_id,
-                new_status=next_state,
-            )
-        )
-
-        if intent == RelatoIntent.SUBMIT:
-            effects.append(
-                EnqueueProcessingEffect(relato_id=command.relato_id)
-            )
-
-    # Evento de domínio para auditoria e integração
-    event_map = {
-        RelatoIntent.CREATE: "relato.created",
-        RelatoIntent.SUBMIT: "relato.submitted",
-        RelatoIntent.MARK_PROCESSED: "relato.processed",
-        RelatoIntent.MARK_ERROR: "relato.error",
-        RelatoIntent.APPROVE_PUBLIC: "relato.approved_public",
-        RelatoIntent.REJECT: "relato.rejected",
-        RelatoIntent.ARCHIVE: "relato.archived",
-        RelatoIntent.MARK_UPLOADED: "relato.uploaded",
-    }
-    
-    event_name = event_map.get(intent, f"relato.{intent.value}")
-
-    effects.append(
-        EmitDomainEventEffect(
-            relato_id=command.relato_id,
-            event_name=event_name,
-            payload={
-                "previous_state": current_state.value if current_state else None,
-                "next_state": next_state.value,
-                "actor_id": actor.id,
-                "actor_role": actor.role
-            }
-        )
-    )
-
-    return Decision(
-        allowed=True,
-        effects=effects,
-        previous_state=current_state,
-        next_state=next_state,
-    )
+                relato_id=command.relato_id,
+                image_refs=command.image_refs,
+            ),
+        ])
+    else:
+
+        # Status update para todas as outras transições
+
+        effects.append(
+
+            UpdateRelatoStatusEffect(
+
+                relato_id=command.relato_id,
+
+                new_status=next_state,
+
+            )
+
+        )
+
+
+
+        if intent == RelatoIntent.SUBMIT:
+
+            effects.append(
+
+                EnqueueProcessingEffect(relato_id=command.relato_id)
+
+            )
+
+
+
+    # Evento de domínio para auditoria e integração
+
+    event_map = {
+
+        RelatoIntent.CREATE: "relato.created",
+
+        RelatoIntent.SUBMIT: "relato.submitted",
+
+        RelatoIntent.MARK_PROCESSED: "relato.processed",
+
+        RelatoIntent.MARK_ERROR: "relato.error",
+
+        RelatoIntent.APPROVE_PUBLIC: "relato.approved_public",
+
+        RelatoIntent.REJECT: "relato.rejected",
+
+        RelatoIntent.ARCHIVE: "relato.archived",
+
+        RelatoIntent.MARK_UPLOADED: "relato.uploaded",
+
+    }
+
+    
+
+    event_name = event_map.get(intent, f"relato.{intent.value}")
+
+
+
+    effects.append(
+
+        EmitDomainEventEffect(
+
+            relato_id=command.relato_id,
+
+            event_name=event_name,
+
+            payload={
+
+                "previous_state": current_state.value if current_state else None,
+
+                "next_state": next_state.value,
+
+                "actor_id": actor.id,
+
+                "actor_role": actor.role
+
+            }
+
+        )
+
+    )
+
+
+
+    return Decision(
+
+        allowed=True,
+
+        effects=effects,
+
+        previous_state=current_state,
+
+        next_state=next_state,
+
+    )
+

@@ -46,7 +46,31 @@ class FirestoreRelatoRepository(RelatoRepositoryPort):
 
         return data
 
+    async def find_similar_relatos(self, relato_id: str, top_k: int = 5) -> List[Dict]:
+        # Placeholder implementation: busca relatos com o mesmo status, ordenados por created_at
+        # Em produção, isso pode ser substituído por uma busca mais sofisticada usando embeddings ou similaridade de texto
 
+        original_relato = await self.get_by_id(relato_id)
+        if not original_relato:
+            return []
+
+        status = original_relato.get("status")
+
+        query = self.collection.where("status", "==", status).order_by("created_at", direction="DESCENDING").limit(top_k + 1)
+
+        results = query.stream()
+
+        similares = []
+        for doc in results:
+            if doc.id == relato_id:
+                continue  # Pula o relato original
+            data = doc.to_dict()
+            data["id"] = doc.id
+            similares.append(data)
+            if len(similares) >= top_k:
+                break
+
+        return similares
 
     async def update_status(self, relato_id: str, status: RelatoStatus) -> None:
 

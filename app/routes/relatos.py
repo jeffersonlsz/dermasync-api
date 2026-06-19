@@ -265,3 +265,23 @@ async def retry_relato_endpoint(
 
     use_case = RetryRelatoUseCase()
     return await use_case.execute(relato_id=relato_id)
+
+@router.post(
+    "/{relato_id}/similares",
+    status_code=status.HTTP_202_ACCEPTED,
+    tags=["Relatos"],
+)
+async def buscar_relatos_similares(
+    relato_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    from app.application.relatos.find_similar_relatos_use_case import FindSimilarRelatosUseCase
+    from app.infra.firestore.relato_repository_impl import FirestoreRelatoRepository
+
+    relato_repo = FirestoreRelatoRepository()
+    use_case = FindSimilarRelatosUseCase(relato_repo=relato_repo)
+    similares = await use_case.execute(
+        relato_id=relato_id,
+        requesting_user=current_user,
+    )
+    return similares

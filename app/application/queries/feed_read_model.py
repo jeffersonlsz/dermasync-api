@@ -1,3 +1,4 @@
+from asyncio.log import logger
 from datetime import datetime, timezone
 from typing import Any
 
@@ -79,6 +80,26 @@ def _normalize_image_refs(data: dict[str, Any]) -> dict[str, Any]:
 
     return {}
 
+def classificar_faixa_etaria(idade: int | None) -> str:
+    if idade is None or idade < 0:
+        return "desconhecida"
+
+    if idade <= 3:
+        return "0-3"
+
+    if idade <= 9:
+        return "4-9"
+
+    if idade <= 17:
+        return "10-17"
+
+    if idade <= 39:
+        return "18-39"
+
+    if idade <= 59:
+        return "40-59"
+
+    return "60+"
 
 def normalize_feed_relato_data(data: dict[str, Any]) -> dict[str, Any]:
     """
@@ -87,23 +108,19 @@ def normalize_feed_relato_data(data: dict[str, Any]) -> dict[str, Any]:
     O objetivo e absorver variantes legadas de Firestore antes da validacao
     Pydantic, mantendo o contrato publico do feed independente do shape cru.
     """
-    meta = _first_dict(data.get("meta"))
+    meta = _first_dict(data.get("metadados")) or {
+        "idade": "0-0",
+        "regioes_afetadas": ["Sem regiões"],
+        "genero": "neutro",
+    }
+
     public_excerpt = _first_dict(data.get("public_excerpt"))
 
-    content = (
-        data.get("conteudo_original")
-        or data.get("content")
-        or meta.get("descricao")
-        or data.get("descricao")
-        or public_excerpt.get("text")
-        or data.get("micro_depoimento")
-        or data.get("microdepoimento")
-        or ""
-    )
+    content = data.get("conteudo_original") or "Sem conteúdo"
 
-    return {
+    normalized = {
         **data,
-        "id": str(data.get("id") or data.get("relato_id") or data.get("doc_id") or ""),
+        "id": str(data.get("id") or data.get("relato_id")),
         "owner_id": str(
             data.get("owner_id")
             or data.get("owner_user_id")
@@ -111,16 +128,12 @@ def normalize_feed_relato_data(data: dict[str, Any]) -> dict[str, Any]:
             or ""
         ),
         "created_at": _coerce_datetime(
-            data.get("created_at") or data.get("timestamp") or data.get("criado_em")
+            data.get("created_at") or data.get("updated_at")
         ),
         "conteudo_original": str(content),
-        "classificacao_etaria": (
-            data.get("classificacao_etaria")
-            or public_excerpt.get("age_range")
-            or meta.get("classificacao")
-        ),
-        "idade": data.get("idade") or meta.get("idade"),
-        "genero": data.get("genero") or meta.get("sexo"),
+        "classificacao_etaria": classificar_faixa_etaria(meta.get("idade")),
+        "idade": str(meta.get("idade")),
+        "genero": data.get("genero") or meta.get("genero") or "genero desconhecido",
         "sintomas": _list_or_empty(
             data.get("sintomas")
             or public_excerpt.get("tags")
@@ -141,3 +154,17 @@ def normalize_feed_relato_data(data: dict[str, Any]) -> dict[str, Any]:
         "processing": data.get("processing"),
         "last_error": data.get("last_error"),
     }
+
+    logger.info(
+        "Relato normalizado",
+        extra={
+            "relato_id": normalized["id"],
+            "idade": normalized["idade"],
+            "classificacao_etaria": normalized["classificacao_etaria"],
+            "status": normalized["status"],
+        },
+    )
+    import pprint
+    pprint.pprint(normalized)
+
+    return normalized

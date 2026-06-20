@@ -57,11 +57,12 @@ class FeedService:
 
     def _load_public_relatos(self, limit: int) -> list[RelatoFullOutput]:
         relatos_raw = self.relato_query.list_public_candidates(limit=limit)
-        return [
+        ret = [
             RelatoFullOutput(**normalize_feed_relato_data(r))
             for r in relatos_raw
             if is_public_feed_relato(r)
         ]
+        return ret
 
     def _load_owner_relatos(
         self,
@@ -72,10 +73,11 @@ class FeedService:
             owner_user_id,
             limit=limit,
         )
-        return [
+        ret = [
             RelatoFullOutput(**normalize_feed_relato_data(r))
             for r in relatos_raw
         ]
+        return ret
 
     def _to_previews(
         self,

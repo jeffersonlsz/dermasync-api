@@ -80,29 +80,75 @@ class FeedService:
         return ret
 
     def _to_previews(
-        self,
-        relatos: list[RelatoFullOutput],
-        hide_after: bool = False,
+    self,
+    relatos: list[RelatoFullOutput],
+    hide_after: bool = False,
     ):
-        return [
-            relato_full_to_preview(relato, hide_after=hide_after)
-            for relato in relatos
-        ]
+        previews = []
+
+        for relato in relatos:
+            preview = relato_full_to_preview(
+                relato,
+                hide_after=hide_after,
+            )
+
+            print(
+                f"[PREVIEW] relato_id={getattr(relato, 'id', None)} "
+                f"preview_id={getattr(preview, 'id', None)}"
+            )
+
+            previews.append(preview)
+
+        return previews
 
     def _ranked_previews(
-        self,
-        user: User,
-        relatos: list[RelatoFullOutput],
+    self,
+    user: User,
+    relatos: list[RelatoFullOutput],
     ):
-        scored = [
-            (
-                self.ranking_policy.score(user, relato),
-                relato_full_to_preview(relato, hide_after=False),
+        scored = []
+
+        for relato in relatos:
+            score = self.ranking_policy.score(user, relato)
+
+            preview = relato_full_to_preview(
+                relato,
+                hide_after=False,
             )
-            for relato in relatos
-        ]
-        scored.sort(key=lambda item: item[0], reverse=True)
-        return [preview for _, preview in scored]
+
+            print(
+                f"[RANKING] "
+                f"relato_id={getattr(relato, 'id', None)} "
+                f"score={score}"
+            )
+
+            scored.append((score, preview))
+
+        print("\nANTES DO SORT")
+        for score, preview in scored:
+            print(
+                f"preview_id={getattr(preview, 'id', None)} "
+                f"score={score}"
+            )
+
+        scored.sort(
+            key=lambda item: item[0],
+            reverse=True,
+        )
+
+        print("\nDEPOIS DO SORT")
+        for score, preview in scored:
+            print(
+                f"preview_id={getattr(preview, 'id', None)} "
+                f"score={score}"
+            )
+
+        ranked_previews = []
+
+        for score, preview in scored:
+            ranked_previews.append(preview)
+
+        return ranked_previews
 
     def _paginate(self, items: list, page: int, limit: int):
         start = (page - 1) * limit

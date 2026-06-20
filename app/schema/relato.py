@@ -221,7 +221,6 @@ class ImagePreviewsDTO(BaseModel):
 
 
 
-
 class RelatoPublicPreviewDTO(BaseModel):
 
     """
@@ -240,6 +239,8 @@ class RelatoPublicPreviewDTO(BaseModel):
 
     id: str = Field(..., description="Identificador pblico do relato")
 
+    owner_id: Optional[str] = Field(..., description="ID do usuário proprietário do relato")
+   
     excerpt: str = Field(
 
         ...,
@@ -247,6 +248,12 @@ class RelatoPublicPreviewDTO(BaseModel):
         max_length=120,
 
         description="Trecho curto e anonimizado do relato"
+
+    )
+    
+    conteudo_original: Optional[str] = Field(
+
+        None, description="Texto original enviado pelo usuário (pode ser omitido para previews públicos)"
 
     )
 
@@ -276,6 +283,15 @@ class RelatoPublicPreviewDTO(BaseModel):
 
         description="Miniaturas de imagens de preview (antes/depois)"
 
+    )
+    
+    genero: Optional[str] = Field(
+        None, description="Gênero do relato (ex: 'feminino', 'masculino', 'neutro', etc.)"
+
+    )
+    
+    regioes_afetadas: Optional[List[str]] = Field(
+        default_factory=list, description="Regies afetadas mencionadas no relato"
     )
 
     created_at: datetime = Field(

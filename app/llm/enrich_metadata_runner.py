@@ -22,9 +22,9 @@ def fix_missing_commas(text: str) -> str:
 
 def run_enrich_metadata_llm(relato_text: str) -> Dict:
     """
-    Executa o enriquecimento semntico do relato.
-    Retorna um dicionrio estruturado.
-    Pode levantar excees.
+    Executa o enriquecimento semântico do relato.
+    Retorna um dicionário estruturado.
+    Pode levantar exceções.
     """
 
     if not relato_text or not relato_text.strip():

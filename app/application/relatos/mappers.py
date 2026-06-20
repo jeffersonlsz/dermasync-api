@@ -75,7 +75,7 @@ def map_relato_data(relato_data: dict, doc_id: str) -> dict:
     }
     return mapped
 
-from app.domain.relato.states import RelatoStatus
+
 
 def map_public_preview_dto(data: dict, doc_id: str) -> Optional[RelatoPublicPreviewDTO]:
     """
@@ -85,31 +85,20 @@ def map_public_preview_dto(data: dict, doc_id: str) -> Optional[RelatoPublicPrev
     if not data:
         return None
 
-    public_visibility = data.get("public_visibility", {})
-    if public_visibility.get("status") != RelatoStatus.APPROVED_PUBLIC.value:
-        return None
-
+    meta = data.get("metadados") or {}
     
-    public_excerpt = data.get("public_excerpt") or {}
-
-    previews = None
-    images = public_excerpt.get("image_previews")
-    if isinstance(images, dict):
-        before = images.get("before")
-        after = images.get("after")
-        if before or after:
-            previews = ImagePreviewsDTO(before=before, after=after)
-
-    try:
-        return RelatoPublicPreviewDTO(
-            id=canonical["id"],
-            excerpt=public_excerpt.get("text", "")[:120],
-            age_range=public_excerpt.get("age_range"),
-            duration=public_excerpt.get("duration"),
-            tags=public_excerpt.get("tags", []),
-            image_previews=previews,
-            created_at=canonical["created_at"]
+    obj = RelatoPublicPreviewDTO(
+            id=data.get("id", doc_id),
+            owner_id=canonical["owner_id"],
+            excerpt=data.get("conteudo_original", "")[:120],
+            conteudo_original=data.get("conteudo_original"),
+            age_range="0-0",
+            genero=meta.get("genero") or "sem gênero",
+            tags=meta.get("regioes_afetadas") or [],
+            image_previews=data.get("image_refs") or {},
+            created_at=canonical["created_at"],
+            
         )
-    except Exception:
-        logger.warning(f"Falha ao mapear RelatoPublicPreviewDTO para {doc_id}")
-        return None
+    
+    return obj
+

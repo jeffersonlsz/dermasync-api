@@ -25,7 +25,9 @@ SCHEMA:
   "sintomas": [],
   "tratamentos_mencionados": [],
   "regioes_afetadas": [],
-  "temporal_markers": []
+  "temporal_markers": [],
+  "titulo_resumido": null,
+  "solucao_encontrada": null
 }}
 
 REGRAS SEMÂNTICAS:
@@ -49,6 +51,12 @@ REGRAS SEMÂNTICAS:
   - indicadores de tempo mencionados
   - usar termos curtos
   - exemplo: "desde ontem" -> ["ontem"]
+- titulo_resumido:
+  - resumo de uma frase do relato, focando no principal sintoma ou situação
+  - exemplo: "Minha pele está coçando muito com bolhas nas mãos" -> "coceira intensa com bolhas nas mãos"
+- solucao_encontrada:
+  - se o relato mencionar uma solução ou melhora, resumir em uma frase curta
+  - exemplo: "Depois de usar um creme hidratante e tomar Metrexato, minha pele melhorou" -> "melhora com creme hidratante e imunossupressor"
 
 RELATO:
 {relato_text}

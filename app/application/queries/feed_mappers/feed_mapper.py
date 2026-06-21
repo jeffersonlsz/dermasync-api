@@ -17,7 +17,7 @@ def relato_full_to_preview(
     relato: RelatoFullOutput,
     hide_after: bool = False,
 ) -> RelatoPublicPreviewDTO:
-    excerpt = (relato.micro_depoimento or relato.conteudo_original or "")[:120]
+    excerpt =  relato.resumo_publico or "Relato sem resumo público"
 
     previews = None
     if relato.image_refs:
@@ -27,7 +27,7 @@ def relato_full_to_preview(
             depois=_preview_list(after),
         )
 
-    return RelatoPublicPreviewDTO(
+        return RelatoPublicPreviewDTO(
         id=relato.id,
         excerpt=excerpt,
         age_range=relato.classificacao_etaria or "desconcida",
@@ -38,4 +38,6 @@ def relato_full_to_preview(
         image_previews=previews,
         created_at=relato.created_at,
         owner_id=relato.owner_id,
+        titulo_resumido=relato.titulo_resumido or "Relato sem título",
+        resumo_publico= excerpt
     )

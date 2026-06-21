@@ -4,6 +4,7 @@ from typing import Optional, List, Dict
 from datetime import datetime
 
 from google.cloud.firestore import FieldFilter
+
 from app.firestore.client import get_firestore_client
 from app.domain.relato.states import RelatoStatus
 
@@ -12,7 +13,7 @@ class RelatoRepository:
     """
     Camada de acesso a dados para relatos armazenados no Firestore.
 
-    Esta classe NÃO define o contrato de domnio do Relato.
+    Esta classe NÃO define o contrato de domínio do Relato.
     Ela apenas retorna os dados persistidos de forma estruturada.
     """
 
@@ -21,7 +22,88 @@ class RelatoRepository:
         self.collection = self.db.collection("relatos")
         self.enrichment_collection = self.db.collection("relato_enrichments")
 
-    def get_by_id(self, relato_id: str) -> Optional[Dict]:
+    # ==========================================================
+    # HELPERS
+    # ==========================================================
+
+    def _get_enrichment(self, relato_id: str) -> Dict:
+        """
+        Busca o enrichment relacionado ao relato.
+        """
+
+        enrichment_query = (
+            self.enrichment_collection
+            .where(filter=FieldFilter("relato_id", "==", relato_id))
+            .limit(1)
+        )
+
+        enrichment_docs = list(enrichment_query.stream())
+
+        if not enrichment_docs:
+            return {}
+
+        enrichment_data = enrichment_docs[0].to_dict() or {}
+
+        return enrichment_data.get("data", {})
+
+    def _build_tags_from_enrichment(
+        self,
+        enrichment_payload: Dict,
+    ) -> List[str]:
+        """
+        Deriva tags para UI a partir do enrichment.
+        """
+
+        tags = []
+
+        tags.extend(
+            enrichment_payload.get("sintomas", [])
+        )
+
+        tags.extend(
+            enrichment_payload.get(
+                "tratamentos_mencionados",
+                []
+            )
+        )
+
+        # remove duplicados preservando ordem
+        return list(dict.fromkeys(tags))
+
+    def _build_relato(
+        self,
+        doc,
+        include_enrichment: bool = True,
+    ) -> Dict:
+
+        data = doc.to_dict() or {}
+
+        data["id"] = doc.id
+
+        # mantém compatibilidade com código existente
+        if "data" in data and isinstance(data["data"], dict):
+            data.update(data["data"])
+
+        if include_enrichment:
+
+            enrichment_payload = self._get_enrichment(doc.id)
+
+            data["enrichment"] = enrichment_payload
+
+            data["tags"] = self._build_tags_from_enrichment(
+                enrichment_payload
+            )
+
+        return data
+
+    # ==========================================================
+    # QUERIES
+    # ==========================================================
+
+    def get_by_id(
+        self,
+        relato_id: str,
+    ) -> Optional[Dict]:
         """
         Retorna um relato pelo ID.
         """
@@ -31,101 +113,80 @@ class RelatoRepository:
         if not doc.exists:
             return None
 
-        data = doc.to_dict() or {}
+        return self._build_relato(doc)
 
-        data["id"] = doc.id
-
-        return data
-
-    def get_aprovados(self, limit: int = 50) -> List[Dict]:
+    def get_aprovados(
+        self,
+        limit: int = 50,
+    ) -> List[Dict]:
         """
-        Retorna relatos aprovados para uso em feed pblico.
+        Retorna relatos aprovados para uso em feed público.
         """
 
         query = (
             self.collection
-            .where(filter=FieldFilter("status", "==", RelatoStatus.APPROVED_PUBLIC.value))
-            .order_by("updated_at", direction="DESCENDING")
-            .limit(limit)
-        )
-
-        docs = query.stream()
-
-        resultados = []
-
-        for doc in docs:
-            data = doc.to_dict() or {}
-
-            data["id"] = doc.id
-
-            resultados.append(data)
-
-        return resultados
-
-    def get_by_owner(self, owner_id: str, limit: int = 5):
-
-        query = (
-            self.collection
-            .where(filter=FieldFilter("owner_id", "==", str(owner_id)))
-            .limit(limit)
-        )
-
-        docs = query.stream()
-
-        resultados = []
-
-        for doc in docs:
-
-            data = doc.to_dict() or {}
-
-            data["id"] = doc.id
-
-            if "data" in data:
-                data.update(data["data"])
-
-            # ==========================================
-            # BUSCA ENRICHMENT RELACIONADO
-            # ==========================================
-
-            enrichment_query = (
-                self.enrichment_collection
-                .where(filter=FieldFilter("relato_id", "==", doc.id))
-                .limit(1)
-            )
-
-            enrichment_docs = list(enrichment_query.stream())
-
-            tags = []
-
-            if enrichment_docs:
-
-                enrichment_data = enrichment_docs[0].to_dict() or {}
-
-                enrichment_payload = enrichment_data.get("data", {})
-
-                sintomas = enrichment_payload.get("sintomas", [])
-                tratamentos = enrichment_payload.get(
-                    "tratamentos_mencionados",
-                    []
+            .where(
+                filter=FieldFilter(
+                    "status",
+                    "==",
+                    RelatoStatus.APPROVED_PUBLIC.value,
                 )
+            )
+            .order_by(
+                "updated_at",
+                direction="DESCENDING",
+            )
+            .limit(limit)
+        )
 
-                tags.extend(sintomas)
-                tags.extend(tratamentos)
+        docs = query.stream()
 
-            # remove duplicados preservando ordem
-            tags = list(dict.fromkeys(tags))
+        return [
+            self._build_relato(doc)
+            for doc in docs
+        ]
 
-            data["tags"] = tags
+    def get_by_owner(
+        self,
+        owner_id: str,
+        limit: int = 5,
+    ) -> List[Dict]:
 
-            resultados.append(data)
+        query = (
+            self.collection
+            .where(
+                filter=FieldFilter(
+                    "owner_id",
+                    "==",
+                    str(owner_id),
+                )
+            )
+            .limit(limit)
+        )
 
-        return resultados
+        docs = query.stream()
 
-    def save(self, relato_id: str, payload: Dict) -> None:
+        return [
+            self._build_relato(doc)
+            for doc in docs
+        ]
+
+    # ==========================================================
+    # COMMANDS
+    # ==========================================================
+
+    def save(
+        self,
+        relato_id: str,
+        payload: Dict,
+    ) -> None:
         """
         Atualiza ou cria um relato no Firestore.
         """
 
         payload["updated_at"] = datetime.utcnow()
 
-        self.collection.document(relato_id).set(payload, merge=True)
+        self.collection.document(relato_id).set(
+            payload,
+            merge=True,
+        )

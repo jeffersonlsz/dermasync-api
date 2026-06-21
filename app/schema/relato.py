@@ -72,6 +72,8 @@ class RelatoPublicoOutput(BaseModel):
 
     solucao_encontrada: Optional[str] = Field(None, description="Soluo encontrada ou recomendada (gerado por LLM).")
 
+    titulo_resumido: Optional[str] = Field(None, description="Título resumido do relato (gerado por LLM).")
+
     imagens_ids: dict = Field(..., description="IDs das imagens associadas ao relato.")
 
     
@@ -105,6 +107,10 @@ class RelatoFullOutput(BaseModel):
     micro_depoimento: Optional[str] = Field(None, description="Breve resumo do relato gerado por LLM.")
 
     solucao_encontrada: Optional[str] = Field(None, description="Soluo encontrada ou recomendada (gerado por LLM).")
+    
+    resumo_publico: Optional[str] = Field(None, description="Trecho curto e anonimizado do relato (gerado por LLM).")
+
+    titulo_resumido: Optional[str] = Field(None, description="Título resumido do relato (gerado por LLM).")
 
     processing: Optional[Dict] = Field(None, description="Dados sobre o estado do processamento em background.")
 
@@ -241,15 +247,7 @@ class RelatoPublicPreviewDTO(BaseModel):
 
     owner_id: Optional[str] = Field(..., description="ID do usuário proprietário do relato")
    
-    excerpt: str = Field(
-
-        ...,
-
-        max_length=120,
-
-        description="Trecho curto e anonimizado do relato"
-
-    )
+    resumo_publico: str = Field(...,description="Trecho curto e anonimizado do relato"    )
     
     conteudo_original: Optional[str] = Field(
 
@@ -292,6 +290,10 @@ class RelatoPublicPreviewDTO(BaseModel):
     
     regioes_afetadas: Optional[List[str]] = Field(
         default_factory=list, description="Regies afetadas mencionadas no relato"
+    )
+    
+    titulo_resumido: Optional[str] = Field(
+        None, description="Título resumido do relato (gerado por LLM)."
     )
 
     created_at: datetime = Field(

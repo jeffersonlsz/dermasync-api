@@ -127,3 +127,36 @@ class PipelineManager:
             f"{task_prefix}.lease_expires_at": None,
             f"{task_prefix}.updated_at": datetime.utcnow()
         })
+
+    def requeue_task(
+        self,
+        relato_id: str,
+        task_name: str,
+    ):
+        """
+        Força uma tarefa para RETRY,
+        independentemente do estado atual.
+        """
+
+        doc_ref = self.collection.document(relato_id)
+
+        task_prefix = f"_pipeline.tasks.{task_name}"
+
+        doc_ref.set(
+            {
+                "_pipeline": {
+                    "active": True,
+                    "tasks": {
+                        task_name: {
+                            "state": EffectExecutionState.RETRY,
+                            "attempt": 0,
+                            "last_error": None,
+                            "lease_expires_at": None,
+                            "worker_id": None,
+                            "updated_at": datetime.utcnow(),
+                        }
+                    }
+                }
+            },
+            merge=True,
+        )

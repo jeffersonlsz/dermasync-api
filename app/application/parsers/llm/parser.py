@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 import json
 import logging
@@ -36,7 +36,22 @@ class Metadata(BaseModel):
     tratamentos_mencionados: List[str] = Field(default_factory=list)
     regioes_afetadas: List[str] = Field(default_factory=list)
     temporal_markers: List[str] = Field(default_factory=list)
-  
+    titulo_resumido: Optional[str] = None
+    solucao_encontrada: Optional[str] = None
+    faixa_etaria: Optional[str] = None
+    resumo_publico: Optional[str] = None
+    # para validar a idade e não falhar em casos como '4 meses'
+    @field_validator("idade", mode="before")
+    @classmethod
+    def validar_idade(cls, v):
+        if v is None:
+            return None
+
+        try:
+            return int(v)
+        except Exception:
+            return None
+
 class LLMOutputParser:
 
     def __init__(self, llm_client):

@@ -27,11 +27,14 @@ SCHEMA:
   "regioes_afetadas": [],
   "temporal_markers": [],
   "titulo_resumido": null,
-  "solucao_encontrada": null
+  "solucao_encontrada": null,
+  "faixa_etaria": null,
+  "resumo_publico": null
 }}
 
 REGRAS SEMÂNTICAS:
 - idade: número inteiro representando a idade do paciente, se mencionada. Exemplo: "45 anos" -> 45
+  - se a idade for expressa em meses, bebê, recém-nascido etc, coloque idade = null e preencha faixa_etaria com "bebê", "criança", "adolescente", "adulto jovem", "adulto", "idoso" conforme apropriado
 - genero:
   - homem -> masculino
   - mulher -> feminino
@@ -57,6 +60,9 @@ REGRAS SEMÂNTICAS:
 - solucao_encontrada:
   - se o relato mencionar uma solução ou melhora, resumir em uma frase curta
   - exemplo: "Depois de usar um creme hidratante e tomar Metrexato, minha pele melhorou" -> "melhora com creme hidratante e imunossupressor"
+- resumo_publico:
+  - Resumo curto até 3 frases explicando os sintomas e situação, e o que foi tentado e resultado obtido. Sem mencionar marcas de produtos.
+  - exemplo: "Tive coceira e ardência nas pernas, então eu usei hidratante Cerave e tomei corticoide oral" -> "Paciente com coceira e ardência nas pernas, teve melhora com hidratante e corticoide oral."
 
 RELATO:
 {relato_text}

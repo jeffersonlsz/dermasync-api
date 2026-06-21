@@ -113,7 +113,14 @@ def normalize_feed_relato_data(data: dict[str, Any]) -> dict[str, Any]:
         "regioes_afetadas": ["Sem regiões"],
         "genero": "neutro",
     }
-
+    enrichment = _first_dict(data.get("enrichment"))
+    if enrichment:
+        meta["idade"] = enrichment.get("idade", meta["idade"])
+        meta["regioes_afetadas"] = enrichment.get(
+            "regioes_afetadas", meta["regioes_afetadas"]
+        )
+        meta["genero"] = enrichment.get("genero", meta["genero"])
+        
     public_excerpt = _first_dict(data.get("public_excerpt"))
 
     content = data.get("conteudo_original") or "Sem conteúdo"
@@ -150,7 +157,9 @@ def normalize_feed_relato_data(data: dict[str, Any]) -> dict[str, Any]:
             or data.get("microdepoimento")
             or public_excerpt.get("text")
         ),
+        "titulo_resumido": enrichment.get("titulo_resumido") or data.get("titulo_resumido") or "Relato sem título backend",
         "solucao_encontrada": data.get("solucao_encontrada"),
+        "resumo_publico": enrichment.get("resumo_publico") ,
         "processing": data.get("processing"),
         "last_error": data.get("last_error"),
     }

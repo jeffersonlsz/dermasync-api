@@ -60,3 +60,40 @@ def test_llm_inference_port_can_be_satisfied_by_fake() -> None:
         metadata={"request_metadata": {}},
     )
 
+
+def test_llm_response_modern_provider_fields_are_optional() -> None:
+    response = LLMResponse(
+        task=LLMTask.ENRICH_METADATA,
+        text="{}",
+        provider_id="ollama",
+        model_id="gemma3:4b",
+    )
+
+    assert response.input_tokens is None
+    assert response.output_tokens is None
+    assert response.total_tokens is None
+    assert response.latency_ms is None
+    assert response.finish_reason is None
+    assert response.metadata == {}
+
+
+def test_llm_response_accepts_usage_latency_and_finish_reason() -> None:
+    response = LLMResponse(
+        task=LLMTask.ENRICH_METADATA,
+        text="{}",
+        provider_id="openrouter",
+        model_id="openrouter-model",
+        input_tokens=10,
+        output_tokens=20,
+        total_tokens=30,
+        latency_ms=123,
+        finish_reason="stop",
+        metadata={"id": "completion-id"},
+    )
+
+    assert response.input_tokens == 10
+    assert response.output_tokens == 20
+    assert response.total_tokens == 30
+    assert response.latency_ms == 123
+    assert response.finish_reason == "stop"
+    assert response.metadata == {"id": "completion-id"}

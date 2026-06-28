@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     )
 
     LLM_MODEL: str = "gemma3:4b"
+    LLM_PROVIDER: str = "ollama"
 
 
 settings = Settings()

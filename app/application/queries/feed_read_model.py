@@ -158,6 +158,7 @@ def normalize_feed_relato_data(data: dict[str, Any]) -> dict[str, Any]:
             or public_excerpt.get("text")
         ),
         "titulo_resumido": enrichment.get("titulo_resumido") or data.get("titulo_resumido") or "Relato sem título backend",
+        "conteudo_anonimizado": enrichment.get("conteudo_anonimizado").get("conteudo_anonimizado") if enrichment.get("conteudo_anonimizado") else 'Não há conteudo anonimizado',
         "solucao_encontrada": data.get("solucao_encontrada"),
         "resumo_publico": enrichment.get("resumo_publico") ,
         "processing": data.get("processing"),

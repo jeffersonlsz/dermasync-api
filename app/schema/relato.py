@@ -89,6 +89,8 @@ class RelatoFullOutput(BaseModel):
     created_at: datetime = Field(..., description="Data de envio do relato.")
 
     conteudo_original: str = Field(..., description="Texto original enviado pelo usurio.")
+    
+    conteudo_anonimizado: Optional[str] = Field(None, description="Texto anonimizado do relato (gerado por LLM).")
 
     classificacao_etaria: Optional[str] = None
 
@@ -252,6 +254,12 @@ class RelatoPublicPreviewDTO(BaseModel):
     conteudo_original: Optional[str] = Field(
 
         None, description="Texto original enviado pelo usuário (pode ser omitido para previews públicos)"
+
+    )
+    
+    conteudo_anonimizado: Optional[str] = Field(
+
+        None, description="Texto anonimizado do relato (gerado por LLM)."
 
     )
 

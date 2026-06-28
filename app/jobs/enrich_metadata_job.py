@@ -13,6 +13,10 @@ from app.application.pipeline.manager import PipelineManager
 from app.application.pipeline.constants import TASK_ENRICH_METADATA
 from app.core.settings import settings
 
+import asyncio
+
+from app.llm.anonymous_content_runner import generate_anonymous_content
+
 logger = logging.getLogger(__name__)
 
 class EnrichMetadataJob:
@@ -99,6 +103,21 @@ class EnrichMetadataJob:
                 version=self.ENRICHMENT_VERSION,
                 validation_mode="relaxed",
                 model_used=self.get_model_used(),
+            )
+
+            payload = {
+                "metadados": dict(relato.get("metadados", {})),
+                "enrichment": enriched_data,
+            }
+
+            conteudo_anonimizado = asyncio.run(
+                generate_anonymous_content(payload)
+            )
+
+            self.enriched_repo.collection.document(relato_id).update(
+                {
+                    "data.conteudo_anonimizado": conteudo_anonimizado,
+                }
             )
 
             # FASE 2: Sucesso no Pipeline (Síncrono)

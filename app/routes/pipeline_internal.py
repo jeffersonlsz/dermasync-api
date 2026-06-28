@@ -12,6 +12,10 @@ from app.application.pipeline.reprocess_relato_use_case import (
 )
 from app.application.pipeline.constants import TASK_ENRICH_METADATA
 
+from app.application.pipeline.reprocess_all_relatos_use_case import (
+    ReprocessAllRelatosUseCase,
+)
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/internal/pipeline", tags=["Internal Pipeline"])
@@ -79,6 +83,45 @@ async def reprocess_relato(
         logger.exception(
             "Erro ao reprocessar relato %s",
             relato_id,
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
+        )
+        
+def get_reprocess_all_use_case():
+    manager = PipelineManager()
+    repo = RelatoRepository()
+    port = ThreadProcessingPort()
+
+    return ReprocessAllRelatosUseCase(
+        pipeline_manager=manager,
+        processing_port=port,
+        relato_repo=repo,
+    )
+    
+@router.post("/reprocess-all")
+async def reprocess_all(
+    use_case: ReprocessAllRelatosUseCase = Depends(
+        get_reprocess_all_use_case
+    ),
+):
+    """
+    Reprocessa todos os relatos cadastrados.
+    """
+
+    try:
+        result = await use_case.execute()
+
+        return {
+            "status": "success",
+            "data": result,
+        }
+
+    except Exception as e:
+        logger.exception(
+            "Erro ao reprocessar todos os relatos"
         )
 
         raise HTTPException(

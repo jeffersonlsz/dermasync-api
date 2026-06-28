@@ -285,3 +285,32 @@ async def buscar_relatos_similares(
         requesting_user=current_user,
     )
     return similares
+
+@router.post(
+    "/{relato_id}/anonimizar",
+    status_code=status.HTTP_200_OK,
+    summary="Gera conteúdo anonimizado do relato",
+    tags=["Relatos"],
+)
+async def gerar_conteudo_anonimizado(
+    relato_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    from app.infra.firestore.relato_repository_impl import (
+        FirestoreRelatoRepository,
+    )
+    from app.application.relatos.generate_anonymous_content_use_case import (
+        GenerateAnonymousContentUseCase,
+    )
+
+    relato_repo = FirestoreRelatoRepository()
+
+    use_case = GenerateAnonymousContentUseCase(
+        relato_repo=relato_repo,
+    )
+
+    result = await use_case.execute(
+        relato_id=relato_id,
+    )
+
+    return result

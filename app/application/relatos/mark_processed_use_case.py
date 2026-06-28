@@ -27,6 +27,8 @@ class MarkRelatoAsProcessedUseCase:
         if not relato_data:
             logger.error(f"[MarkRelatoAsProcessedUseCase] Relato {relato_id} não encontrado.")
             return
+        
+
 
         current_status_str = relato_data.get("status")
         current_status = RelatoStatus(current_status_str) if current_status_str else None

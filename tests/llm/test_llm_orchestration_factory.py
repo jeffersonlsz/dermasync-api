@@ -71,10 +71,13 @@ def test_default_factory_can_wire_gemini_by_explicit_provider(monkeypatch) -> No
 
 
 def test_default_factory_can_wire_openrouter_by_explicit_provider(monkeypatch) -> None:
-    monkeypatch.setattr(factory, "OpenRouterClient", FakeOpenRouterClient)
-    monkeypatch.setattr(factory.settings, "OPENROUTER_API_KEY", "test-key")
-    monkeypatch.setattr(factory.settings, "OPENROUTER_BASE_URL", "https://openrouter.test")
-    monkeypatch.setattr(factory.settings, "OPENROUTER_MODEL", "openrouter/model")
+    monkeypatch.setattr(
+        "app.pipeline.llm_client.openrouter_client.OpenRouterClient",
+        FakeOpenRouterClient,
+    )
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    monkeypatch.setenv("OPENROUTER_BASE_URL", "https://openrouter.test")
+    monkeypatch.setenv("OPENROUTER_MODEL", "openrouter/model")
 
     orchestrator = factory.build_default_llm_orchestrator(provider="openrouter")
     response = orchestrator.generate(
@@ -87,6 +90,18 @@ def test_default_factory_can_wire_openrouter_by_explicit_provider(monkeypatch) -
     assert response.text == "openrouter response for Repair JSON"
     assert response.provider_id == "openrouter"
     assert response.model_id == "openrouter/model"
+
+
+def test_default_factory_requires_openrouter_env(monkeypatch) -> None:
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    monkeypatch.setenv("OPENROUTER_MODEL", "openrouter/model")
+
+    try:
+        factory.build_default_llm_orchestrator(provider="openrouter")
+    except ValueError as exc:
+        assert "OPENROUTER_API_KEY" in str(exc)
+    else:
+        raise AssertionError("Expected ValueError")
 
 
 def test_default_factory_rejects_unknown_provider() -> None:

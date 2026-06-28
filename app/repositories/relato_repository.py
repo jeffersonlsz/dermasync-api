@@ -190,3 +190,21 @@ class RelatoRepository:
             payload,
             merge=True,
         )
+        
+    def get_all(self) -> list[dict]:
+        """
+        Retorna todos os relatos.
+        """
+
+        docs = self.collection.stream()
+
+        result = []
+
+        for doc in docs:
+            data = doc.to_dict()
+
+            data["id"] = doc.id
+
+            result.append(data)
+
+        return result

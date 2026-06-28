@@ -39,5 +39,6 @@ def relato_full_to_preview(
         created_at=relato.created_at,
         owner_id=relato.owner_id,
         titulo_resumido=relato.titulo_resumido or "Relato sem título",
-        resumo_publico= excerpt
+        resumo_publico= excerpt,
+        conteudo_anonimizado=relato.conteudo_anonimizado or "Relato sem conteúdo anonimizado"
     )

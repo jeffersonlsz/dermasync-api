@@ -127,3 +127,28 @@ class FirestoreRelatoRepository(RelatoRepositoryPort):
 
         doc_ref.set(data_to_save, merge=True)
 
+
+    from google.cloud import firestore
+
+
+    async def update_conteudo_anonimizado(
+        self,
+        relato_id: str,
+        conteudo: str,
+    ) -> None:
+        """
+        Persiste o conteúdo anonimizado gerado pela LLM.
+        """
+
+        doc_ref = (
+            self.db
+            .collection("relatos")
+            .document(relato_id)
+        )
+
+        doc_ref.update(
+            {
+                "processamento.conteudo_anonimizado": conteudo,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        )

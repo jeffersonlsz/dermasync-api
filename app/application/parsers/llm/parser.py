@@ -40,6 +40,7 @@ class Metadata(BaseModel):
     solucao_encontrada: Optional[str] = None
     faixa_etaria: Optional[str] = None
     resumo_publico: Optional[str] = None
+    
     # para validar a idade e não falhar em casos como '4 meses'
     @field_validator("idade", mode="before")
     @classmethod
@@ -67,7 +68,23 @@ class LLMOutputParser:
             repaired = self._repair_with_llm(response)
 
             return self._parse(repaired)
+    
+    def parse_anonymous_content(self, response: str) -> str:
+        # remove ANSI codes
+        cleaned = remove_ansi(response)
 
+        # extrai o bloco JSON
+        cleaned = extract_json_block(cleaned)
+
+        # corrige problemas comuns de JSON
+        cleaned = fix_common_json_issues(cleaned)
+
+        logger.debug("[parser] cleaned json: %s", cleaned)
+
+        data = json.loads(cleaned)
+
+        return data
+    
     def _parse(self, response: str) -> Metadata:
         cleaned = remove_ansi(response)
         cleaned = extract_json_block(cleaned)

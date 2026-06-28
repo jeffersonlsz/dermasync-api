@@ -12,9 +12,6 @@ class Settings(BaseSettings):
 
     LLM_MODEL: str = "gemma3:4b"
     LLM_PROVIDER: str = "ollama"
-    OPENROUTER_API_KEY: str = ""
-    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
-    OPENROUTER_MODEL: str = ""
 
 
 settings = Settings()

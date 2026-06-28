@@ -97,7 +97,7 @@ def map_public_preview_dto(data: dict, doc_id: str) -> Optional[RelatoPublicPrev
             tags=meta.get("regioes_afetadas") or [],
             image_previews=data.get("image_refs") or {},
             created_at=canonical["created_at"],
-            
+            resumo_publico="Resumo publico não disponível",
         )
     
     return obj

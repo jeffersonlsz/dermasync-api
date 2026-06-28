@@ -2,25 +2,35 @@
 import logging
 from typing import Dict
 
-from app.pipeline.llm_client.ollama_client import OllamaClient
-from app.llm.prompts.enrich_metadata_prompt import build_enrich_metadata_prompt
 from app.application.parsers.llm.parser import LLMOutputParser
-
+from app.application.ports.llm_inference import LLMInferencePort
+from app.domain.llm.request import LLMRequest, LLMTask
+from app.llm.orchestration.factory import build_default_llm_orchestrator
+from app.llm.prompts.enrich_metadata_prompt import build_enrich_metadata_prompt
 
 
 logger = logging.getLogger(__name__)
 
-import re
 
-def remove_ansi(text: str) -> str:
-    ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
-    return ansi_escape.sub('', text)
+class _ParserLLMCompat:
+    def __init__(self, llm: LLMInferencePort) -> None:
+        self._llm = llm
 
-def fix_missing_commas(text: str) -> str:
-    # adiciona vrgula entre strings consecutivas
-    return re.sub(r'"\s*\n\s*"', '", "', text)
+    def generate(self, prompt: str) -> str:
+        response = self._llm.generate(
+            LLMRequest(
+                task=LLMTask.REPAIR_JSON,
+                prompt=prompt,
+                response_format="json",
+            )
+        )
+        return response.text
 
-def run_enrich_metadata_llm(relato_text: str) -> Dict:
+
+def run_enrich_metadata_llm(
+    relato_text: str,
+    llm: LLMInferencePort | None = None,
+) -> Dict:
     """
     Executa o enriquecimento semântico do relato.
     Retorna um dicionário estruturado.
@@ -32,20 +42,23 @@ def run_enrich_metadata_llm(relato_text: str) -> Dict:
 
     prompt = build_enrich_metadata_prompt(relato_text)
 
-    llm = OllamaClient()
-    parser = LLMOutputParser(llm)
+    inference = llm or build_default_llm_orchestrator()
+    parser = LLMOutputParser(_ParserLLMCompat(inference))
 
     logger.debug("[enrich_metadata_llm] calling model with prompt: %s", prompt)
 
-    response = llm.generate(
-        prompt=prompt,
-        #temperature=0.2,
+    response = inference.generate(
+        LLMRequest(
+            task=LLMTask.ENRICH_METADATA,
+            prompt=prompt,
+            response_format="json",
+        )
     )
 
-    logger.debug("[enrich_metadata_llm] parsing response from LLM: %s", response)
+    logger.debug("[enrich_metadata_llm] parsing response from LLM: %s", response.text)
 
     #data = _parse_llm_response(response)
-    metadata = parser.parse_metadata(response)
+    metadata = parser.parse_metadata(response.text)
     metadata = metadata.model_dump(exclude_none=True)
     #data.update(metadata)
 

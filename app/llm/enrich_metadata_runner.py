@@ -7,64 +7,68 @@ from app.application.ports.llm_inference import LLMInferencePort
 from app.domain.llm.request import LLMRequest, LLMTask
 from app.llm.orchestration.factory import build_default_llm_orchestrator
 from app.llm.prompts.enrich_metadata_prompt import build_enrich_metadata_prompt
-
+from app.application.effects.result import EffectResult, EffectStatus
 
 logger = logging.getLogger(__name__)
 
 
-class _ParserLLMCompat:
-    def __init__(self, llm: LLMInferencePort) -> None:
-        self._llm = llm
-
-    def generate(self, prompt: str) -> str:
-        response = self._llm.generate(
-            LLMRequest(
-                task=LLMTask.REPAIR_JSON,
-                prompt=prompt,
-                response_format="json",
-            )
-        )
-        return response.text
-
-
 def run_enrich_metadata_llm(
+    *,
+    relato_id: str,
     relato_text: str,
+    attempt_count: int,
     llm: LLMInferencePort | None = None,
-) -> Dict:
+) -> EffectResult:
     """
-    Executa o enriquecimento semântico do relato.
-    Retorna um dicionário estruturado.
-    Pode levantar exceções.
+    Executa o enriquecimento semântico do relato e retorna um EffectResult.
     """
 
     if not relato_text or not relato_text.strip():
         raise ValueError("Relato vazio ou invlido.")
 
     prompt = build_enrich_metadata_prompt(relato_text)
-
     inference = llm or build_default_llm_orchestrator()
-    parser = LLMOutputParser(_ParserLLMCompat(inference))
 
-    logger.debug("[enrich_metadata_llm] calling model with prompt: %s", prompt)
+    logger.debug("[enrich_metadata_llm] calling model for a relato_id: %s", relato_id)
 
-    response = inference.generate(
+    llm_result = inference.generate(
         LLMRequest(
             task=LLMTask.ENRICH_METADATA,
             prompt=prompt,
             response_format="json",
-        )
+        ),
+        relato_id=relato_id,
+        attempt_count=attempt_count
     )
 
-    logger.debug("[enrich_metadata_llm] parsing response from LLM: %s", response.text)
+    # Se o LLM pediu retry ou falhou permanentemente, apenas propaga o resultado
+    if llm_result.status != EffectStatus.SUCCESS:
+        return llm_result
 
-    #data = _parse_llm_response(response)
-    metadata = parser.parse_metadata(response.text)
-    metadata = metadata.model_dump(exclude_none=True)
-    #data.update(metadata)
+    # Se o LLM teve sucesso, processa a resposta
+    try:
+       
+        logger.debug("[enrich_metadata_llm] parsing response from LLM: %s", llm_result)
+        
+        
+        
+        
+        final_metadata = llm_result.metadata.copy()  # Copia o metadata retornado pelo LLM
+        
 
+        return EffectResult.success(
+            relato_id=relato_id,
+            effect_type=LLMTask.ENRICH_METADATA.value,
+            provider=llm_result.provider,
+            metadata=final_metadata
+        )
 
-    if not isinstance(metadata, dict):
-        raise ValueError("Resposta do LLM não retornou JSON válido.")
-
-    return metadata
+    except Exception as e:
+        logger.error(f"Falha ao processar a resposta do LLM para {relato_id}: {e}", exc_info=True)
+        return EffectResult.error(
+            relato_id=relato_id,
+            effect_type=LLMTask.ENRICH_METADATA.value,
+            error_message=f"ParserError: {e}",
+            provider=llm_result.provider
+        )
 

@@ -4,6 +4,8 @@ import json
 import logging
 import re
 
+from app.schema.knowledge import KnowledgeSchema
+
 logger = logging.getLogger(__name__)
 
 def remove_ansi(text: str) -> str:
@@ -40,6 +42,7 @@ class Metadata(BaseModel):
     solucao_encontrada: Optional[str] = None
     faixa_etaria: Optional[str] = None
     resumo_publico: Optional[str] = None
+    knowledge: Optional[KnowledgeSchema] = None
     
     # para validar a idade e não falhar em casos como '4 meses'
     @field_validator("idade", mode="before")

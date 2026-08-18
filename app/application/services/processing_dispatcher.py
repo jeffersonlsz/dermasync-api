@@ -58,7 +58,7 @@ def _run_enrich_job(relato_id: str) -> None:
             on_completed_callback=_on_job_completed
         )
 
-        job.run(relato_id)
+        job.run({"relato_id": relato_id, "attempt_count": 1})
         
         logger.info(
             "[relato_worker] processamento concluído relato_id=%s",

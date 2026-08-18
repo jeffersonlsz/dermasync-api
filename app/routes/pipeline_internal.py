@@ -1,3 +1,4 @@
+# app\routes\pipeline_internal.py
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from app.application.pipeline.recovery_service import PipelineRecoveryService

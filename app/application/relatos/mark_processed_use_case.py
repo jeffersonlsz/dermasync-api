@@ -1,3 +1,4 @@
+# app\application\relatos\mark_processed_use_case.py
 import logging
 from app.domain.relato.contracts import Actor, ActorRole, MarkRelatoAsProcessed
 from app.domain.relato.orchestrator import decide

@@ -70,8 +70,8 @@ def map_effect_result_to_ux(effect_result: EffectResult) -> UXEffect:
         **(effect_result.metadata or {}),
     }
 
-    if effect_result.retry_after is not None:
-        metadata["retry_after_seconds"] = effect_result.retry_after.total_seconds()
+    if effect_result.next_retry_at is not None:
+        metadata["retry_after_seconds"] = effect_result.next_retry_at.total_seconds()
 
     return UXEffect(
         type=ux_type,

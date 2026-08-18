@@ -121,6 +121,7 @@ class RelatoFullOutput(BaseModel):
 
 
 from app.domain.relato.states import RelatoStatus
+from app.schema.knowledge import KnowledgeSchema
 
 
 class ConsentimentoSchema(BaseModel):
@@ -195,6 +196,8 @@ class RelatoCompletoInput(BaseModel):
     public_visibility: Optional[PublicVisibilitySchema] = None
 
     public_excerpt: Optional[PublicExcerptSchema] = None
+
+    knowledge: Optional[KnowledgeSchema] = None
 
 
 

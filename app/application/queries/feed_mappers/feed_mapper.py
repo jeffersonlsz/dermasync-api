@@ -17,7 +17,7 @@ def relato_full_to_preview(
     relato: RelatoFullOutput,
     hide_after: bool = False,
 ) -> RelatoPublicPreviewDTO:
-    excerpt =  relato.resumo_publico or "Relato sem resumo público"
+    excerpt =  relato.resumo_publico or relato.conteudo_anonimizado or "Relato sem resumo público"
 
     previews = None
     if relato.image_refs:
@@ -40,5 +40,8 @@ def relato_full_to_preview(
         owner_id=relato.owner_id,
         titulo_resumido=relato.titulo_resumido or "Relato sem título",
         resumo_publico= excerpt,
-        conteudo_anonimizado=relato.conteudo_anonimizado or "Relato sem conteúdo anonimizado"
+        conteudo_anonimizado=relato.conteudo_anonimizado or "Relato sem conteúdo anonimizado",
+        conteudo_original = relato.conteudo_original or "Relato sem conteúdo original",
+        solucao_encontrada=relato.solucao_encontrada or "Relato sem solução encontrada",
+        
     )

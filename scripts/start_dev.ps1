@@ -62,7 +62,7 @@ Start-Sleep -Seconds 10
 Write-Host "`n=== INICIANDO UVICORN ===" -ForegroundColor Yellow
 # Executa o Uvicorn na janela atual
 try {
-    uvicorn app.main:app  --log-level debug
+    #uvicorn app.main:app  --log-level debug
 
 
 } catch {

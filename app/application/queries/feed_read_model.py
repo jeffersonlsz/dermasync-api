@@ -114,15 +114,16 @@ def normalize_feed_relato_data(data: dict[str, Any]) -> dict[str, Any]:
         "genero": "neutro",
     }
     enrichment = _first_dict(data.get("enrichment"))
+    enrichment_metadata = None
     if enrichment:
-        meta["idade"] = enrichment.get("idade", meta["idade"])
-        meta["regioes_afetadas"] = enrichment.get(
+        enrichment_metadata = enrichment.get("metadata") 
+        meta["idade"] = enrichment_metadata.get("idade") or meta["idade"]
+        meta["regioes_afetadas"] = enrichment_metadata.get(
             "regioes_afetadas", meta["regioes_afetadas"]
         )
-        meta["genero"] = enrichment.get("genero", meta["genero"])
-        
-    public_excerpt = _first_dict(data.get("public_excerpt"))
+        meta["genero"] = enrichment_metadata.get("genero", meta["genero"])
 
+    public_excerpt = enrichment_metadata.get("resumo_publico") if enrichment_metadata else "Erro resumo publico back-end"
     content = data.get("conteudo_original") or "Sem conteúdo"
 
     normalized = {
@@ -141,26 +142,18 @@ def normalize_feed_relato_data(data: dict[str, Any]) -> dict[str, Any]:
         "classificacao_etaria": classificar_faixa_etaria(meta.get("idade")),
         "idade": str(meta.get("idade")),
         "genero": data.get("genero") or meta.get("genero") or "genero desconhecido",
-        "sintomas": _list_or_empty(
-            data.get("sintomas")
-            or public_excerpt.get("tags")
-            or data.get("tags_extraidas")
-            or data.get("tags")
-        ),
+        "sintomas": enrichment_metadata.get("sintomas") or "Erro sintomas back-end",          
+        
         "image_refs": _normalize_image_refs(data),
         "regioes_afetadas": _list_or_empty(
             data.get("regioes_afetadas") or meta.get("regioes_afetadas")
         ),
         "status": data.get("status") or "unknown",
-        "micro_depoimento": (
-            data.get("micro_depoimento")
-            or data.get("microdepoimento")
-            or public_excerpt.get("text")
-        ),
-        "titulo_resumido": enrichment.get("titulo_resumido") or data.get("titulo_resumido") or "Relato sem título backend",
-        "conteudo_anonimizado": enrichment.get("conteudo_anonimizado").get("conteudo_anonimizado") if enrichment.get("conteudo_anonimizado") else 'Não há conteudo anonimizado',
-        "solucao_encontrada": data.get("solucao_encontrada"),
-        "resumo_publico": enrichment.get("resumo_publico") ,
+        "micro_depoimento":enrichment_metadata.get("resumo_publico") or "Erro micro depoimento back-end",
+        "titulo_resumido": enrichment_metadata.get("titulo_resumido") or data.get("titulo_resumido") or "Relato sem título backend",
+        "conteudo_anonimizado": str(enrichment.get("conteudo_anonimizado")) if enrichment.get("conteudo_anonimizado") else 'Não há conteudo anonimizado',
+        "solucao_encontrada": enrichment_metadata.get("solucao_encontrada"),
+        "resumo_publico": public_excerpt ,
         "processing": data.get("processing"),
         "last_error": data.get("last_error"),
     }

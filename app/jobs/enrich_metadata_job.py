@@ -109,6 +109,16 @@ class EnrichMetadataJob:
                     validation_mode="relaxed",
                     model_used=self.get_model_used(),
                 )
+                
+                # registra effect de EXTRACT_COMPUTABLE_METADATA de sucesso
+                effect_repository_result = EffectResult.success(
+                    relato_id=relato_id,
+                    effect_type=self.EFFECT_TYPE,
+                    provider="llm",
+                    metadata={"worker_id": self.worker_id, "attempt": attempt_count},
+                )
+                self.effect_repo.register_success(effect_repository_result)
+                
 
                 # A anonimização agora também retorna um EffectResult
                 payload_anon = {

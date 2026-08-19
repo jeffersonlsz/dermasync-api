@@ -33,7 +33,7 @@ class EffectResultRepository:
     def __init__(self, firestore_client: firestore.Client | None = None):
         self._db = firestore_client or firestore.Client()
 
-    def fetch_by_relato_id(self, relato_id: str) -> List[EffectResult]:
+    async def fetch_by_relato_id(self, relato_id: str) -> List[EffectResult]:
         """
         Busca todos os EffectResults associados a um relato.
         """
@@ -77,7 +77,7 @@ class EffectResultRepository:
                     effect_type=data["effect_type"],
                     status=status,
                     metadata=_metadata,
-                    error_message=data.get("error_message", data.get("error")),
+                    last_error_message=data.get("error_message", data.get("error")),
                     created_at=data.get("created_at"),
                 )
             )

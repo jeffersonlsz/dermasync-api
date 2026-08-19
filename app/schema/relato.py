@@ -1,6 +1,6 @@
 # app/schema/relato.py
 
-from typing import List, Optional, Dict, Literal
+from typing import Any, List, Optional, Dict, Literal
 
 from datetime import datetime
 
@@ -74,7 +74,7 @@ class RelatoPublicoOutput(BaseModel):
 
     titulo_resumido: Optional[str] = Field(None, description="Título resumido do relato (gerado por LLM).")
 
-    imagens_ids: dict = Field(..., description="IDs das imagens associadas ao relato.")
+    image_refs: dict = Field(..., description="IDs das imagens associadas ao relato.")
 
     
 
@@ -312,4 +312,14 @@ class RelatoPublicPreviewDTO(BaseModel):
         ..., description="Data de criao do relato (UTC)"
 
     )
+EnrichmentStatus = Literal["completed", "processing", "not_started", "failed"]
+class EnrichmentOutput(BaseModel):
+    status: EnrichmentStatus
+    data: Optional[Dict[str, Any]] = None
+    error_message: Optional[str] = None
 
+class RelatoComEnrichmentOutput(RelatoFullOutput):
+    enrichment: EnrichmentOutput
+
+class RelatoPublicoComEnrichmentOutput(RelatoPublicoOutput):
+    enrichment: EnrichmentOutput

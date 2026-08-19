@@ -72,21 +72,17 @@ class LLMOutputParser:
 
             return self._parse(repaired)
     
-    def parse_anonymous_content(self, response: str) -> str:
-        # remove ANSI codes
+    def parse_anonymous_content(self, response: str | dict) -> dict:
+        if isinstance(response, dict):
+            return response
+
         cleaned = remove_ansi(response)
-
-        # extrai o bloco JSON
         cleaned = extract_json_block(cleaned)
-
-        # corrige problemas comuns de JSON
         cleaned = fix_common_json_issues(cleaned)
 
         logger.debug("[parser] cleaned json: %s", cleaned)
 
-        data = json.loads(cleaned)
-
-        return data
+        return json.loads(cleaned)
     
     def _parse(self, response: str) -> Metadata:
         cleaned = remove_ansi(response)

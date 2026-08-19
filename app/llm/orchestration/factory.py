@@ -18,12 +18,12 @@ def build_default_llm_orchestrator(provider: str | None = None) -> LLMOrchestrat
     if provider_name == "ollama":
         client = OllamaClient()
         adapter = OllamaAdapter(client)
-        return LLMOrchestrator(default_provider=adapter)
+        return LLMOrchestrator(providers=[adapter])
 
     if provider_name == "gemini":
         client = GeminiClient()
         adapter = GeminiAdapter(client)
-        return LLMOrchestrator(default_provider=adapter)
+        return LLMOrchestrator(providers=[adapter])
     
     if provider_name == "openrouter":
         from app.llm.adapters.openrouter_adapter import OpenRouterAdapter
@@ -35,7 +35,7 @@ def build_default_llm_orchestrator(provider: str | None = None) -> LLMOrchestrat
             model_name=_get_required_env("OPENROUTER_MODEL"),
         )
         adapter = OpenRouterAdapter(client)
-        return LLMOrchestrator(default_provider=adapter)
+        return LLMOrchestrator(providers=[adapter])
 
     raise ValueError(f"Unsupported LLM provider: {provider_name}")
 

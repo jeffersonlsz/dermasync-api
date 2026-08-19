@@ -163,10 +163,18 @@ async def get_relato(
     tags=["Relatos"],
 ):
     from app.infra.firestore.relato_repository_impl import FirestoreRelatoRepository
+    from app.repositories.enriched_metadata_repository import EnrichedMetadataRepository
+    from app.repositories.effect_result_repository import EffectResultRepository
     from app.application.relatos.get_relato_use_case import GetRelatoUseCase
 
     relato_repo = FirestoreRelatoRepository()
-    use_case = GetRelatoUseCase(relato_repo=relato_repo)
+    enrichment_repo = EnrichedMetadataRepository()
+    effect_result_repo = EffectResultRepository()
+    use_case = GetRelatoUseCase(
+        relato_repo=relato_repo,
+        enrichment_repo=enrichment_repo,
+        effect_result_repo=effect_result_repo,
+    )
     
     relato = await use_case.execute(relato_id=relato_id, requesting_user=current_user)
     return relato

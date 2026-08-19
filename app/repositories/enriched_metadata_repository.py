@@ -34,9 +34,8 @@ class EnrichedMetadataRepository:
         self._db = firestore_client or firestore.Client()
         self.collection = self._db.collection(self.COLLECTION)
 
-    
-    def get(self, relato_id: str) -> dict | None:
 
+    async def get(self, relato_id: str) -> dict | None:
         """
 
         Busca enrichment validado para o relato.
@@ -111,4 +110,3 @@ class EnrichedMetadataRepository:
 
 
         self._db.collection(self.COLLECTION).document(relato_id).set(doc)
-

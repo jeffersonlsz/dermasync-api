@@ -87,7 +87,7 @@ async def generate_anonymous_content(
         )
 
     try:
-        parsed_response = parser.parse_anonymous_content(str(raw_text))
+        parsed_response = parser.parse_anonymous_content(raw_text)
         logger.debug(
             "[anonymous_content] successfully parsed response for relato_id=%s: %s",
             relato_id,

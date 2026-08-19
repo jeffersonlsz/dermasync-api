@@ -115,6 +115,7 @@ def normalize_feed_relato_data(data: dict[str, Any]) -> dict[str, Any]:
     }
     enrichment = _first_dict(data.get("enrichment"))
     enrichment_metadata = None
+    
     if enrichment:
         enrichment_metadata = enrichment.get("metadata") 
         meta["idade"] = enrichment_metadata.get("idade") or meta["idade"]
@@ -142,17 +143,17 @@ def normalize_feed_relato_data(data: dict[str, Any]) -> dict[str, Any]:
         "classificacao_etaria": classificar_faixa_etaria(meta.get("idade")),
         "idade": str(meta.get("idade")),
         "genero": data.get("genero") or meta.get("genero") or "genero desconhecido",
-        "sintomas": enrichment_metadata.get("sintomas") or "Erro sintomas back-end",          
+        "sintomas": enrichment_metadata.get("sintomas") if enrichment_metadata is not None else ["Erro sintomas back-end"],          
         
         "image_refs": _normalize_image_refs(data),
         "regioes_afetadas": _list_or_empty(
             data.get("regioes_afetadas") or meta.get("regioes_afetadas")
         ),
         "status": data.get("status") or "unknown",
-        "micro_depoimento":enrichment_metadata.get("resumo_publico") or "Erro micro depoimento back-end",
-        "titulo_resumido": enrichment_metadata.get("titulo_resumido") or data.get("titulo_resumido") or "Relato sem título backend",
+        "micro_depoimento":enrichment_metadata.get("resumo_publico") if enrichment_metadata is not None else  "Erro micro depoimento back-end",
+        "titulo_resumido": enrichment_metadata.get("titulo_resumido") if enrichment_metadata is not None else data.get("titulo_resumido") or "Relato sem título backend",
         "conteudo_anonimizado": str(enrichment.get("conteudo_anonimizado")) if enrichment.get("conteudo_anonimizado") else 'Não há conteudo anonimizado',
-        "solucao_encontrada": enrichment_metadata.get("solucao_encontrada"),
+        "solucao_encontrada": enrichment_metadata.get("solucao_encontrada") if enrichment_metadata is not None else "Erro solução encontrada back-end",
         "resumo_publico": public_excerpt ,
         "processing": data.get("processing"),
         "last_error": data.get("last_error"),
